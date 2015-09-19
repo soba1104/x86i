@@ -6,6 +6,20 @@
 
 #include <assert.h>
 
+#define BX_SUPPORT_X86_64 1 // FIXME
+#if BX_SUPPORT_X86_64
+# define BX_GENERAL_REGISTERS 16
+#else
+# define BX_GENERAL_REGISTERS 8
+#endif
+
+#define BX_16BIT_REG_IP  (BX_GENERAL_REGISTERS)
+#define BX_32BIT_REG_EIP (BX_GENERAL_REGISTERS)
+#define BX_64BIT_REG_RIP (BX_GENERAL_REGISTERS)
+
+#define BX_TMP_REGISTER  (BX_GENERAL_REGISTERS+1)
+#define BX_NIL_REGISTER  (BX_GENERAL_REGISTERS+2)
+
 #define X 0 /* undefined opcode */
 
 static const uint8_t opcode_has_modrm_64[512] = {
@@ -254,7 +268,15 @@ fetch_b1:
     // note that mod==11b handled above
 
     if ((rm & 0x7) != 4) { // no s-i-b byte
-      // FIXME
+      if (mod == 0x00) { // mod == 00b
+        if ((rm & 0x7) == 5) {
+          insn_set_sib_base(insn, BX_64BIT_REG_RIP);
+          goto get_32bit_displ;
+        }
+        // mod==00b, rm!=4, rm!=5
+        goto modrm_done;
+      }
+      // (mod == 0x40), mod==01b or (mod == 0x80), mod==10b
       assert(false);
     } else { // mod!=11b, rm==4, s-i-b byte follows
       assert(false);
