@@ -20,6 +20,23 @@
 #define BX_TMP_REGISTER  (BX_GENERAL_REGISTERS+1)
 #define BX_NIL_REGISTER  (BX_GENERAL_REGISTERS+2)
 
+// Lookup for opcode and attributes in another opcode tables
+// Totally 15 opcode groups supported
+#define BxGroupX            0x00f0 // bits 7..4: opcode groups definition
+#define BxPrefixSSE66       0x0010 // Group encoding: 0001, SSE_PREFIX_66 only
+#define BxPrefixSSEF3       0x0020 // Group encoding: 0010, SSE_PREFIX_F3 only
+#define BxPrefixSSEF2       0x0030 // Group encoding: 0011, SSE_PREFIX_F2 only
+#define BxPrefixSSE         0x0040 // Group encoding: 0100
+#define BxPrefixSSE2        0x0050 // Group encoding: 0101, do not allow SSE_PREFIX_F2 or SSE_PREFIX_F3
+#define BxPrefixSSE4        0x0060 // Group encoding: 0110
+#define BxPrefixSSEF2F3     0x0070 // Group encoding: 0111, ignore SSE_PREFIX_66
+#define BxGroupN            0x0080 // Group encoding: 1000
+#define BxSplitGroupN       0x0090 // Group encoding: 1001
+#define BxFPEscape          0x00A0 // Group encoding: 1010
+#define BxOSizeGrp          0x00B0 // Group encoding: 1011
+#define BxSplitMod11B       0x00C0 // Group encoding: 1100
+#define BxSplitVexVL        0x00D0 // Group encoding: 1101
+
 #define X 0 /* undefined opcode */
 
 static const uint8_t opcode_has_modrm_64[512] = {
@@ -298,7 +315,24 @@ modrm_done:
     /*ia_opcode = WalkOpcodeTables(OpcodeInfoPtr, attr, b2, sse_prefix, offset >> 9, i->getVL(), vex_w);*/
     ia_opcode = 0;
   } else {
-    assert(false); // FIXME
+    // Opcode does not require a MODRM byte.
+    // Note that a 2-byte opcode (0F XX) will jump to before
+    // the if() above after fetching the 2nd byte, so this path is
+    // taken in all cases if a modrm byte is NOT required.
+
+    unsigned group = attr & BxGroupX;
+    if (group == BxPrefixSSE && sse_prefix) {
+      assert(false);
+    }
+
+    /*ia_opcode = OpcodeInfoPtr->IA; // FIXME*/
+    ia_opcode = 0;
+    rm = (b1 & 7) | rex_b;
+    nnn = (b1 >> 3) & 7;
+    insn_set_mod_c0(insn);
+    if (b1 == 0x90) {
+      assert(false);
+    }
   }
 
   return 0;
