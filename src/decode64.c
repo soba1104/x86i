@@ -631,5 +631,16 @@ decode_done:
     insn_set_func(insn, NULL); // FIXME
   }
 
+  // FIXME
+#if 0
+  Bit32u op_flags = BxOpcodesTable[ia_opcode].opflags;
+  if (! (fetchModeMask & BX_FETCH_MODE_SSE_OK)) {
+     if (op_flags & BX_PREPARE_SSE) {
+        if (i->execute1 != &BX_CPU_C::BxError) i->execute1 = &BX_CPU_C::BxNoSSE;
+        return(1);
+     }
+  }
+#endif
+
   return 0;
 }
