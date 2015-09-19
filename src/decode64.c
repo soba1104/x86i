@@ -6,6 +6,7 @@
 
 #include <assert.h>
 
+// from cpu/cpu.h
 #define BX_SUPPORT_X86_64 1 // FIXME
 #if BX_SUPPORT_X86_64
 # define BX_GENERAL_REGISTERS 16
@@ -98,6 +99,19 @@
 
 #define BxGroupFP         BxSplitGroupN
 
+// from cpu/xmm.h
+#if BX_SUPPORT_EVEX
+#  define BX_XMM_REGISTERS 32
+#else
+#  if BX_SUPPORT_X86_64
+#    define BX_XMM_REGISTERS 16
+#  else
+#    define BX_XMM_REGISTERS 8
+#  endif
+#endif
+
+#define BX_VECTOR_TMP_REGISTER (BX_XMM_REGISTERS)
+
 #define X 0 /* undefined opcode */
 
 static const uint8_t opcode_has_modrm_64[512] = {
@@ -142,6 +156,67 @@ static const uint8_t opcode_has_modrm_64[512] = {
 };
 
 #undef X
+
+// from cpu/fetchdecode.h
+enum {
+  BX_SRC_NONE = 0,
+  BX_SRC_EAX = 1,
+  BX_SRC_NNN = 2,
+  BX_SRC_RM = 3,
+  BX_SRC_EVEX_RM = 4,
+  BX_SRC_VVV = 5,
+  BX_SRC_VIB = 6,
+  BX_SRC_VSIB = 7    // gather/scatter vector index
+};
+
+enum {
+  BX_NO_REG = 0,
+  BX_GPR8 = 0x1,
+  BX_GPR8_32 = 0x2,  // 8-bit memory reference but 32-bit GPR
+  BX_GPR16 = 0x3,
+  BX_GPR16_32 = 0x4, // 16-bit memory reference but 32-bit GPR
+  BX_GPR32 = 0x5,
+  BX_GPR64 = 0x6,
+  BX_FPU_REG = 0x7,
+  BX_MMX_REG = 0x8,
+  BX_VMM_REG = 0x9,
+  BX_KMASK_REG = 0xA,
+  BX_SEGREG = 0xB,
+  BX_CREG = 0xC,
+  BX_DREG = 0xD,
+  BX_BOUNDS_REG = 0xE
+};
+
+enum {
+  BX_VMM_FULL_VECTOR = 0,
+  BX_VMM_SCALAR_BYTE = 1,
+  BX_VMM_SCALAR_WORD = 2,
+  BX_VMM_SCALAR = 3,
+  BX_VMM_HALF_VECTOR = 4,
+  BX_VMM_QUARTER_VECTOR = 5,
+  BX_VMM_OCT_VECTOR = 6,
+  BX_VMM_VEC128 = 7,
+  BX_VMM_VEC256 = 8
+};
+
+enum {
+  BX_IMMB = 0x10,
+  BX_IMMW = 0x11,
+  BX_IMMD = 0x12,
+  BX_IMMD_SE = 0x13,
+  BX_IMMQ = 0x14,
+  BX_IMMB2 = 0x15,
+  BX_IMM_BrOff16 = 0x16,
+  BX_IMM_BrOff32 = 0x17,
+  BX_IMM_BrOff64 = 0x18,
+  BX_RSIREF = 0x19,
+  BX_RDIREF = 0x1A,
+  BX_USECL = 0x1B,
+  BX_USEDX = 0x1C,
+  BX_DIRECT_PTR = 0x1D,
+  BX_DIRECT_MEMREF32 = 0x1E,
+  BX_DIRECT_MEMREF64 = 0x1F
+};
 
 static inline uint16_t read_host_word_from_little_endian(const uint16_t *p) {
   // little endian 固定
@@ -215,6 +290,20 @@ static inline void insn_set_sib_base(insn_t *insn, uint32_t base) {
 
 // bxInstruction_c::setSibIndex 相当
 static inline void insn_set_sib_index(insn_t *insn, uint32_t index) {
+}
+
+// bx_Instruction_c::sibIndex 相当
+static inline uint32_t insn_get_sib_index(insn_t *insn) {
+  return 0; // FIXME
+}
+
+// bx_Instruction_c::setSrcReg 相当
+static inline void insn_set_src_reg(insn_t *insn, uint32_t src, uint32_t reg) {
+}
+
+// bx_Instruction_c::Ib 相当、インデックスを引数に追加してある。
+static inline uint8_t insn_get_ib(insn_t *insn, uint8_t index) {
+  return 0; // FIXME
 }
 
 // bxInstruction_c.modRMForm.Id の設定
@@ -489,6 +578,32 @@ modrm_done:
           assert(false);
         }
       }
+    }
+  }
+
+  // assign sources
+  for (unsigned n = 0; n <= 3; n++) {
+    /*unsigned src = (unsigned) BxOpcodesTable[ia_opcode].src[n];*/
+    unsigned src = 0; // FIXME
+    unsigned type = src >> 3;
+    switch (src & 0x7) {
+    case BX_SRC_NONE:
+      break;
+    case BX_SRC_EAX:
+      insn_set_src_reg(insn, n, 0);
+      break;
+    case BX_SRC_NNN:
+      insn_set_src_reg(insn, n, nnn);
+      break;
+    case BX_SRC_RM:
+      if (!mod_mem) {
+        insn_set_src_reg(insn, n, rm);
+      } else {
+        insn_set_src_reg(insn, n, (type == BX_VMM_REG) ? BX_VECTOR_TMP_REGISTER : BX_TMP_REGISTER);
+      }
+      break;
+    default:
+      assert(false);
     }
   }
 
