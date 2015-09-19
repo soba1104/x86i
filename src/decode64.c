@@ -301,6 +301,10 @@ static inline uint32_t insn_get_sib_index(insn_t *insn) {
 static inline void insn_set_src_reg(insn_t *insn, uint32_t src, uint32_t reg) {
 }
 
+// bx_Instruction::setIaOpcode 相当
+static inline void insn_set_ia_opcode(insn_t *insn, uint16_t op) {
+}
+
 // bx_Instruction_c::Ib 相当、インデックスを引数に追加してある。
 static inline uint8_t insn_get_ib(insn_t *insn, uint8_t index) {
   return 0; // FIXME
@@ -324,6 +328,10 @@ static inline void insn_set_modrm_form_iw(insn_t *insn, uint8_t index, uint16_t 
 
 // bx_Instruction_c.IqForm.Iq の設定
 static inline void insn_set_iq_form_iq(insn_t *insn, uint64_t qword) {
+}
+
+// bx_Instruction_c.execute1 の設定
+static inline void insn_set_func(insn_t *insn, void *func) {
 }
 
 #define BX_IA_ERROR 0 // FIXME
@@ -605,6 +613,22 @@ modrm_done:
     default:
       assert(false);
     }
+  }
+
+decode_done:
+
+  /*i->setILen(remainingInPage - remain);*/ // TODO
+  insn_set_ia_opcode(insn, ia_opcode);
+  if (lock) {
+    assert(false);
+  }
+
+  if (mod_mem) {
+    /*i->execute1 = BxOpcodesTable[ia_opcode].execute1;*/
+    insn_set_func(insn, NULL); // FIXME
+  } else {
+    /*i->execute1 = BxOpcodesTable[ia_opcode].execute2;*/
+    insn_set_func(insn, NULL); // FIXME
   }
 
   return 0;
