@@ -544,8 +544,7 @@ modrm_done:
         insn_set_modrm_form_ib(insn, 0, *ip++);
         break;
       case BxImmediate_Ib_SE: // Sign extend to OS size
-        // TODO ip の更新が不要なのかどうか確認
-        temp8s = *ip;
+        temp8s = *ip++;
         // this code works correctly both for LE and BE hosts
         if (insn_get_operand_size_32UL(insn)) {
           insn_set_modrm_form_id(insn, (int32_t)temp8s);
@@ -554,8 +553,7 @@ modrm_done:
         }
         break;
       case BxImmediate_BrOff8:
-        // TODO ip の更新が不要なのかどうか確認
-        temp8s = *ip;
+        temp8s = *ip++;
         insn_set_modrm_form_id(insn, (int32_t)temp8s);
         break;
       case BxImmediate_Iw:
@@ -567,8 +565,8 @@ modrm_done:
         ip += 4;
         break;
       case BxImmediate_Iq: // MOV Rx,imm64
-        // TODO ip の更新が不要なのかどうか確認
         insn_set_iq_form_iq(insn, fetch_qword(ip));
+        ip += 8;
         break;
       case BxImmediate_O:
         assert(false);
