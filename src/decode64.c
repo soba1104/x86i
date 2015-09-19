@@ -1,5 +1,6 @@
 // bochs/cpu/fetchdecode64.cc の改変
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -7,7 +8,7 @@
 
 #define X 0 /* undefined opcode */
 
-static const uint8_t BxOpcodeHasModrm64[512] = {
+static const uint8_t opcode_has_modrm_64[512] = {
   /*       0 1 2 3 4 5 6 7 8 9 a b c d e f          */
   /*       -------------------------------          */
   /* 00 */ 1,1,1,1,0,0,X,X,1,1,1,1,0,0,X,X,
@@ -51,6 +52,9 @@ static const uint8_t BxOpcodeHasModrm64[512] = {
 #undef X
 
 typedef struct {
+} opcode_info_t;
+
+typedef struct {
 } insn_t;
 
 // bxInstruction_c::init 相当
@@ -75,6 +79,10 @@ static inline void insn_set_operand_size_64(insn_t *insn) {
 
 // bxInstruction_c::assertOs32();
 static inline void insn_set_operand_size_32(insn_t *insn) {
+}
+
+// bxInstruction_c.modRMForm.Id の設定
+static inline void insn_set_modrm_form_id(insn_t *insn, uint32_t id) {
 }
 
 #define BX_IA_ERROR 0 // FIXME
@@ -160,6 +168,26 @@ fetch_b1:
     rex_r = ((rex_prefix & 0x4) << 1);
     rex_x = ((rex_prefix & 0x2) << 2);
     rex_b = ((rex_prefix & 0x1) << 3);
+  }
+
+  insn_set_modrm_form_id(insn, 0);
+
+  unsigned index = b1 + offset;
+  /*const BxOpcodeInfo_t *OpcodeInfoPtr = &(BxOpcodeInfo64[index]);*/
+  /*Bit16u attr = OpcodeInfoPtr->Attr;*/
+  const opcode_info_t *opcode_info = NULL; // FIXME
+  uint16_t attr = 0; // FIXME
+
+  bool has_modrm = 0;
+
+  if ((b1 & ~0x1) == 0xc4) {
+    assert(false);
+  } else if (b1 == 0x62) {
+    assert(false);
+  } else if (b1 == 0x8f && (*ip & 0x08) == 0x08) {
+    assert(false);
+  } else {
+    has_modrm = opcode_has_modrm_64[b1];
   }
 
   return 0;
