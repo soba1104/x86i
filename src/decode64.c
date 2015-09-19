@@ -578,8 +578,7 @@ modrm_done:
       unsigned imm_mode2 = attr & BxImmediate2;
       if (imm_mode2) {
         if (imm_mode2 == BxImmediate_Ib2) {
-          // TODO ip の更新が不要なのかどうか確認
-          insn_set_modrm_form_ib(insn, 0, *ip);
+          insn_set_modrm_form_ib(insn, 0, *ip++);
         } else {
           assert(false);
         }
