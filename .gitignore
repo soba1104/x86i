@@ -1,2 +1,9 @@
 .*.swp
+.*.swo
 /tmp
+/src/x86i
+*.cmake
+CMakeCache.txt
+CMakeFiles
+Makefile
+install_manifest.txt
