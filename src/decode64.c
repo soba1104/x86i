@@ -20,6 +20,26 @@
 #define BX_TMP_REGISTER  (BX_GENERAL_REGISTERS+1)
 #define BX_NIL_REGISTER  (BX_GENERAL_REGISTERS+2)
 
+// If the BxImmediate mask is set, the lowest 4 bits of the attribute
+// specify which kinds of immediate data required by instruction.
+
+#define BxImmediate         0x000f // bits 3..0: any immediate
+#define BxImmediate_I1      0x0001 // imm8 = 1
+#define BxImmediate_Ib      0x0002 // 8 bit
+#define BxImmediate_Ib_SE   0x0003 // sign extend to operand size
+#define BxImmediate_Iw      0x0004 // 16 bit
+#define BxImmediate_Id      0x0005 // 32 bit
+#define BxImmediate_O       0x0006 // MOV_ALOd, mov_OdAL, mov_eAXOv, mov_OveAX
+#if BX_SUPPORT_X86_64
+#define BxImmediate_Iq      0x0007 // 64 bit override
+#endif
+#define BxImmediate_BrOff8  0x0008 // Relative branch offset byte
+#define BxImmediate_BrOff16 BxImmediate_Iw // Relative branch offset word, not encodable in 64-bit mode
+#define BxImmediate_BrOff32 BxImmediate_Id // Relative branch offset dword
+
+#define BxImmediate_Ib4     BxImmediate_Ib // Register encoded in Ib[7:4]
+#define BxImmediate_Ib5     BxImmediate_Ib
+
 // Lookup for opcode and attributes in another opcode tables
 // Totally 15 opcode groups supported
 #define BxGroupX            0x00f0 // bits 7..4: opcode groups definition
@@ -82,13 +102,31 @@ static const uint8_t opcode_has_modrm_64[512] = {
 
 #undef X
 
+static inline uint16_t read_host_word_from_little_endian(const uint16_t *p) {
+  // little endian 固定
+  return *p;
+}
+
 static inline uint32_t read_host_dword_from_little_endian(const uint32_t *p) {
   // little endian 固定
   return *p;
 }
 
+static inline uint64_t read_host_qword_from_little_endian(const uint64_t *p) {
+  // little endian 固定
+  return *p;
+}
+
+static inline uint16_t fetch_word(const uint8_t *ip) {
+  return read_host_word_from_little_endian((const uint16_t*)ip);
+}
+
 static inline uint32_t fetch_dword(const uint8_t *ip) {
   return read_host_dword_from_little_endian((const uint32_t*)ip);
+}
+
+static inline uint64_t fetch_qword(const uint8_t *ip) {
+  return read_host_qword_from_little_endian((const uint64_t*)ip);
 }
 
 typedef struct {
@@ -121,6 +159,11 @@ static inline void insn_set_operand_size_64(insn_t *insn) {
 static inline void insn_set_operand_size_32(insn_t *insn) {
 }
 
+// bxInstruction_c::os32L相当
+static inline uint32_t insn_get_operand_size_32UL(insn_t *insn) {
+  return 0; // FIXME
+}
+
 // bxInstruction_c::assertModC0 相当
 static inline void insn_set_mod_c0(insn_t *insn) {
 }
@@ -139,6 +182,18 @@ static inline void insn_set_modrm_form_id(insn_t *insn, uint32_t id) {
 
 // bx_Instruction_c.modRMForm.displ32u の設定
 static inline void insn_set_modrm_form_displ32u(insn_t *insn, uint32_t displ32u) {
+}
+
+// bx_Instruction_c.modRMForm.Ib の設定
+static inline void insn_set_modrm_form_ib(insn_t *insn, uint8_t index, uint8_t byte) {
+}
+
+// bx_Instruction_c.modRMForm.Iw の設定
+static inline void insn_set_modrm_form_iw(insn_t *insn, uint8_t index, uint16_t word) {
+}
+
+// bx_Instruction_c.IqForm.Iq の設定
+static inline void insn_set_iq_form_iq(insn_t *insn, uint64_t qword) {
 }
 
 #define BX_IA_ERROR 0 // FIXME
@@ -332,6 +387,55 @@ modrm_done:
     insn_set_mod_c0(insn);
     if (b1 == 0x90) {
       assert(false);
+    }
+  }
+
+  if (lock) {
+    assert(false);
+  }
+
+  imm_mode = attr & BxImmediate;
+  int8_t temp8s = 0;
+  if (imm_mode) {
+    // make sure iptr was advanced after Ib(), Iw() and Id()
+    switch (imm_mode) {
+      case BxImmediate_I1:
+        insn_set_modrm_form_ib(insn, 0, 1);
+        break;
+      case BxImmediate_Ib:
+        insn_set_modrm_form_ib(insn, 0, *ip++);
+        break;
+      case BxImmediate_Ib_SE: // Sign extend to OS size
+        // TODO ip の更新が不要なのかどうか確認
+        temp8s = *ip;
+        // this code works correctly both for LE and BE hosts
+        if (insn_get_operand_size_32UL(insn)) {
+          insn_set_modrm_form_id(insn, (int32_t)temp8s);
+        } else {
+          insn_set_modrm_form_iw(insn, 0, (int16_t)temp8s);
+        }
+        break;
+      case BxImmediate_BrOff8:
+        // TODO ip の更新が不要なのかどうか確認
+        temp8s = *ip;
+        insn_set_modrm_form_id(insn, (int32_t)temp8s);
+        break;
+      case BxImmediate_Iw:
+        insn_set_modrm_form_iw(insn, 0, fetch_word(ip));
+        ip += 2;
+        break;
+      case BxImmediate_Id:
+        insn_set_modrm_form_id(insn, fetch_dword(ip));
+        ip += 4;
+        break;
+      case BxImmediate_Iq: // MOV Rx,imm64
+        // TODO ip の更新が不要なのかどうか確認
+        insn_set_iq_form_iq(insn, fetch_qword(ip));
+        break;
+      case BxImmediate_O:
+        assert(false);
+      default:
+        assert(false);
     }
   }
 
