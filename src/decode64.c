@@ -112,8 +112,6 @@
 
 #define BX_VECTOR_TMP_REGISTER (BX_XMM_REGISTERS)
 
-#define X 0 /* undefined opcode */
-
 // from cpu/fetchdecode.h
 enum {
   BX_SRC_NONE = 0,
@@ -176,6 +174,7 @@ enum {
 };
 
 // from cpu/fetchdecode64.cc
+#define X 0 /* undefined opcode */
 static const uint8_t opcode_has_modrm_64[512] = {
   /*       0 1 2 3 4 5 6 7 8 9 a b c d e f          */
   /*       -------------------------------          */
@@ -216,9 +215,7 @@ static const uint8_t opcode_has_modrm_64[512] = {
   /*       -------------------------------           */
   /*       0 1 2 3 4 5 6 7 8 9 a b c d e f           */
 };
-
 #undef X
-
 
 static inline uint16_t read_host_word_from_little_endian(const uint16_t *p) {
   // little endian 固定
