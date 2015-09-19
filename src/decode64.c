@@ -57,6 +57,47 @@
 #define BxSplitMod11B       0x00C0 // Group encoding: 1100
 #define BxSplitVexVL        0x00D0 // Group encoding: 1101
 
+// The BxImmediate2 mask specifies kind of second immediate data
+// required by instruction.
+#define BxImmediate2        0x0300 // bits 8.9: any immediate
+#define BxImmediate_Ib2     0x0100
+#define BxImmediate_Iw2     0x0200
+#define BxImmediate_Id2     0x0300
+
+#define BxVexL0             0x0100 // bit 8 (aliased with imm2)
+#define BxVexL1             0x0200 // bit 9 (aliased with imm2)
+#define BxVexW0             0x0400 // bit 10
+#define BxVexW1             0x0800 // bit 11
+
+#define BxAlias             0x3000 // bits 12..13
+#define BxAliasSSE          0x1000 // Encoding 01: form final opcode using SSE prefix and current opcode
+#define BxAliasVexW         0x2000 // Encoding 10: form final opcode using VEX.W and current opcode
+#define BxAliasVexW64       0x3000 // Encoding 11: form final opcode using VEX.W and current opcode in 64-bit mode only
+
+#define BxLockable          0x4000 // bit 14
+
+#define BxGroup1          BxGroupN
+#define BxGroup1A         BxGroupN
+#define BxGroup2          BxGroupN
+#define BxGroup3          BxGroupN
+#define BxGroup4          BxGroupN
+#define BxGroup5          BxGroupN
+#define BxGroup6          BxGroupN
+#define BxGroup7          BxFPEscape
+#define BxGroup8          BxGroupN
+#define BxGroup9          BxSplitGroupN
+
+#define BxGroup11         BxGroupN
+#define BxGroup12         BxGroupN
+#define BxGroup13         BxGroupN
+#define BxGroup14         BxGroupN
+#define BxGroup15         BxSplitGroupN
+#define BxGroup16         BxGroupN
+#define BxGroup17         BxGroupN
+#define BxGroup17A        BxGroupN
+
+#define BxGroupFP         BxSplitGroupN
+
 #define X 0 /* undefined opcode */
 
 static const uint8_t opcode_has_modrm_64[512] = {
@@ -436,6 +477,18 @@ modrm_done:
         assert(false);
       default:
         assert(false);
+    }
+
+    {
+      unsigned imm_mode2 = attr & BxImmediate2;
+      if (imm_mode2) {
+        if (imm_mode2 == BxImmediate_Ib2) {
+          // TODO ip の更新が不要なのかどうか確認
+          insn_set_modrm_form_ib(insn, 0, *ip);
+        } else {
+          assert(false);
+        }
+      }
     }
   }
 
