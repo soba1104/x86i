@@ -2,6 +2,7 @@
 .*.swo
 /tmp
 /src/x86i
+/src/ia_opcodes.h
 *.cmake
 CMakeCache.txt
 CMakeFiles

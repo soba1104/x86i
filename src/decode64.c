@@ -173,6 +173,14 @@ enum {
   BX_DIRECT_MEMREF64 = 0x1F
 };
 
+// from cpu/instr.h
+enum {
+#define bx_define_opcode(a, b, c, d, s1, s2, s3, s4, e) a,
+#include "ia_opcodes.h"
+   BX_IA_LAST
+};
+#undef  bx_define_opcode
+
 // from cpu/fetchdecode64.cc
 #define X 0 /* undefined opcode */
 static const uint8_t opcode_has_modrm_64[512] = {

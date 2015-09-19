@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+path = ARGV.shift
+unless path
+  STDERR.puts('usage opcode_gen path')
+  exit(1)
+end
+
+unless File.exist?(path)
+  STDERR.puts("#{path} not found");
+  exit(1)
+end
+
+orig = File.read(path)
+conv = orig.lines.map{|l| l.gsub(/&BX_CPU_C::/, '')}
+puts conv
