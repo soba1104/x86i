@@ -51,6 +51,15 @@ static const uint8_t opcode_has_modrm_64[512] = {
 
 #undef X
 
+static inline uint32_t read_host_dword_from_little_endian(const uint32_t *p) {
+  // little endian 固定
+  return *p;
+}
+
+static inline uint32_t fetch_dword(const uint8_t *ip) {
+  return read_host_dword_from_little_endian((const uint32_t*)ip);
+}
+
 typedef struct {
 } opcode_info_t;
 
@@ -73,16 +82,32 @@ static inline void insn_clear_address_size_64(insn_t *insn) {
 static inline void insn_set_extend_8bit(insn_t *insn) {
 }
 
-// bxInstruction_c::assertOs64();
+// bxInstruction_c::assertOs64 相当
 static inline void insn_set_operand_size_64(insn_t *insn) {
 }
 
-// bxInstruction_c::assertOs32();
+// bxInstruction_c::assertOs32 相当
 static inline void insn_set_operand_size_32(insn_t *insn) {
+}
+
+// bxInstruction_c::assertModC0 相当
+static inline void insn_set_mod_c0(insn_t *insn) {
+}
+
+// bxInstruction_c::setSibBase 相当
+static inline void insn_set_sib_base(insn_t *insn, uint32_t base) {
+}
+
+// bxInstruction_c::setSibIndex 相当
+static inline void insn_set_sib_index(insn_t *insn, uint32_t index) {
 }
 
 // bxInstruction_c.modRMForm.Id の設定
 static inline void insn_set_modrm_form_id(insn_t *insn, uint32_t id) {
+}
+
+// bx_Instruction_c.modRMForm.displ32u の設定
+static inline void insn_set_modrm_form_displ32u(insn_t *insn, uint32_t displ32u) {
 }
 
 #define BX_IA_ERROR 0 // FIXME
@@ -188,6 +213,70 @@ fetch_b1:
     assert(false);
   } else {
     has_modrm = opcode_has_modrm_64[b1];
+  }
+
+  if (has_modrm) {
+    // handle 3-byte escape
+    if (b1 == 0x138 || b1 == 0x13a) {
+      assert(false);
+    }
+
+    // opcode requires modrm byte
+    b2 = *ip++;
+
+    // Parse mod-nnn-rm and related bytes
+    mod = b2 & 0xc0;
+    nnn = ((b2 >> 3) & 0x7) | rex_r;
+    rm  = (b2 & 0x7) | rex_b;
+
+    // for x87
+    if (b1 >= 0xd8 && b1 <= 0xdf) {
+      assert(false);
+    }
+
+    // MOVs with CRx and DRx always use register ops and ignore the mod field.
+    if ((b1 & ~3) == 0x120) {
+      mod = 0xc0;
+    }
+
+    // mod == 11b, メモリではなくレジスタを使うモード
+    if (mod == 0xc0) {
+      insn_set_mod_c0(insn);
+      goto modrm_done;
+    }
+
+    mod_mem = 1;
+    insn_set_sib_base(insn, rm & 0xf); // initialize with rm to use BxResolve64Base
+    insn_set_sib_index(insn, 4);
+    // initialize displ32 with zero to include cases with no diplacement
+    insn_set_modrm_form_displ32u(insn, 0);
+
+    // note that mod==11b handled above
+
+    if ((rm & 0x7) != 4) { // no s-i-b byte
+      // FIXME
+      assert(false);
+    } else { // mod!=11b, rm==4, s-i-b byte follows
+      assert(false);
+    }
+
+    // (mod == 0x40), mod==01b
+    if (mod == 0x40) {
+      // 8 sign extended to 32
+      insn_set_modrm_form_displ32u(insn, (int8_t)*ip++);
+    } else {
+get_32bit_displ:
+      // (mod == 0x80), mod==10b
+      insn_set_modrm_form_displ32u(insn, fetch_dword(ip));
+      ip += 4;
+    }
+
+modrm_done:
+    // FIXME
+    /*ia_opcode = WalkOpcodeTables(OpcodeInfoPtr, attr, b2, sse_prefix, offset >> 9, i->getVL(), vex_w);*/
+    ia_opcode = 0;
+  } else {
+    assert(false); // FIXME
   }
 
   return 0;
