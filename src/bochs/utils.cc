@@ -127,3 +127,15 @@ void BX_CPP_AttrRegparmN(1) BX_CPU_C::branch_near64(bxInstruction_c *i)
 #endif
 #endif
 }
+
+const char *get_bx_opcode_name(Bit16u ia_opcode)
+{
+  static const char* BxOpcodeNamesTable[BX_IA_LAST] =
+  {
+#define bx_define_opcode(a, b, c, d, s1, s2, s3, s4, e) #a,
+#include "ia_opcodes.h"
+  };
+#undef  bx_define_opcode
+
+  return (ia_opcode < BX_IA_LAST) ? BxOpcodeNamesTable[ia_opcode] : 0;
+}

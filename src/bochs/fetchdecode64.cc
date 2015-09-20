@@ -1965,8 +1965,26 @@ fetch_b1:
         // mod==00b, rm!=4, rm!=5
         goto modrm_done;
       }
-    } else {
-      assert(false);
+    } else { // mod!=11b, rm==4, s-i-b byte follows
+      unsigned sib, base, index, scale;
+      sib = *iptr++;
+      base  = (sib & 0x7) | rex_b; sib >>= 3;
+      index = (sib & 0x7) | rex_x; sib >>= 3;
+      scale =  sib;
+      i->setSibScale(scale);
+      i->setSibBase(base & 0xf);
+      // this part is a little tricky - assign index value always,
+      // it will be really used if the instruction is Gather. Others
+      // assume that resolve function will do the right thing.
+      i->setSibIndex(index & 0xf);
+      if (mod == 0x00) { // mod==00b, rm==4
+        if ((base & 0x7) == 5) {
+          i->setSibBase(BX_NIL_REGISTER);
+          goto get_32bit_displ;
+        }
+        // mod==00b, rm==4, base!=5
+        goto modrm_done;
+      }
     }
 
     // (mod == 0x40), mod==01b
