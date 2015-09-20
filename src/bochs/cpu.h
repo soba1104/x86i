@@ -1029,6 +1029,34 @@ struct bx_cpu_statistics;
 class BOCHSAPI BX_CPU_C {
 
 public: // for now...
+  // General register set
+  // rax: accumulator
+  // rbx: base
+  // rcx: count
+  // rdx: data
+  // rbp: base pointer
+  // rsi: source index
+  // rdi: destination index
+  // esp: stack pointer
+  // r8..r15 x86-64 extended registers
+  // rip: instruction pointer
+  // tmp: temp register
+  // nil: null register
+  bx_gen_reg_t gen_reg[BX_GENERAL_REGISTERS+3];
+
+  /* 31|30|29|28| 27|26|25|24| 23|22|21|20| 19|18|17|16
+   * ==|==|=====| ==|==|==|==| ==|==|==|==| ==|==|==|==
+   *  0| 0| 0| 0|  0| 0| 0| 0|  0| 0|ID|VP| VF|AC|VM|RF
+   *
+   * 15|14|13|12| 11|10| 9| 8|  7| 6| 5| 4|  3| 2| 1| 0
+   * ==|==|=====| ==|==|==|==| ==|==|==|==| ==|==|==|==
+   *  0|NT| IOPL| OF|DF|IF|TF| SF|ZF| 0|AF|  0|PF| 1|CF
+   */
+  Bit32u eflags; // Raw 32-bit value in x86 bit position.
+
+  // lazy arithmetic flags state
+  bx_lf_flags_entry oszapc;
+
 // <TAG-CLASS-CPU-START>
   // prototypes for CPU instructions...
   BX_SMF BX_INSF_TYPE PUSH16_Sw(bxInstruction_c *) BX_CPP_AttrRegparmN(1);
