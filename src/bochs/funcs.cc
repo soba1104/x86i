@@ -12,7 +12,14 @@
 
 #include "dummyfuncs.h"
 
+// stack64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PUSH_EqR(bxInstruction_c *i)
 {
   push_64(BX_READ_64BIT_REG(i->dst()));
+}
+
+// data_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GqEqR(bxInstruction_c *i)
+{
+  BX_WRITE_64BIT_REG(i->dst(), BX_READ_64BIT_REG(i->src()));
 }
