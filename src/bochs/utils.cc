@@ -13,6 +13,15 @@
 #include <bochs.h>
 #include <cpu.h>
 
+BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
+{
+  memset(gen_reg, 0, sizeof(gen_reg));
+}
+
+BX_CPU_C::~BX_CPU_C()
+{
+}
+
 void BX_CPP_AttrRegparmN(2) BX_CPU_C::stack_write_qword(bx_address offset, Bit64u data)
 {
   WriteHostQWordToLittleEndian((Bit64u*)offset, data);

@@ -1029,6 +1029,9 @@ struct bx_cpu_statistics;
 class BOCHSAPI BX_CPU_C {
 
 public: // for now...
+
+  unsigned bx_cpuid;
+
   // General register set
   // rax: accumulator
   // rbx: base
@@ -1056,6 +1059,10 @@ public: // for now...
 
   // lazy arithmetic flags state
   bx_lf_flags_entry oszapc;
+
+  // constructors & destructors...
+  BX_CPU_C(unsigned id = 0);
+ ~BX_CPU_C();
 
 // <TAG-CLASS-CPU-START>
   // prototypes for CPU instructions...
