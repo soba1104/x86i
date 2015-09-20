@@ -1898,7 +1898,7 @@ modrm_done:
         i->modRMForm.Ib[0] = *iptr++;
         break;
       case BxImmediate_Ib_SE: // Sign extend to OS size
-        temp8s = *iptr;
+        temp8s = *iptr++;
         // this code works correctly both for LE and BE hosts
         if (i->os32L()) {
           i->modRMForm.Id = (Bit32s)temp8s;
@@ -1907,7 +1907,7 @@ modrm_done:
         }
         break;
       case BxImmediate_BrOff8:
-        temp8s = *iptr;
+        temp8s = *iptr++;
         i->modRMForm.Id = (Bit32s) temp8s;
         break;
       case BxImmediate_Iw:
@@ -1920,16 +1920,10 @@ modrm_done:
         break;
       case BxImmediate_Iq: // MOV Rx,imm64
         i->IqForm.Iq = FetchQWORD(iptr);
+        iptr += 8;
         break;
       case BxImmediate_O:
-        // For instructions which embed the address in the opcode.
-        // There is only 64/32-bit addressing available in long64 mode.
-        if (i->as64L()) {
-          i->IqForm.Iq = FetchQWORD(iptr);
-        } else { // as32
-          i->IqForm.Iq = (Bit64u)FetchDWORD(iptr);
-        }
-        break;
+        assert(false);
       default:
         assert(false);
     }
@@ -1938,7 +1932,7 @@ modrm_done:
       unsigned imm_mode2 = attr & BxImmediate2;
       if (imm_mode2) {
         if (imm_mode2 == BxImmediate_Ib2) {
-          i->modRMForm.Ib2[0] = *iptr;
+          i->modRMForm.Ib2[0] = *iptr++;
         } else {
           assert(false);
         }
