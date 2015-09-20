@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 void *alloc_insn();
 void free_insn(void *insn);
 void clear_insn(void *insn);

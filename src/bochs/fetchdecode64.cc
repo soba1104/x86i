@@ -1693,14 +1693,6 @@ extern "C" {
 
 #include <string.h>
 
-void *alloc_insn() {
-  return reinterpret_cast<void*>(new bxInstruction_c());
-}
-
-void free_insn(void *insn) {
-  delete reinterpret_cast<bxInstruction_c*>(insn);
-}
-
 void clear_insn(void *insn) {
   bxInstruction_c *i = reinterpret_cast<bxInstruction_c*>(insn);
   i->execute1 = NULL;
@@ -1713,6 +1705,16 @@ void clear_insn(void *insn) {
 #ifdef BX_INSTR_STORE_OPCODE_BYTES
   memset(i->opcode_bytes, 0, 16);
 #endif
+}
+
+void *alloc_insn() {
+  bxInstruction_c *insn = new bxInstruction_c();
+  clear_insn(insn);
+  return insn;
+}
+
+void free_insn(void *insn) {
+  delete reinterpret_cast<bxInstruction_c*>(insn);
 }
 
 int decode(uint8_t **ipp, void *insn) {
