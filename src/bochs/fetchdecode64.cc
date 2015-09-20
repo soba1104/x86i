@@ -1983,35 +1983,6 @@ modrm_done:
      seg = seg_override;
   i->setSeg(seg);
 
-#if BX_SUPPORT_AVX
-  if (had_vex_xop) {
-    if (! use_vvv && vvv != 0) {
-      ia_opcode = BX_IA_ERROR;
-    }
-    else if ((attr & BxVexW0) != 0 && vex_w) {
-      ia_opcode = BX_IA_ERROR;
-    }
-    else if ((attr & BxVexW1) != 0 && !vex_w) {
-      ia_opcode = BX_IA_ERROR;
-    }
-#if BX_SUPPORT_EVEX
-    // EVEX specific #UD conditions
-    else if (i->getVL() > BX_VL512) {
-      ia_opcode = BX_IA_ERROR;
-    }
-#endif
-    else if ((attr & BxVexL0) != 0 && i->getVL() != BX_VL128) {
-      ia_opcode = BX_IA_ERROR;
-    }
-    else if ((attr & BxVexL1) != 0 && i->getVL() == BX_VL128) {
-      ia_opcode = BX_IA_ERROR;
-    }
-  }
-  else {
-    BX_ASSERT(! use_vvv);
-  }
-#endif
-
 decode_done:
 
   i->setILen(remainingInPage - remain);
@@ -2036,53 +2007,13 @@ decode_done:
     i->handlers.execute2 = NULL;
   }
 
-  BX_ASSERT(i->execute1);
-
   Bit32u op_flags = BxOpcodesTable[ia_opcode].opflags;
-#if BX_SUPPORT_EVEX
-  if ((op_flags & BX_PREPARE_EVEX) != 0 && i->getEvexb()) {
-    if (mod_mem) {
-      if ((op_flags & BX_PREPARE_EVEX_NO_BROADCAST) == BX_PREPARE_EVEX_NO_BROADCAST) {
-        BX_DEBUG(("%s: broadcast is not supported for this instruction", i->getIaOpcodeNameShort()));
-        i->execute1 = &BX_CPU_C::BxError;
-      }
-    }
-    else {
-      if ((op_flags & BX_PREPARE_EVEX_NO_SAE) == BX_PREPARE_EVEX_NO_SAE) {
-        BX_DEBUG(("%s: EVEX.b in reg form is not allowed for instructions which cannot cause floating point exception", i->getIaOpcodeNameShort()));
-        i->execute1 = &BX_CPU_C::BxError;
-      }
-    }
-  }
-#endif
   if (! (fetchModeMask & BX_FETCH_MODE_SSE_OK)) {
      if (op_flags & BX_PREPARE_SSE) {
         if (i->execute1 != &BX_CPU_C::BxError) i->execute1 = &BX_CPU_C::BxNoSSE;
         return(1);
      }
   }
-#if BX_SUPPORT_AVX
-  if (! (fetchModeMask & BX_FETCH_MODE_AVX_OK)) {
-    if (op_flags & BX_PREPARE_AVX) {
-       if (i->execute1 != &BX_CPU_C::BxError) i->execute1 = &BX_CPU_C::BxNoAVX;
-       return(1);
-    }
-  }
-#if BX_SUPPORT_EVEX
-  if (! (fetchModeMask & BX_FETCH_MODE_OPMASK_OK)) {
-    if (op_flags & BX_PREPARE_OPMASK) {
-       if (i->execute1 != &BX_CPU_C::BxError) i->execute1 = &BX_CPU_C::BxNoOpMask;
-       return(1);
-    }
-  }
-  if (! (fetchModeMask & BX_FETCH_MODE_EVEX_OK)) {
-    if (op_flags & BX_PREPARE_EVEX) {
-       if (i->execute1 != &BX_CPU_C::BxError) i->execute1 = &BX_CPU_C::BxNoEVEX;
-       return(1);
-    }
-  }
-#endif
-#endif
 
   if ((op_flags & BX_TRACE_END) != 0 || i->execute1 == &BX_CPU_C::BxError)
      return(1);
