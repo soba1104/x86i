@@ -11,6 +11,34 @@ unless File.exist?(path)
   exit(1)
 end
 
-orig = File.read(path)
-conv = orig.lines.map{|l| l.gsub(/&BX_CPU_C::/, '')}
-puts conv
+def func_body(name)
+  return <<-EOS
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) #{name}(bxInstruction_c *i) {
+  fprintf(stderr, "unsupported instruction #{name}\\n");
+  assert(false);
+}
+  EOS
+end
+
+funcs = {}
+body = []
+File.read(path).lines.each do |line|
+  unless line =~ /&BX_CPU_C/
+    body << line
+    next
+  end
+  dummy, fun1, fun2, rest = line.split(', ')
+  raise fun1 unless fun1 =~ /&BX_CPU_C/ or fun1 =~ /NULL/
+  raise fun2 unless fun2 =~ /&BX_CPU_C/ or fun2 =~ /NULL/
+  [fun1, fun2].each do |fun|
+    next if fun =~ /NULL/
+    fun = fun.gsub('&', '')
+    body << func_body(fun) unless funcs[fun]
+    funcs[fun] = true
+  end
+end
+
+puts <<-EOS
+#include <stdio.h>
+#{body.join()}
+EOS

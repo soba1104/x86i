@@ -2,6 +2,7 @@
 .*.swo
 /tmp
 /src/x86i
+/src/bochs/dummyfuncs.h
 *.cmake
 CMakeCache.txt
 CMakeFiles

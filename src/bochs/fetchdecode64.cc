@@ -132,12 +132,11 @@ static const Bit8u BxOpcodeHasModrm64[512] = {
 // table of all Bochs opcodes
 //extern struct bxIAOpcodeTable BxOpcodesTable[];
 bxIAOpcodeTable BxOpcodesTable[] = {
-//#define bx_define_opcode(a, b, c, d, s1, s2, s3, s4, e) { b, c, { s1, s2, s3, s4 }, e },
-// FIXME
-#define bx_define_opcode(a, b, c, d, s1, s2, s3, s4, e) { NULL, NULL, { s1, s2, s3, s4 }, e },
+#define bx_define_opcode(a, b, c, d, s1, s2, s3, s4, e) { b, c, { s1, s2, s3, s4 }, e },
 #include "ia_opcodes.h"
 };
 #undef  bx_define_opcode
+#include "dummyfuncs.h"
 
 // 512 entries for 16bit operand size
 // 512 entries for 32bit operand size
