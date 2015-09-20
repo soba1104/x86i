@@ -53,6 +53,7 @@ typedef Bit32u bx_address;
 typedef void* BxExecutePtr_tR; // FIXME
 
 #include <bochs.h>
+#include <cpu.h>
 #include <instr.h>
 
 
