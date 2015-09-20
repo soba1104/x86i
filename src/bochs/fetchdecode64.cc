@@ -29,8 +29,10 @@
 /////////////////////////////////////////////////////////////////////////////////
 
 #define BX_SUPPORT_X86_64 1 // FIXME
+#define BX_SUPPORT_FPU 1 // FIXME
 #undef BX_SUPPORT_AVX // FIXME
 #undef BX_SUPPORT_EVEX // FIXME
+#define BX_CPU_LEVEL 6 // FIXME
 #define BX_CPP_INLINE inline
 #include <stdint.h>
 
