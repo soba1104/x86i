@@ -1788,44 +1788,33 @@ fetch_b1:
     has_modrm = BxOpcodeHasModrm64[b1];
   }
 
-  return 0;
-}
-
-#if 0
   if (has_modrm) {
-
     // handle 3-byte escape
     if (b1 == 0x138 || b1 == 0x13a) {
-      if (remain != 0) {
-        remain--;
-        unsigned b3 = *iptr++;
-        OpcodeInfoPtr = &OpcodeInfoPtr->AnotherArray[b3];
-      }
-      else
-        return(-1);
+      unsigned b3 = *iptr++;
+      OpcodeInfoPtr = &OpcodeInfoPtr->AnotherArray[b3];
     }
 
     // opcode requires modrm byte
-    if (remain != 0) {
-      remain--;
-      b2 = *iptr++;
-    }
-    else
-      return(-1);
+    b2 = *iptr++;
 
     // Parse mod-nnn-rm and related bytes
     mod = b2 & 0xc0;
     nnn = ((b2 >> 3) & 0x7) | rex_r;
     rm  = (b2 & 0x7) | rex_b;
 
-    if (b1 >= 0xd8 && b1 <= 0xdf)
-      i->setFoo((b2 | (b1 << 8)) & 0x7ff); /* for x87 */
+    // for x87
+    if (b1 >= 0xd8 && b1 <= 0xdf) {
+      i->setFoo((b2 | (b1 << 8)) & 0x7ff);
+    }
 
     // MOVs with CRx and DRx always use register ops and ignore the mod field.
-    if ((b1 & ~3) == 0x120)
+    if ((b1 & ~3) == 0x120) {
       mod = 0xc0;
+    }
 
-    if (mod == 0xc0) { // mod == 11b
+    // mod == 11b, メモリではなくレジスタを使うモード
+    if (mod == 0xc0) {
       i->assertModC0();
       goto modrm_done;
     }
@@ -1848,79 +1837,35 @@ fetch_b1:
         goto modrm_done;
       }
       // (mod == 0x40), mod==01b or (mod == 0x80), mod==10b
-      seg = sreg_mod1or2_base32[rm & 0xf];
-    }
-    else { // mod!=11b, rm==4, s-i-b byte follows
-      unsigned sib, base, index, scale;
-      if (remain != 0) {
-        sib = *iptr++;
-        remain--;
-      }
-      else {
-        return(-1);
-      }
-      base  = (sib & 0x7) | rex_b; sib >>= 3;
-      index = (sib & 0x7) | rex_x; sib >>= 3;
-      scale =  sib;
-      i->setSibScale(scale);
-      i->setSibBase(base & 0xf);
-      // this part is a little tricky - assign index value always,
-      // it will be really used if the instruction is Gather. Others
-      // assume that resolve function will do the right thing.
-      i->setSibIndex(index & 0xf);
-      if (mod == 0x00) { // mod==00b, rm==4
-        seg = sreg_mod0_base32[base & 0xf];
-        if ((base & 0x7) == 5) {
-          i->setSibBase(BX_NIL_REGISTER);
-          goto get_32bit_displ;
-        }
-        // mod==00b, rm==4, base!=5
-        goto modrm_done;
-      }
-      // (mod == 0x40), mod==01b or (mod == 0x80), mod==10b
-      seg = sreg_mod1or2_base32[base & 0xf];
+      assert(false);
+    } else {
+      assert(false);
     }
 
     // (mod == 0x40), mod==01b
     if (mod == 0x40) {
-      if (remain != 0) {
-        // 8 sign extended to 32
-        i->modRMForm.displ32u = (Bit8s) *iptr++;
-#if BX_SUPPORT_EVEX
-        displ8 = 1;
-#endif
-        remain--;
-      }
-      else {
-        return(-1);
-      }
-    }
-    else {
-
+      // 8 sign extended to 32
+      i->modRMForm.displ32u = (Bit8s) *iptr++;
+    } else {
 get_32bit_displ:
-
       // (mod == 0x80), mod==10b
-      if (remain > 3) {
-        i->modRMForm.displ32u = FetchDWORD(iptr);
-        iptr += 4;
-        remain -= 4;
-      }
-      else {
-        return(-1);
-      }
+      i->modRMForm.displ32u = FetchDWORD(iptr);
+      iptr += 4;
     }
 
 modrm_done:
-
-#if BX_SUPPORT_EVEX
-    // EVEX.b in reg form implies 512-bit vector length
-    if (i->modC0() && i->getEvexb()) {
-      i->setVL(BX_VL512);
-    }
-#endif
-
-    ia_opcode = WalkOpcodeTables(OpcodeInfoPtr, attr, b2, sse_prefix, offset >> 9, i->getVL(), vex_w);
+    //ia_opcode = WalkOpcodeTables(OpcodeInfoPtr, attr, b2, sse_prefix, offset >> 9, i->getVL(), vex_w);
+    ia_opcode = 0; // FIXME
   }
+
+  return 0;
+}
+
+#if 0
+
+
+
+
   else {
     // Opcode does not require a MODRM byte.
     // Note that a 2-byte opcode (0F XX) will jump to before
