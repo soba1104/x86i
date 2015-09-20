@@ -28,9 +28,27 @@
 //  ----------------------------------------------------------------------------
 /////////////////////////////////////////////////////////////////////////////////
 
+#define BX_SUPPORT_X86_64 1 // FIXME
+#undef BX_SUPPORT_AVX // FIXME
+#undef BX_SUPPORT_EVEX // FIXME
+
+#include <stdint.h>
+
+typedef uint8_t Bit8u;
+typedef uint16_t Bit16u;
+typedef uint32_t Bit32u;
+typedef uint64_t Bit64u;
+
+typedef uint8_t Bit8s;
+typedef uint16_t Bit16s;
+typedef uint32_t Bit32s;
+typedef uint64_t Bit64s;
+
+
+
+
+
 #define NEED_CPU_REG_SHORTCUTS 1
-#include "bochs.h"
-#include "cpu.h"
 #define LOG_THIS BX_CPU_THIS_PTR
 
 #if BX_SUPPORT_X86_64
