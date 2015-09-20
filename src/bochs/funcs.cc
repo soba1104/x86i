@@ -23,3 +23,16 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GqEqR(bxInstruction_c *i)
 {
   BX_WRITE_64BIT_REG(i->dst(), BX_READ_64BIT_REG(i->src()));
 }
+
+// arith64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SUB_EqIdR(bxInstruction_c *i)
+{
+  Bit64u op1_64, op2_64, diff_64;
+
+  op1_64 = BX_READ_64BIT_REG(i->dst());
+  op2_64 = (Bit32s) i->Id();
+  diff_64 = op1_64 - op2_64;
+  BX_WRITE_64BIT_REG(i->dst(), diff_64);
+
+  SET_FLAGS_OSZAPC_SUB_64(op1_64, op2_64, diff_64);
+}
