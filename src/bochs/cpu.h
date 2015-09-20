@@ -3941,6 +3941,42 @@ public: // for now...
   void set_stack(void *stack);
 };
 
+// Can be used as LHS or RHS.
+#define RMAddr(i)  (BX_CPU_THIS_PTR address_xlation.rm_addr)
+
+#if defined(NEED_CPU_REG_SHORTCUTS)
+
+#if BX_SUPPORT_X86_64
+BX_CPP_INLINE Bit64u BX_CPP_AttrRegparmN(1) BX_CPU_C::BxResolve64(bxInstruction_c *i)
+{
+  Bit64u eaddr = (Bit64u) (BX_READ_64BIT_REG(i->sibBase()) + i->displ32s());
+  if (i->sibIndex() != 4)
+    eaddr += BX_READ_64BIT_REG(i->sibIndex()) << i->sibScale();
+  return eaddr;
+}
+#endif
+
+BX_CPP_INLINE Bit32u BX_CPP_AttrRegparmN(1) BX_CPU_C::BxResolve32(bxInstruction_c *i)
+{
+  Bit32u eaddr = (Bit32u) (BX_READ_32BIT_REG(i->sibBase()) + i->displ32s());
+  if (i->sibIndex() != 4)
+    eaddr += BX_READ_32BIT_REG(i->sibIndex()) << i->sibScale();
+  return eaddr & i->asize_mask();
+}
+
+//#include "stack.h"
+
+#define RSP_SPECULATIVE {              \
+  BX_CPU_THIS_PTR speculative_rsp = 1; \
+  BX_CPU_THIS_PTR prev_rsp = RSP;      \
+}
+
+#define RSP_COMMIT {                   \
+  BX_CPU_THIS_PTR speculative_rsp = 0; \
+}
+
+#endif // defined(NEED_CPU_REG_SHORTCUTS)
+
 // <TAG-DEFINES-DECODE-START>
 
 //
