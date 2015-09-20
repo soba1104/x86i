@@ -115,7 +115,6 @@ bxIAOpcodeTable BxOpcodesTable[] = {
 #include "ia_opcodes.h"
 };
 #undef  bx_define_opcode
-#include "dummyfuncs.h"
 
 // 512 entries for 16bit operand size
 // 512 entries for 32bit operand size
