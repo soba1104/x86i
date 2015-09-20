@@ -835,20 +835,197 @@ typedef struct
 } bx_regs_msr_t;
 #endif
 
-
-
-
-
-
-
-
-
-
-
+//#include "crregs.h"
+//#include "descriptor.h"
 #include "instr.h"
 #include "lazy_flags.h"
 
-#define BX_SMF
+// BX_TLB_SIZE: Number of entries in TLB
+// BX_TLB_INDEX_OF(lpf): This macro is passed the linear page frame
+//   (top 20 bits of the linear address.  It must map these bits to
+//   one of the TLB cache slots, given the size of BX_TLB_SIZE.
+//   There will be a many-to-one mapping to each TLB cache slot.
+//   When there are collisions, the old entry is overwritten with
+//   one for the newest access.
+
+#define BX_TLB_SIZE 1024
+#define BX_TLB_MASK ((BX_TLB_SIZE-1) << 12)
+#define BX_TLB_INDEX_OF(lpf, len) ((((unsigned)(lpf) + (len)) & BX_TLB_MASK) >> 12)
+
+typedef bx_ptr_equiv_t bx_hostpageaddr_t;
+
+typedef struct {
+  bx_address lpf;       // linear page frame
+  bx_phy_address ppf;   // physical page frame
+  bx_hostpageaddr_t hostPageAddr;
+  Bit32u accessBits;
+  Bit32u lpf_mask;      // linear address mask of the page size
+
+#if BX_SUPPORT_MEMTYPE
+  Bit32u memtype;      // keep it Bit32u for alignment
+#endif
+
+  Bit32u get_memtype() const {
+#if BX_SUPPORT_MEMTYPE
+    return memtype;
+#else
+    return BX_MEMTYPE_UC;
+#endif
+  }
+} bx_TLB_entry;
+
+#if BX_SUPPORT_X86_64
+  #define LPF_MASK BX_CONST64(0xfffffffffffff000)
+#else
+  #define LPF_MASK (0xfffff000)
+#endif
+
+#if BX_PHY_ADDRESS_LONG
+  #define PPF_MASK BX_CONST64(0xfffffffffffff000)
+#else
+  #define PPF_MASK (0xfffff000)
+#endif
+
+#define LPFOf(laddr)               ((laddr) & LPF_MASK)
+#define PPFOf(laddr)               ((laddr) & PPF_MASK)
+
+#define AlignedAccessLPFOf(laddr, alignment_mask) \
+                  ((laddr) & (LPF_MASK | (alignment_mask)))
+
+#define PAGE_OFFSET(laddr) ((Bit32u)(laddr) & 0xfff)
+
+//#include "icache.h"
+
+// general purpose register
+#if BX_SUPPORT_X86_64
+
+#ifdef BX_BIG_ENDIAN
+typedef struct {
+  union {
+    struct {
+      Bit32u dword_filler;
+      Bit16u  word_filler;
+      union {
+        Bit16u rx;
+        struct {
+          Bit8u rh;
+          Bit8u rl;
+        } byte;
+      };
+    } word;
+    Bit64u rrx;
+    struct {
+      Bit32u hrx;  // hi 32 bits
+      Bit32u erx;  // lo 32 bits
+    } dword;
+  };
+} bx_gen_reg_t;
+#else
+typedef struct {
+  union {
+    struct {
+      union {
+        Bit16u rx;
+        struct {
+          Bit8u rl;
+          Bit8u rh;
+        } byte;
+      };
+      Bit16u  word_filler;
+      Bit32u dword_filler;
+    } word;
+    Bit64u rrx;
+    struct {
+      Bit32u erx;  // lo 32 bits
+      Bit32u hrx;  // hi 32 bits
+    } dword;
+  };
+} bx_gen_reg_t;
+
+#endif
+
+#else  // #if BX_SUPPORT_X86_64
+
+#ifdef BX_BIG_ENDIAN
+typedef struct {
+  union {
+    struct {
+      Bit32u erx;
+    } dword;
+    struct {
+      Bit16u word_filler;
+      union {
+        Bit16u rx;
+        struct {
+          Bit8u rh;
+          Bit8u rl;
+        } byte;
+      };
+    } word;
+  };
+} bx_gen_reg_t;
+#else
+typedef struct {
+  union {
+    struct {
+      Bit32u erx;
+    } dword;
+    struct {
+      union {
+        Bit16u rx;
+        struct {
+          Bit8u rl;
+          Bit8u rh;
+        } byte;
+      };
+      Bit16u word_filler;
+    } word;
+  };
+} bx_gen_reg_t;
+#endif
+
+#endif  // #if BX_SUPPORT_X86_64
+
+#if BX_SUPPORT_APIC
+//#include "apic.h"
+#endif
+
+#if BX_SUPPORT_FPU
+#include "xmm.h"
+#endif
+
+#if BX_SUPPORT_VMX
+#include "vmx.h"
+#endif
+
+#if BX_SUPPORT_SVM
+#include "svm.h"
+#endif
+
+#if BX_SUPPORT_MONITOR_MWAIT
+struct monitor_addr_t {
+
+    bx_phy_address monitor_addr;
+    bx_bool armed;
+
+    monitor_addr_t(): monitor_addr(0xffffffff), armed(0) {}
+
+    BX_CPP_INLINE void arm(bx_phy_address addr) {
+      // align to cache line
+      monitor_addr = addr & ~((bx_phy_address)(CACHE_LINE_SIZE - 1));
+      armed = 1;
+    }
+
+    BX_CPP_INLINE void reset_monitor(void) { armed = 0; }
+};
+#endif
+
+struct BX_SMM_State;
+struct BxOpcodeInfo_t;
+struct bx_cpu_statistics;
+
+//#include "cpuid.h"
+
 class BOCHSAPI BX_CPU_C {
 
 public: // for now...
