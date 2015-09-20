@@ -1695,6 +1695,124 @@ void free_insn(void *insn) {
   delete reinterpret_cast<bxInstruction_c*>(insn);
 }
 
+#define SSE_PREFIX_NONE 0
+#define SSE_PREFIX_66   1
+#define SSE_PREFIX_F3   2
+#define SSE_PREFIX_F2   3
+
+// fetchdecode.cc から持ってきた
+Bit16u WalkOpcodeTables(const BxOpcodeInfo_t *OpcodeInfoPtr, Bit16u &attr, unsigned modrm, unsigned sse_prefix, unsigned osize, unsigned vex_vl, bx_bool vex_w)
+{
+  // Parse mod-nnn-rm and related bytes
+  unsigned mod_mem = (modrm & 0xc0) != 0xc0;
+  unsigned nnn = (modrm >> 3) & 0x7;
+//rm  = modrm & 0x7;
+
+  attr |= OpcodeInfoPtr->Attr;
+
+  while(attr & BxGroupX) {
+    Bit32u group = attr & BxGroupX;
+    attr &= ~BxGroupX;
+
+    // ignore 0x66 SSE prefix is required
+    if (group == BxPrefixSSEF2F3) {
+      if (sse_prefix == SSE_PREFIX_66) sse_prefix = SSE_PREFIX_NONE;
+      group = BxPrefixSSE;
+    }
+
+    if (group < BxPrefixSSE) {
+      /* For opcodes with only one allowed SSE prefix */
+      if (sse_prefix != (group >> 4)) {
+        attr = 0;
+        return BX_IA_ERROR;
+      }
+      break;
+    }
+
+    switch(group) {
+      case BxGroupN:
+        OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[nnn]);
+        break;
+      case BxSplitGroupN:
+        OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[nnn + (mod_mem << 3)]);
+        break;
+#if BX_SUPPORT_AVX
+      case BxSplitMod11B:
+        OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[mod_mem]);
+        break;
+#endif
+#if BX_SUPPORT_EVEX
+      case BxSplitVexVL:
+        if (vex_vl > BX_VLMAX) {
+          attr = 0;
+          return BX_IA_ERROR;
+        }
+        OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[vex_vl]);
+        break;
+#endif
+      case BxOSizeGrp:
+        OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[osize]);
+        break;
+      case BxPrefixSSE:
+        /* For SSE opcodes look into another 3-entry table
+                   with the opcode prefixes (NONE, 0x66, 0xF3, 0xF2) */
+        if (sse_prefix) {
+          OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[sse_prefix-1]);
+          break;
+        }
+        continue;
+      case BxPrefixSSE4:
+        /* For SSE opcodes look into another 4-entry table
+           with the opcode prefixes (NONE, 0x66, 0xF3, 0xF2) */
+        OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[sse_prefix]);
+        break;
+      case BxPrefixSSE2:
+        /* For SSE opcodes look into another 2-entry table
+           with the opcode prefixes (NONE, 0x66), 0xF2 and 0xF3 not allowed */
+        if (sse_prefix > SSE_PREFIX_66) {
+          attr = 0;
+          return BX_IA_ERROR;
+        }
+        OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[sse_prefix]);
+        break;
+      case BxFPEscape:
+        if (mod_mem)
+          OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[nnn]);
+        else
+          OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[(modrm & 0x3f) + 8]);
+        break;
+      default:
+        assert(false);
+    }
+
+    /* get additional attributes from group table */
+    attr |= OpcodeInfoPtr->Attr;
+  }
+
+  Bit16u ia_opcode = OpcodeInfoPtr->IA;
+
+  if (ia_opcode != BX_IA_ERROR) {
+    unsigned has_alias = attr & BxAlias;
+    if (has_alias) {
+      unsigned alias = 0;
+      if (has_alias == BxAliasSSE) {
+        alias = sse_prefix;
+      }
+#if BX_SUPPORT_AVX
+      else {
+        // VexW64 is ignored in 32-bit mode
+        if (has_alias == BxAliasVexW || long64_mode()) {
+          alias = vex_w;
+        }
+      }
+#endif
+      ia_opcode += alias;
+    }
+  }
+
+  return (ia_opcode);
+}
+
 int decode(uint8_t **ipp, void *insn) {
   bxInstruction_c *i = reinterpret_cast<bxInstruction_c*>(insn);
   unsigned b1, b2 = 0, ia_opcode = BX_IA_ERROR, imm_mode = 0;
@@ -1703,10 +1821,6 @@ int decode(uint8_t **ipp, void *insn) {
   bx_bool lock = 0;
   uint8_t *iptr = *ipp;
 
-#define SSE_PREFIX_NONE 0
-#define SSE_PREFIX_66   1
-#define SSE_PREFIX_F3   2
-#define SSE_PREFIX_F2   3
   unsigned sse_prefix = SSE_PREFIX_NONE;
   unsigned rex_prefix = 0;
 
@@ -1868,8 +1982,7 @@ get_32bit_displ:
     }
 
 modrm_done:
-    //ia_opcode = WalkOpcodeTables(OpcodeInfoPtr, attr, b2, sse_prefix, offset >> 9, i->getVL(), vex_w);
-    ia_opcode = 0; // FIXME
+    ia_opcode = WalkOpcodeTables(OpcodeInfoPtr, attr, b2, sse_prefix, offset >> 9, i->getVL(), vex_w);
   } else {
     // Opcode does not require a MODRM byte.
     // Note that a 2-byte opcode (0F XX) will jump to before
