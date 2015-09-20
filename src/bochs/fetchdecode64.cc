@@ -1773,14 +1773,15 @@ fetch_b1:
 
   unsigned index = b1+offset;
 
-  return 0;
-}
-
-#if 0
   const BxOpcodeInfo_t *OpcodeInfoPtr = &(BxOpcodeInfo64[index]);
   Bit16u attr = OpcodeInfoPtr->Attr;
 
   bx_bool has_modrm = 0;
+
+  return 0;
+}
+
+#if 0
 
 #if BX_SUPPORT_AVX
   if ((b1 & ~0x1) == 0xc4) {
