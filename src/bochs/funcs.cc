@@ -91,6 +91,21 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JMP_EqR(bxInstruction_c *i)
   RIP = op1_64;
 }
 
+// ctrl_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JMP_Jq(bxInstruction_c *i)
+{
+  Bit64u new_RIP = RIP + (Bit32s) i->Id();
+
+#if 0
+  if (! IsCanonical(new_RIP)) {
+    BX_ERROR(("%s: canonical RIP violation", i->getIaOpcodeNameShort()));
+    exception(BX_GP_EXCEPTION, 0);
+  }
+#endif
+
+  RIP = new_RIP;
+}
+
 // arith64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SUB_EqIdR(bxInstruction_c *i)
 {
