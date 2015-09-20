@@ -3921,6 +3921,10 @@ public: // for now...
 #endif
 // <TAG-CLASS-CPU-END>
 
+#if BX_SUPPORT_X86_64
+  BX_SMF void    push_64(Bit64u value64) BX_CPP_AttrRegparmN(1);
+  BX_SMF Bit64u  pop_64(void);
+#endif
 };
 
 // <TAG-DEFINES-DECODE-START>
