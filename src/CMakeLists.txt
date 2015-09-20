@@ -17,7 +17,7 @@ SET(BOCHS_HEADERS bochs/bochs.h
                   bochs/fetchdecode_x87.h
                   bochs/fetchdecode_sse.h
                   bochs/dummyfuncs.h)
-SET(X86I_SOURCES ${X86I_HEADERS} ${BOCHS_HEADERS} ${BOCHS_SOURCES} main.c decode64.c)
+SET(X86I_SOURCES ${X86I_HEADERS} ${BOCHS_HEADERS} ${BOCHS_SOURCES} main.c)
 
 SET(X86I_EXECUTABLE x86i_executable)
 SET(X86I_EXECUTABLE_OUTPUT x86i)

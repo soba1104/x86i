@@ -1689,6 +1689,8 @@ static const BxOpcodeInfo_t BxOpcodeInfo64[512*3] = {
   /* 0F FF /q */ { 0, BX_IA_ERROR }
 };
 
+extern "C" {
+
 int decode(uint8_t **ipp, bxInstruction_c *i) {
   unsigned b1, b2 = 0, ia_opcode = BX_IA_ERROR, imm_mode = 0;
   unsigned offset = 512, rex_r = 0, rex_x = 0, rex_b = 0;
@@ -2012,5 +2014,7 @@ decode_done:
 
   return 0;
 }
+
+} // extern "C"
 
 #endif /* if BX_SUPPORT_X86_64 */
