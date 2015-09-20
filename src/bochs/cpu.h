@@ -788,6 +788,53 @@ const Bit32u EFlagsOSZAPMask = \
 
 const Bit32u EFlagsValidMask = 0x003f7fd5; // only supported bits for EFLAGS
 
+#if BX_SUPPORT_FPU
+#include "i387.h"
+#endif
+
+#if BX_CPU_LEVEL >= 5
+typedef struct
+{
+#if BX_SUPPORT_APIC
+  bx_phy_address apicbase;
+#endif
+
+  // SYSCALL/SYSRET instruction msr's
+  Bit64u star;
+#if BX_SUPPORT_X86_64
+  Bit64u lstar;
+  Bit64u cstar;
+  Bit32u fmask;
+  Bit64u kernelgsbase;
+  Bit32u tsc_aux;
+#endif
+
+#if BX_CPU_LEVEL >= 6
+  // SYSENTER/SYSEXIT instruction msr's
+  Bit32u sysenter_cs_msr;
+  bx_address sysenter_esp_msr;
+  bx_address sysenter_eip_msr;
+
+  BxPackedRegister pat;
+  Bit64u mtrrphys[16];
+  BxPackedRegister mtrrfix64k;
+  BxPackedRegister mtrrfix16k[2];
+  BxPackedRegister mtrrfix4k[8];
+  Bit32u mtrr_deftype;
+#endif
+
+#if BX_SUPPORT_VMX
+  Bit32u ia32_feature_ctrl;
+#endif
+
+#if BX_SUPPORT_SVM
+  Bit64u svm_hsave_pa;
+#endif
+
+  /* TODO finish of the others */
+} bx_regs_msr_t;
+#endif
+
 
 
 
