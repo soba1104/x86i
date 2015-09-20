@@ -7,6 +7,7 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_DEBUG} -O0 -g")
 
 SET(X86I_HEADERS x86i.h)
 SET(BOCHS_SOURCES bochs/fetchdecode64.cc
+                  bochs/utils.cc
                   bochs/funcs.cc)
 SET(BOCHS_HEADERS bochs/bochs.h
                   bochs/config.h
