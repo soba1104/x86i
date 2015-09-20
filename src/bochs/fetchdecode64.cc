@@ -58,6 +58,7 @@ typedef void* BxExecutePtr_tR; // FIXME
 
 #include <bochs.h>
 #include <cpu.h>
+#include <xmm.h>
 #include <instr.h>
 
 
@@ -129,7 +130,14 @@ static const Bit8u BxOpcodeHasModrm64[512] = {
 #include "fetchdecode.h"
 
 // table of all Bochs opcodes
-extern struct bxIAOpcodeTable BxOpcodesTable[];
+//extern struct bxIAOpcodeTable BxOpcodesTable[];
+bxIAOpcodeTable BxOpcodesTable[] = {
+//#define bx_define_opcode(a, b, c, d, s1, s2, s3, s4, e) { b, c, { s1, s2, s3, s4 }, e },
+// FIXME
+#define bx_define_opcode(a, b, c, d, s1, s2, s3, s4, e) { NULL, NULL, { s1, s2, s3, s4 }, e },
+#include "ia_opcodes.h"
+};
+#undef  bx_define_opcode
 
 // 512 entries for 16bit operand size
 // 512 entries for 32bit operand size
@@ -1940,15 +1948,6 @@ modrm_done:
     }
   }
 
-  return 0;
-}
-
-#if 0
-#if BX_SUPPORT_3DNOW
-  if(b1 == 0x10f)
-    ia_opcode = Bx3DNowOpcode[i->modRMForm.Ib[0]];
-#endif
-
   // assign sources
   for (unsigned n = 0; n <= 3; n++) {
     unsigned src = (unsigned) BxOpcodesTable[ia_opcode].src[n];
@@ -1961,75 +1960,23 @@ modrm_done:
       break;
     case BX_SRC_NNN:
       i->setSrcReg(n, nnn);
-#if BX_SUPPORT_AVX
-      if (type == BX_KMASK_REG) {
-        if (nnn >= 8) ia_opcode = BX_IA_ERROR;
-      }
-#endif
       break;
     case BX_SRC_RM:
-      if (! mod_mem) {
-#if BX_SUPPORT_AVX
-        if (type == BX_KMASK_REG) rm &= 0x7;
-#endif
+      if (!mod_mem) {
         i->setSrcReg(n, rm);
-      }
-      else {
+      } else {
         i->setSrcReg(n, (type == BX_VMM_REG) ? BX_VECTOR_TMP_REGISTER : BX_TMP_REGISTER);
-#if BX_SUPPORT_EVEX
-        if (b1 == 0x62 && displ8) {
-          if (type == BX_GPR16) i->modRMForm.displ32u *= 2;
-          else if (type == BX_GPR32) i->modRMForm.displ32u *= 4;
-          else if (type == BX_GPR64) i->modRMForm.displ32u *= 8;
-        }
-#endif
       }
       break;
-#if BX_SUPPORT_EVEX
-    case BX_SRC_EVEX_RM:
-      if (! mod_mem) {
-        i->setSrcReg(n, rm);
-      }
-      else {
-        i->setSrcReg(n, BX_VECTOR_TMP_REGISTER);
-        if (displ8) i->modRMForm.displ32u *= evex_displ8_compression(i, ia_opcode, type, vex_w);
-        if (n == 0 && i->isZeroMasking()) // zero masking is not allowed for memory destination
-          ia_opcode = BX_IA_ERROR;
-      }
-      break;
-#endif
-#if BX_SUPPORT_AVX
-    case BX_SRC_VVV:
-      i->setSrcReg(n, vvv);
-      use_vvv = 1;
-      if (type == BX_KMASK_REG) {
-        if (vvv >= 8) ia_opcode = BX_IA_ERROR;
-      }
-      break;
-    case BX_SRC_VIB:
-#if BX_SUPPORT_EVEX
-      if (b1 == 0x62)
-        i->setSrcReg(n, ((i->Ib() << 1) & 0x10) | (i->Ib() >> 4));
-      else
-#endif
-        i->setSrcReg(n, (i->Ib() >> 4));
-      break;
-    case BX_SRC_VSIB:
-      if (i->sibIndex() == BX_NIL_REGISTER) {
-        ia_opcode = BX_IA_ERROR;
-      }
-#if BX_SUPPORT_EVEX
-      i->setSibIndex(i->sibIndex() | evex_v);
-      if (displ8) i->modRMForm.displ32u *= 4 << vex_w;
-      // zero masking is not allowed for gather/scatter
-      if (i->isZeroMasking()) ia_opcode = BX_IA_ERROR;
-#endif
-      break;
-#endif
     default:
-      BX_PANIC(("fetchdecode64: unknown definition %d for src %d", src, n));
+      assert(false);
     }
   }
+
+  return 0;
+}
+
+#if 0
 
   // assign memory segment override
   if (! BX_NULL_SEG_REG(seg_override))
