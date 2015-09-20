@@ -35,6 +35,7 @@
 #define BX_CPU_LEVEL 6 // FIXME
 #define BX_CPP_INLINE inline
 #include <stdint.h>
+#include <assert.h>
 
 typedef uint8_t Bit8u;
 typedef uint16_t Bit16u;
@@ -1702,100 +1703,64 @@ int decode(uint8_t **ipp, bxInstruction_c *i) {
           /*os64*/ 0,  // operand size 64 override defaults to 0
           /*as64*/ 1); // address size 64 override defaults to 1
 
-  return 0;
-}
-
-#if 0
-  int BX_CPP_AttrRegparmN(3)
-BX_CPU_C::fetchDecode64(const Bit8u *iptr, Bit32u fetchModeMask, bxInstruction_c *i, unsigned remainingInPage)
-{
 fetch_b1:
   b1 = *iptr++;
-  remain--;
 
-  switch (b1) {
-    case 0x40:
-    case 0x41:
-    case 0x42:
-    case 0x43:
-    case 0x44:
-    case 0x45:
-    case 0x46:
-    case 0x47:
-    case 0x48:
-    case 0x49:
-    case 0x4A:
-    case 0x4B:
-    case 0x4C:
-    case 0x4D:
-    case 0x4E:
-    case 0x4F:
+  switch(b1) {
+    // rex prefix
+    case 0x40 ... 0x4f:
       rex_prefix = b1;
-      if (remain != 0) {
-        goto fetch_b1;
-      }
-      return(-1);
-    case 0x0f: // 2 byte escape
-      if (remain != 0) {
-        remain--;
-        b1 = 0x100 | *iptr++;
-        break;
-      }
-      return(-1);
-    case 0xf2: // REPNE/REPNZ
-    case 0xf3: // REP/REPE/REPZ
-      rex_prefix = 0;
-      sse_prefix = (b1 & 3) ^ 1;
-      i->setLockRepUsed(b1 & 3);
-      if (remain != 0) {
-        goto fetch_b1;
-      }
-      return(-1);
+      goto fetch_b1;
+
+    // 2 byte escape
+    case 0x0f:
+      b1 = 0x100 | *iptr++;
+      break;
+
+    // REPNE/REPNZ
+    case 0xf2:
+      assert(false); // FIXME
+
+    // REP/REPE/REPZ
+    case 0xf3:
+      assert(false); // FIXME
+
+    // segment override prefixes
     case 0x2e: // CS:
     case 0x26: // ES:
     case 0x36: // SS:
     case 0x3e: // DS:
-      /* ignore segment override prefix */
-      rex_prefix = 0;
-      if (remain != 0) {
-        goto fetch_b1;
-      }
-      return(-1);
     case 0x64: // FS:
     case 0x65: // GS:
-      rex_prefix = 0;
-      seg_override = b1 & 0xf;
-      if (remain != 0) {
-        goto fetch_b1;
-      }
-      return(-1);
+      assert(false);
+
+    // opcode size prefix
     case 0x66: // OpSize
       rex_prefix = 0;
-      if(!sse_prefix) sse_prefix = SSE_PREFIX_66;
+      if (!sse_prefix) sse_prefix = SSE_PREFIX_66;
       i->setOs32B(0);
       offset = 0;
-      if (remain != 0) {
-        goto fetch_b1;
-      }
-      return(-1);
+      goto fetch_b1;
+
+    // address size prefix
     case 0x67: // AddrSize
       rex_prefix = 0;
       i->clearAs64();
-      if (remain != 0) {
-        goto fetch_b1;
-      }
-      return(-1);
-    case 0xf0: // LOCK:
+      goto fetch_b1;
+
+    // lock prefix
+    case 0xf0:
       rex_prefix = 0;
       lock = 1;
-      if (remain != 0) {
-        goto fetch_b1;
-      }
-      return(-1);
+      goto fetch_b1;
     default:
       break;
   }
 
+  return 0;
+}
+
+#if 0
   if (rex_prefix) {
     i->assertExtend8bit();
     if (rex_prefix & 0x8) {
