@@ -28,35 +28,13 @@
 //  ----------------------------------------------------------------------------
 /////////////////////////////////////////////////////////////////////////////////
 
-#define BX_USE_CPU_SMF 0 // FIXME
-#define BX_SUPPORT_X86_64 1 // FIXME
-#define BX_SUPPORT_FPU 1 // FIXME
+#include <config.h>
+
 #undef BX_SUPPORT_AVX // FIXME
 #undef BX_SUPPORT_EVEX // FIXME
-#define BX_CPU_LEVEL 6 // FIXME
 #define BX_CPP_INLINE inline
 #include <stdint.h>
 #include <assert.h>
-
-typedef uint8_t Bit8u;
-typedef uint16_t Bit16u;
-typedef uint32_t Bit32u;
-typedef uint64_t Bit64u;
-
-typedef uint8_t Bit8s;
-typedef uint16_t Bit16s;
-typedef uint32_t Bit32s;
-typedef uint64_t Bit64s;
-
-#if BX_SUPPORT_X86_64
-typedef Bit64u bx_address;
-#else
-typedef Bit32u bx_address;
-#endif
-typedef Bit32u bx_bool;
-
-#define BX_CPP_AttrRegparmN(X) __attribute__((regparm(X)))
-#define BOCHSAPI
 
 #include <bochs.h>
 #include <cpu.h>
