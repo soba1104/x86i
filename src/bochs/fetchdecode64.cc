@@ -54,13 +54,10 @@ typedef Bit32u bx_address;
 #endif
 typedef Bit32u bx_bool;
 
-typedef void* BxExecutePtr_tR; // FIXME
-
 #define BX_CPP_AttrRegparmN(X) __attribute__((regparm(X)))
 #define BOCHSAPI
 
 #include <bochs.h>
-#include <instr.h>
 #include <cpu.h>
 #include <xmm.h>
 

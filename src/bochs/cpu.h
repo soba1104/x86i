@@ -101,6 +101,9 @@ enum {
 #define BX_NIL_REGISTER  (BX_GENERAL_REGISTERS+2)
 // <TAG-DEFINES-DECODE-END>
 
+class BX_CPU_C;
+
+#include "instr.h"
 
 #define BX_SMF
 class BOCHSAPI BX_CPU_C {
