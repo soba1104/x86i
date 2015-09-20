@@ -1964,8 +1964,6 @@ fetch_b1:
         // mod==00b, rm!=4, rm!=5
         goto modrm_done;
       }
-      // (mod == 0x40), mod==01b or (mod == 0x80), mod==10b
-      assert(false);
     } else {
       assert(false);
     }

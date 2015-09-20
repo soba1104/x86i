@@ -24,6 +24,13 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EdIdR(bxInstruction_c *i)
   BX_WRITE_32BIT_REGZ(i->dst(), i->Id());
 }
 
+// data_xfer32.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EdIdM(bxInstruction_c *i)
+{
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+  WriteHostQWordToLittleEndian((Bit64u*)eaddr, i->Id());
+}
+
 // data_xfer64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GqEqR(bxInstruction_c *i)
 {
