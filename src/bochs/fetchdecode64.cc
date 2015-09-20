@@ -31,7 +31,7 @@
 #define BX_SUPPORT_X86_64 1 // FIXME
 #undef BX_SUPPORT_AVX // FIXME
 #undef BX_SUPPORT_EVEX // FIXME
-
+#define BX_CPP_INLINE inline
 #include <stdint.h>
 
 typedef uint8_t Bit8u;
@@ -44,6 +44,16 @@ typedef uint16_t Bit16s;
 typedef uint32_t Bit32s;
 typedef uint64_t Bit64s;
 
+#if BX_SUPPORT_X86_64
+typedef Bit64u bx_address;
+#else
+typedef Bit32u bx_address;
+#endif
+
+typedef void* BxExecutePtr_tR; // FIXME
+
+#include <bochs.h>
+#include <instr.h>
 
 
 
@@ -109,49 +119,6 @@ static const Bit8u BxOpcodeHasModrm64[512] = {
 };
 
 #undef X
-
-// Segment override prefixes
-// -------------------------
-// In 64-bit mode the CS, DS, ES, and SS segment overrides are ignored.
-
-// decoding instructions; accessing seg reg's by index
-static unsigned sreg_mod0_base32[16] = {
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_SS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS
-};
-
-static unsigned sreg_mod1or2_base32[16] = {
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_SS,
-  BX_SEG_REG_SS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS,
-  BX_SEG_REG_DS
-};
 
 // common fetchdecode32/64 opcode tables
 #include "fetchdecode.h"
@@ -1710,6 +1677,7 @@ static const BxOpcodeInfo_t BxOpcodeInfo64[512*3] = {
   /* 0F FF /q */ { 0, BX_IA_ERROR }
 };
 
+#if 0
   int BX_CPP_AttrRegparmN(3)
 BX_CPU_C::fetchDecode64(const Bit8u *iptr, Bit32u fetchModeMask, bxInstruction_c *i, unsigned remainingInPage)
 {
@@ -2504,5 +2472,6 @@ decode_done:
 
   return(0);
 }
+#endif
 
 #endif /* if BX_SUPPORT_X86_64 */

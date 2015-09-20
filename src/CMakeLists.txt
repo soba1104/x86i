@@ -4,7 +4,12 @@ SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS_DEBUG} -O0 -g")
 
 SET(X86I_HEADERS x86i.h)
 SET(BOCHS_SOURCES bochs/fetchdecode64.cc)
-SET(BOCHS_HEADERS bochs/ia_opcodes.h bochs/fetchdecode_x87.h bochs/fetchdecode_sse.h)
+SET(BOCHS_HEADERS bochs/bochs.h
+                  bochs/instr.h
+                  bochs/ia_opcodes.h
+                  bochs/fetchdecode.h
+                  bochs/fetchdecode_x87.h
+                  bochs/fetchdecode_sse.h)
 SET(X86I_SOURCES ${X86I_HEADERS} ${BOCHS_HEADERS} ${BOCHS_SOURCES} main.c decode64.c)
 
 SET(X86I_EXECUTABLE x86i_executable)
