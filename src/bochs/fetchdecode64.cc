@@ -1757,10 +1757,6 @@ fetch_b1:
       break;
   }
 
-  return 0;
-}
-
-#if 0
   if (rex_prefix) {
     i->assertExtend8bit();
     if (rex_prefix & 0x8) {
@@ -1777,6 +1773,10 @@ fetch_b1:
 
   unsigned index = b1+offset;
 
+  return 0;
+}
+
+#if 0
   const BxOpcodeInfo_t *OpcodeInfoPtr = &(BxOpcodeInfo64[index]);
   Bit16u attr = OpcodeInfoPtr->Attr;
 
