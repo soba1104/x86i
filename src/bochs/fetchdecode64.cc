@@ -1778,183 +1778,20 @@ fetch_b1:
 
   bx_bool has_modrm = 0;
 
+  if ((b1 & ~0x1) == 0xc4) {
+    assert(false);
+  } else if (b1 == 0x62) {
+    assert(false);
+  } else if (b1 == 0x8f && (*iptr & 0x08) == 0x08) {
+    assert(false);
+  } else {
+    has_modrm = BxOpcodeHasModrm64[b1];
+  }
+
   return 0;
 }
 
 #if 0
-
-#if BX_SUPPORT_AVX
-  if ((b1 & ~0x1) == 0xc4) {
-    // VEX
-    had_vex_xop = b1;
-    if (sse_prefix | rex_prefix)
-      goto decode_done;
-    if (! protected_mode())
-      goto decode_done;
-
-    unsigned vex, vex_opcext = 1;
-    if (remain != 0) {
-      remain--;
-      vex = *iptr++;
-    }
-    else
-      return(-1);
-
-    rex_r = ((vex >> 4) & 0x8) ^ 0x8;
-    if (b1 == 0xc4) {
-      rex_x = ((vex >> 3) & 0x8) ^ 0x8;
-      rex_b = ((vex >> 2) & 0x8) ^ 0x8;
-
-      // decode 3-byte VEX prefix
-      vex_opcext = vex & 0x1f;
-      if (remain != 0) {
-        remain--;
-        vex = *iptr++;  // fetch VEX3
-      }
-      else
-        return(-1);
-
-      if (vex & 0x80) {
-        vex_w = 1;
-        i->assertOs64();
-        i->assertOs32();
-      }
-    }
-
-    vvv = 15 - ((vex >> 3) & 0xf);
-    unsigned vex_l = (vex >> 2) & 0x1;
-    i->setVL(BX_VL128 + vex_l);
-    sse_prefix = vex & 0x3;
-
-    unsigned opcode_byte = 0;
-    if (remain != 0) {
-      remain--;
-      opcode_byte = *iptr++; // fetch new b1
-    }
-    else
-      return(-1);
-
-    opcode_byte += 256 * vex_opcext;
-    if (opcode_byte < 256 || opcode_byte >= 1024)
-      goto decode_done;
-    has_modrm = (opcode_byte != 0x177); // if not VZEROUPPER/VZEROALL opcode
-
-    OpcodeInfoPtr = &BxOpcodeTableAVX[(opcode_byte-256)*2 + vex_l];
-  }
-#if BX_SUPPORT_EVEX
-  else if (b1 == 0x62) {
-    had_vex_xop = b1;
-    if (sse_prefix | rex_prefix)
-      goto decode_done;
-    if (! protected_mode())
-      goto decode_done;
-
-    Bit32u evex;
-    if (remain > 3) {
-      evex = FetchDWORD(iptr);
-      iptr += 4;
-      remain -= 4;
-    }
-    else {
-      return(-1);
-    }
-
-    // check for reserved EVEX bits
-    if ((evex & 0x0c) != 0 || (evex & 0x400) == 0)
-      goto decode_done;
-
-    unsigned evex_opcext = evex & 0x3;
-    if (evex_opcext == 0)
-      goto decode_done;
-
-    rex_r = ((evex >> 4) & 0x8) ^ 0x8;
-    rex_r |= (evex & 0x10) ^ 0x10;
-    rex_x = ((evex >> 3) & 0x8) ^ 0x8;
-    rex_b = ((evex >> 2) & 0x8) ^ 0x8;
-    rex_b |= (rex_x << 1);
-
-    sse_prefix = (evex >> 8) & 0x3;
-    vvv = 15 - ((evex >> 11) & 0xf);
-    evex_v = ((evex >> 15) & 0x10) ^ 0x10;
-    vvv |= evex_v;
-    vex_w = (evex >> 15) & 0x1;
-    if (vex_w) {
-      i->assertOs64();
-      i->assertOs32();
-    }
-
-    unsigned opmask = (evex >> 16) & 0x7;
-    i->setOpmask(opmask);
-    unsigned evex_b = (evex >> 20) & 0x1;
-    i->setEvexb(evex_b);
-
-    unsigned evex_vl_rc = (evex >> 21) & 0x3;
-    i->setRC(evex_vl_rc);
-    i->setVL(1 << evex_vl_rc);
-
-    unsigned evex_z = (evex >> 23) & 0x1;
-    i->setZeroMasking(evex_z);
-
-    if (evex_z && ! opmask)
-      goto decode_done;
-    
-    unsigned opcode_byte = (evex >> 24);
-    opcode_byte += 256 * (evex_opcext-1);
-    has_modrm = 1;
-
-    OpcodeInfoPtr = &BxOpcodeTableEVEX[opcode_byte*2 + (opmask != 0)];
-  }
-#endif
-  else if (b1 == 0x8f && (*iptr & 0x08) == 0x08) {
-    // 3 byte XOP prefix
-    had_vex_xop = b1;
-    if (sse_prefix | rex_prefix)
-      goto decode_done;
-    if (! protected_mode())
-      goto decode_done;
-
-    unsigned vex;
-    if (remain > 2) {
-      remain -= 3;
-      vex = *iptr++; // fetch XOP2
-    }
-    else
-      return(-1);
-
-    rex_r = ((vex >> 4) & 0x8) ^ 0x8;
-    rex_x = ((vex >> 3) & 0x8) ^ 0x8;
-    rex_b = ((vex >> 2) & 0x8) ^ 0x8;
-
-    unsigned xop_opcext = (vex & 0x1f) - 8;
-    if (xop_opcext >= 3)
-      goto decode_done;
-
-    vex = *iptr++; // fetch XOP3
-
-    if (vex & 0x80) {
-      vex_w = 1;
-      i->assertOs64();
-      i->assertOs32();
-    }
-
-    vvv = 15 - ((vex >> 3) & 0xf);
-    unsigned vex_l = (vex >> 2) & 0x1;
-    i->setVL(BX_VL128 + vex_l);
-    sse_prefix = vex & 0x3;
-    if (sse_prefix) goto decode_done;
-
-    unsigned opcode_byte = *iptr++;
-    has_modrm = 1;
-    opcode_byte += 256 * xop_opcext;
-
-    OpcodeInfoPtr = &BxOpcodeTableXOP[opcode_byte];
-  }
-  else
-#endif
-  {
-    has_modrm = BxOpcodeHasModrm64[b1];
-  }
-
   if (has_modrm) {
 
     // handle 3-byte escape
