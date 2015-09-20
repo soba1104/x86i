@@ -51,6 +51,7 @@ typedef Bit64u bx_address;
 #else
 typedef Bit32u bx_address;
 #endif
+typedef Bit32u bx_bool;
 
 typedef void* BxExecutePtr_tR; // FIXME
 
@@ -1679,6 +1680,16 @@ static const BxOpcodeInfo_t BxOpcodeInfo64[512*3] = {
   /* 0F FE /q */ { BxPrefixSSE2, BX_IA_ERROR, BxOpcodeGroupSSE_0ffe },
   /* 0F FF /q */ { 0, BX_IA_ERROR }
 };
+
+int decode(uint8_t **ipp, bxInstruction_c *i) {
+  unsigned b1, b2 = 0, ia_opcode = BX_IA_ERROR, imm_mode = 0;
+  unsigned offset = 512, rex_r = 0, rex_x = 0, rex_b = 0;
+  unsigned rm = 0, mod = 0, nnn = 0, mod_mem = 0;
+  bx_bool lock = 0;
+  uint8_t *iptr = *ipp;
+
+  return 0;
+}
 
 #if 0
   int BX_CPP_AttrRegparmN(3)
