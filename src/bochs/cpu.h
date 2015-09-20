@@ -1060,6 +1060,178 @@ public: // for now...
   // lazy arithmetic flags state
   bx_lf_flags_entry oszapc;
 
+  BX_SMF void setEFlags(Bit32u val) BX_CPP_AttrRegparmN(1);
+
+  BX_SMF BX_CPP_INLINE void setEFlagsOSZAPC(Bit32u flags32) {
+    set_OF(1 & ((flags32) >> 11));
+    set_SF(1 & ((flags32) >> 7));
+    set_ZF(1 & ((flags32) >> 6));
+    set_AF(1 & ((flags32) >> 4));
+    set_PF(1 & ((flags32) >> 2));
+    set_CF(1 & ((flags32) >> 0));
+  }
+
+  BX_SMF BX_CPP_INLINE void clearEFlagsOSZAPC(void) {
+    SET_FLAGS_OSZAPC_LOGIC_32(1);
+  }
+ 
+  BX_SMF BX_CPP_INLINE void SET_FLAGS_OxxxxC(Bit32u new_of, Bit32u new_cf) {
+    Bit32u temp_po = new_of ^ new_cf;
+    BX_CPU_THIS_PTR oszapc.auxbits &= ~(LF_MASK_PO | LF_MASK_CF);
+    BX_CPU_THIS_PTR oszapc.auxbits |=
+                  (temp_po << LF_BIT_PO) | (new_cf << LF_BIT_CF);
+  }
+ 
+  BX_SMF BX_CPP_INLINE void ASSERT_FLAGS_OxxxxC() {
+    SET_FLAGS_OxxxxC(1, 1);
+  }
+ 
+  // ZF
+  BX_SMF BX_CPP_INLINE bx_bool getB_ZF(void) {
+    return (0 == BX_CPU_THIS_PTR oszapc.result);
+  }
+
+  BX_SMF BX_CPP_INLINE bx_bool get_ZF(void) { return getB_ZF(); }
+
+  BX_SMF BX_CPP_INLINE void set_ZF(bx_bool val) {
+    if (val) assert_ZF();
+    else clear_ZF();
+  }
+
+  BX_SMF BX_CPP_INLINE void clear_ZF(void) {
+    BX_CPU_THIS_PTR oszapc.result |= (1 << 8);
+  }
+
+  BX_SMF BX_CPP_INLINE void assert_ZF(void) {
+    // merge the sign bit into the Sign Delta
+    BX_CPU_THIS_PTR oszapc.auxbits ^=
+      (((BX_CPU_THIS_PTR oszapc.result >> BX_LF_SIGN_BIT) & 1) << LF_BIT_SD);
+
+    // merge the parity bits into the Parity Delta Byte
+    Bit32u temp_pdb = (255 & BX_CPU_THIS_PTR oszapc.result);
+    BX_CPU_THIS_PTR oszapc.auxbits ^= (temp_pdb << LF_BIT_PDB);
+
+    // now zero the .result value
+    BX_CPU_THIS_PTR oszapc.result = 0;
+  }
+
+  // SF
+  BX_SMF BX_CPP_INLINE bx_bool getB_SF(void) {
+    return ((BX_CPU_THIS_PTR oszapc.result >> BX_LF_SIGN_BIT) ^
+            (BX_CPU_THIS_PTR oszapc.auxbits >> LF_BIT_SD)) & 1;
+  }
+
+  BX_SMF BX_CPP_INLINE bx_bool get_SF(void) { return getB_SF(); }
+
+  BX_SMF BX_CPP_INLINE void set_SF(bx_bool val) {
+    bx_bool temp_sf = getB_SF();
+
+    BX_CPU_THIS_PTR oszapc.auxbits ^= (temp_sf ^ val) << LF_BIT_SD;
+  }
+
+  BX_SMF BX_CPP_INLINE void clear_SF(void) {
+    set_SF(0);
+  }
+
+  BX_SMF BX_CPP_INLINE void assert_SF(void) {
+    set_SF(1);
+  }
+
+  // PF - bit 2 in EFLAGS, represented by lower 8 bits of oszapc.result
+  BX_SMF BX_CPP_INLINE bx_bool getB_PF(void) {
+    Bit32u temp = (255 & BX_CPU_THIS_PTR oszapc.result);
+    temp = temp ^ (255 & (BX_CPU_THIS_PTR oszapc.auxbits >> LF_BIT_PDB));
+    temp = (temp ^ (temp >> 4)) & 0x0F;
+    return (0x9669U >> temp) & 1;
+  }
+
+  BX_SMF BX_CPP_INLINE bx_bool get_PF(void) { return getB_PF(); }
+
+  BX_SMF BX_CPP_INLINE void set_PF(bx_bool val) {
+    Bit32u temp_pdb = (255 & BX_CPU_THIS_PTR oszapc.result) ^ (!val);
+
+    BX_CPU_THIS_PTR oszapc.auxbits &= ~(LF_MASK_PDB);
+    BX_CPU_THIS_PTR oszapc.auxbits |= (temp_pdb << LF_BIT_PDB);
+  }
+
+  BX_SMF BX_CPP_INLINE void clear_PF(void) {
+    set_PF(0);
+  }
+
+  BX_SMF BX_CPP_INLINE void assert_PF(void) {
+    set_PF(1);
+  }
+
+  // AF - bit 4 in EFLAGS, represented by bit LF_BIT_AF of oszapc.auxbits
+  BX_SMF BX_CPP_INLINE bx_bool getB_AF(void) {
+    return ((BX_CPU_THIS_PTR oszapc.auxbits >> LF_BIT_AF) & 1);
+  }
+
+  BX_SMF BX_CPP_INLINE bx_bool get_AF(void) {
+    return (BX_CPU_THIS_PTR oszapc.auxbits & LF_MASK_AF);
+  }
+
+  BX_SMF BX_CPP_INLINE void set_AF(bx_bool val) {
+    BX_CPU_THIS_PTR oszapc.auxbits &= ~(LF_MASK_AF);
+    BX_CPU_THIS_PTR oszapc.auxbits |= (val) << LF_BIT_AF;
+  }
+  
+  BX_SMF BX_CPP_INLINE void clear_AF(void) {
+    BX_CPU_THIS_PTR oszapc.auxbits &= ~(LF_MASK_AF);
+  }
+
+  BX_SMF BX_CPP_INLINE void assert_AF(void) {
+    BX_CPU_THIS_PTR oszapc.auxbits |= (LF_MASK_AF);
+  }
+
+  // CF
+  BX_SMF BX_CPP_INLINE bx_bool getB_CF(void) {
+    return ((BX_CPU_THIS_PTR oszapc.auxbits >> LF_BIT_CF) & 1);
+  }
+
+  BX_SMF BX_CPP_INLINE bx_bool get_CF(void) {
+    return (BX_CPU_THIS_PTR oszapc.auxbits & LF_MASK_CF);
+  }
+
+  BX_SMF BX_CPP_INLINE void set_CF(bx_bool val) {
+    bx_bool temp_of = getB_OF();
+    SET_FLAGS_OxxxxC(temp_of, (val));
+  }
+
+  BX_SMF BX_CPP_INLINE void clear_CF(void) {
+    bx_bool temp_of = getB_OF();
+    SET_FLAGS_OxxxxC(temp_of, (0));
+  }
+
+  BX_SMF BX_CPP_INLINE void assert_CF(void) {
+    bx_bool temp_of = getB_OF();
+    SET_FLAGS_OxxxxC(temp_of, (1));
+  }
+
+  // OF
+  BX_SMF BX_CPP_INLINE bx_bool getB_OF(void) {
+    return ((BX_CPU_THIS_PTR oszapc.auxbits + (1U << LF_BIT_PO)) >> LF_BIT_CF) & 1;
+  }
+
+  BX_SMF BX_CPP_INLINE bx_bool get_OF(void) {
+    return (BX_CPU_THIS_PTR oszapc.auxbits + (1U << LF_BIT_PO)) & (1U << LF_BIT_CF);
+  }
+
+  BX_SMF BX_CPP_INLINE void set_OF(bx_bool val) {
+    bx_bool temp_cf = getB_CF();
+    SET_FLAGS_OxxxxC((val), temp_cf);
+  }
+ 
+  BX_SMF BX_CPP_INLINE void clear_OF(void) {
+    bx_bool temp_cf = getB_CF();
+    SET_FLAGS_OxxxxC((0), temp_cf);
+  }
+ 
+  BX_SMF BX_CPP_INLINE void assert_OF(void) {
+    bx_bool temp_cf = getB_CF();
+    SET_FLAGS_OxxxxC((1), temp_cf);
+  }
+
   // constructors & destructors...
   BX_CPU_C(unsigned id = 0);
  ~BX_CPU_C();
@@ -3927,6 +4099,8 @@ public: // for now...
   BX_SMF bx_address BxResolveGatherQ(bxInstruction_c *, unsigned) BX_CPP_AttrRegparmN(2);
 #endif
 // <TAG-CLASS-CPU-END>
+
+  BX_SMF void branch_near64(bxInstruction_c *i) BX_CPP_AttrRegparmN(1);
 
   BX_SMF void stack_write_qword(bx_address offset, Bit64u data) BX_CPP_AttrRegparmN(2);
 

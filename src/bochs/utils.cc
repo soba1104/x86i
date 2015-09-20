@@ -106,3 +106,24 @@ Bit64u BX_CPU_C::pop_64(void)
 
   return value64;
 }
+
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::branch_near64(bxInstruction_c *i)
+{
+  Bit64u new_RIP = RIP + (Bit32s) i->Id();
+
+#if 0
+  if (! IsCanonical(new_RIP)) {
+    BX_ERROR(("branch_near64: canonical RIP violation"));
+    exception(BX_GP_EXCEPTION, 0);
+  }
+#endif
+
+  RIP = new_RIP;
+
+#if 0
+#if BX_SUPPORT_HANDLERS_CHAINING_SPEEDUPS == 0
+  // assert magic async_event to stop trace execution
+  BX_CPU_THIS_PTR async_event |= BX_ASYNC_EVENT_STOP_TRACE;
+#endif
+#endif
+}
