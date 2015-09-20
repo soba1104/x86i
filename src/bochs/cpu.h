@@ -3937,8 +3937,9 @@ public: // for now...
   BX_SMF Bit64u  pop_64(void);
 #endif
 
-
   void set_stack(void *stack);
+  void set_ip(Bit64u ip);
+  Bit64u get_ip(void);
 };
 
 // Can be used as LHS or RHS.

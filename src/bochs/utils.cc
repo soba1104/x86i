@@ -25,6 +25,16 @@ void set_stack(void *cpu, void *stack)
   ((BX_CPU_C*)cpu)->set_stack(stack);
 }
 
+void set_ip(void *cpu, uint64_t ip)
+{
+  ((BX_CPU_C*)cpu)->set_ip(ip);
+}
+
+uint64_t get_ip(void *cpu)
+{
+  return ((BX_CPU_C*)cpu)->get_ip();
+}
+
 void free_cpu(void *cpu)
 {
   delete ((BX_CPU_C*)cpu);
@@ -50,6 +60,16 @@ BX_CPU_C::~BX_CPU_C()
 void BX_CPU_C::set_stack(void *stack)
 {
   RSP = (Bit64u)stack;
+}
+
+void BX_CPU_C::set_ip(Bit64u ip)
+{
+  RIP = ip;
+}
+
+Bit64u BX_CPU_C::get_ip(void)
+{
+  return RIP;
 }
 
 void BX_CPP_AttrRegparmN(2) BX_CPU_C::stack_write_qword(bx_address offset, Bit64u data)
