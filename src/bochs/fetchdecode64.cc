@@ -1856,25 +1856,16 @@ get_32bit_displ:
 modrm_done:
     //ia_opcode = WalkOpcodeTables(OpcodeInfoPtr, attr, b2, sse_prefix, offset >> 9, i->getVL(), vex_w);
     ia_opcode = 0; // FIXME
-  }
-
-  return 0;
-}
-
-#if 0
-
-
-
-
-  else {
+  } else {
     // Opcode does not require a MODRM byte.
     // Note that a 2-byte opcode (0F XX) will jump to before
     // the if() above after fetching the 2nd byte, so this path is
     // taken in all cases if a modrm byte is NOT required.
 
     unsigned group = attr & BxGroupX;
-    if (group == BxPrefixSSE && sse_prefix)
+    if (group == BxPrefixSSE && sse_prefix) {
       OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[sse_prefix-1]);
+    }
 
     ia_opcode = OpcodeInfoPtr->IA;
     rm = (b1 & 7) | rex_b;
@@ -1882,12 +1873,18 @@ modrm_done:
     i->assertModC0();
 
     if (b1 == 0x90) {
-      if (sse_prefix == SSE_PREFIX_F3)
+      if (sse_prefix == SSE_PREFIX_F3) {
         ia_opcode = BX_IA_PAUSE;
-      else if (! rex_b)
+      } else if (! rex_b) {
         ia_opcode = BX_IA_NOP;
+      }
     }
   }
+
+  return 0;
+}
+
+#if 0
 
   if (lock) { // lock prefix invalid opcode
     // lock prefix not allowed or destination operand is not memory
