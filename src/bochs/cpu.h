@@ -3937,6 +3937,7 @@ public: // for now...
   BX_SMF Bit64u  pop_64(void);
 #endif
 
+  int decode64(void *insn);
   void set_stack(void *stack);
   void set_ip(Bit64u ip);
   Bit64u get_ip(void);

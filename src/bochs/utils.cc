@@ -40,6 +40,11 @@ void free_cpu(void *cpu)
   delete ((BX_CPU_C*)cpu);
 }
 
+int decode64(void *cpu, void *insn) {
+  bxInstruction_c *i = (bxInstruction_c*)insn;
+  return ((BX_CPU_C*)cpu)->decode64(i);
+}
+
 void step(void *cpu, void *insn) {
   BX_CPU_C *c = (BX_CPU_C*)cpu;
   bxInstruction_c *i = (bxInstruction_c*)insn;

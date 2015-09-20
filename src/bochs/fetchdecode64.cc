@@ -1813,13 +1813,14 @@ Bit16u WalkOpcodeTables(const BxOpcodeInfo_t *OpcodeInfoPtr, Bit16u &attr, unsig
   return (ia_opcode);
 }
 
-int decode(uint8_t **ipp, void *insn) {
+int BX_CPU_C::decode64(void *insn) {
   bxInstruction_c *i = reinterpret_cast<bxInstruction_c*>(insn);
   unsigned b1, b2 = 0, ia_opcode = BX_IA_ERROR, imm_mode = 0;
   unsigned offset = 512, rex_r = 0, rex_x = 0, rex_b = 0;
   unsigned rm = 0, mod = 0, nnn = 0, mod_mem = 0;
   bx_bool lock = 0;
-  uint8_t *iptr = *ipp;
+  Bit8u *iptr = (Bit8u*)get_ip();
+  Bit8u *startip = iptr;
 
   unsigned sse_prefix = SSE_PREFIX_NONE;
   unsigned rex_prefix = 0;
@@ -2092,7 +2093,7 @@ modrm_done:
 
 decode_done:
 
-  i->setILen(iptr - *ipp);
+  i->setILen(iptr - startip);
   i->setIaOpcode(ia_opcode);
   if (lock) {
     assert(false);
@@ -2128,7 +2129,7 @@ decode_done:
      return(1);
 #endif
 
-  *ipp = iptr;
+  set_ip((Bit64u)iptr);
 
   return 0;
 }
