@@ -1691,7 +1691,32 @@ static const BxOpcodeInfo_t BxOpcodeInfo64[512*3] = {
 
 extern "C" {
 
-int decode(uint8_t **ipp, bxInstruction_c *i) {
+#include <string.h>
+
+void *alloc_insn() {
+  return reinterpret_cast<void*>(new bxInstruction_c());
+}
+
+void free_insn(void *insn) {
+  delete reinterpret_cast<bxInstruction_c*>(insn);
+}
+
+void clear_insn(void *insn) {
+  bxInstruction_c *i = reinterpret_cast<bxInstruction_c*>(insn);
+  i->execute1 = NULL;
+  i->handlers.execute2 = NULL;
+  i->metaInfo.ia_opcode = 0;
+  i->metaInfo.ilen = 0;
+  i->metaInfo.metaInfo1 = 0;
+  memset(i->metaData, 0, 8);
+  i->IqForm.Iq = 0;
+#ifdef BX_INSTR_STORE_OPCODE_BYTES
+  memset(i->opcode_bytes, 0, 16);
+#endif
+}
+
+int decode(uint8_t **ipp, void *insn) {
+  bxInstruction_c *i = reinterpret_cast<bxInstruction_c*>(insn);
   unsigned b1, b2 = 0, ia_opcode = BX_IA_ERROR, imm_mode = 0;
   unsigned offset = 512, rex_r = 0, rex_x = 0, rex_b = 0;
   unsigned rm = 0, mod = 0, nnn = 0, mod_mem = 0;
