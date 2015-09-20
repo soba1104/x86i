@@ -1688,22 +1688,6 @@ int decode(uint8_t **ipp, bxInstruction_c *i) {
   bx_bool lock = 0;
   uint8_t *iptr = *ipp;
 
-  return 0;
-}
-
-#if 0
-  int BX_CPP_AttrRegparmN(3)
-BX_CPU_C::fetchDecode64(const Bit8u *iptr, Bit32u fetchModeMask, bxInstruction_c *i, unsigned remainingInPage)
-{
-  if (remainingInPage > 15) remainingInPage = 15;
-
-  unsigned remain = remainingInPage; // remain must be at least 1
-  unsigned b1, b2 = 0, ia_opcode = BX_IA_ERROR, imm_mode = 0;
-  unsigned offset = 512, rex_r = 0, rex_x = 0, rex_b = 0;
-  unsigned rm = 0, mod = 0, nnn = 0, mod_mem = 0;
-  unsigned seg = BX_SEG_REG_DS, seg_override = BX_SEG_REG_NULL;
-  bx_bool lock = 0;
-
 #define SSE_PREFIX_NONE 0
 #define SSE_PREFIX_66   1
 #define SSE_PREFIX_F3   2
@@ -1712,20 +1696,19 @@ BX_CPU_C::fetchDecode64(const Bit8u *iptr, Bit32u fetchModeMask, bxInstruction_c
   unsigned rex_prefix = 0;
 
   bx_bool vex_w = 0;
-#if BX_SUPPORT_AVX
-  int had_vex_xop = 0, vvv = -1;
-  bx_bool use_vvv = 0;
-#endif
-
-#if BX_SUPPORT_EVEX
-  unsigned evex_v = 0, displ8 = 0;
-#endif
 
   i->init(/*os32*/ 1,  // operand size 32 override defaults to 1
           /*as32*/ 1,  // address size 32 override defaults to 1
           /*os64*/ 0,  // operand size 64 override defaults to 0
           /*as64*/ 1); // address size 64 override defaults to 1
 
+  return 0;
+}
+
+#if 0
+  int BX_CPP_AttrRegparmN(3)
+BX_CPU_C::fetchDecode64(const Bit8u *iptr, Bit32u fetchModeMask, bxInstruction_c *i, unsigned remainingInPage)
+{
 fetch_b1:
   b1 = *iptr++;
   remain--;
