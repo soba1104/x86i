@@ -551,16 +551,252 @@ extern const char* cpu_mode_string(unsigned cpu_mode);
 #define IsCanonical(offset) ((Bit64u)((((Bit64s)(offset)) >> (BX_LIN_ADDRESS_WIDTH-1)) + 1) < 2)
 #endif
 
+BX_CPP_INLINE bx_bool IsValidPhyAddr(bx_phy_address addr)
+{
+  return ((addr & BX_PHY_ADDRESS_RESERVED_BITS) == 0);
+}
 
+BX_CPP_INLINE bx_bool IsValidPageAlignedPhyAddr(bx_phy_address addr)
+{
+  return ((addr & (BX_PHY_ADDRESS_RESERVED_BITS | 0xfff)) == 0);
+}
 
-
-
-
-
-
-
+const Bit32u CACHE_LINE_SIZE = 64;
 
 class BX_CPU_C;
+class BX_MEM_C;
+
+#if BX_USE_CPU_SMF == 0
+// normal member functions.  This can ONLY be used within BX_CPU_C classes.
+// Anyone on the outside should use the BX_CPU macro (defined in bochs.h)
+// instead.
+#  define BX_CPU_THIS_PTR  this->
+#  define BX_CPU_THIS      this
+#  define BX_SMF
+// with normal member functions, calling a member fn pointer looks like
+// object->*(fnptr)(arg, ...);
+// Since this is different from when SMF=1, encapsulate it in a macro.
+#  define BX_CPU_CALL_METHOD(func, args) \
+            (this->*((BxExecutePtr_tR) (func))) args
+#  define BX_CPU_CALL_REP_ITERATION(func, args) \
+            (this->*((BxRepIterationPtr_tR) (func))) args
+#else
+// static member functions.  With SMF, there is only one CPU by definition.
+#  define BX_CPU_THIS_PTR  BX_CPU(0)->
+#  define BX_CPU_THIS      BX_CPU(0)
+#  define BX_SMF           static
+#  define BX_CPU_CALL_METHOD(func, args) \
+            ((BxExecutePtr_tR) (func)) args
+#  define BX_CPU_CALL_REP_ITERATION(func, args) \
+            ((BxRepIterationPtr_tR) (func)) args
+#endif
+
+//
+// BX_CPU_RESOLVE_ADDR:
+// Resolve virtual address of the instruction's memory reference without any
+// assumptions about instruction's operand size, address size or execution
+// mode
+//
+// BX_CPU_RESOLVE_ADDR_64:
+// Resolve virtual address of the instruction memory reference assuming
+// the instruction is executed in 64-bit long mode with possible 64-bit
+// or 32-bit address size.
+//
+// BX_CPU_RESOLVE_ADDR_32:
+// Resolve virtual address of the instruction memory reference assuming
+// the instruction is executed in legacy or compatibility mode with
+// possible 32-bit or 16-bit address size.
+//
+//
+#if BX_SUPPORT_X86_64
+#  define BX_CPU_RESOLVE_ADDR(i) \
+            ((i)->as64L() ? BxResolve64(i) : BxResolve32(i))
+#  define BX_CPU_RESOLVE_ADDR_64(i) \
+            ((i)->as64L() ? BxResolve64(i) : BxResolve32(i))
+#else
+#  define BX_CPU_RESOLVE_ADDR(i) \
+            (BxResolve32(i))
+#endif
+#  define BX_CPU_RESOLVE_ADDR_32(i) \
+            (BxResolve32(i))
+
+
+#if BX_SUPPORT_SMP
+// multiprocessor simulation, we need an array of cpus and memories
+BOCHSAPI extern BX_CPU_C **bx_cpu_array;
+#else
+// single processor simulation, so there's one of everything
+BOCHSAPI extern BX_CPU_C   bx_cpu;
+#endif
+
+// notify internal debugger/instrumentation about memory access
+#define BX_NOTIFY_LIN_MEMORY_ACCESS(laddr, paddr, size, memtype, rw, dataptr) {              \
+  BX_INSTR_LIN_ACCESS(BX_CPU_ID, (laddr), (paddr), (size), (memtype), (rw));                 \
+  BX_DBG_LIN_MEMORY_ACCESS(BX_CPU_ID, (laddr), (paddr), (size), (memtype), (rw), (dataptr)); \
+}
+
+#define BX_NOTIFY_PHY_MEMORY_ACCESS(paddr, size, memtype, rw, why, dataptr) {              \
+  BX_INSTR_PHY_ACCESS(BX_CPU_ID, (paddr), (size), (memtype), (rw));                        \
+  BX_DBG_PHY_MEMORY_ACCESS(BX_CPU_ID, (paddr), (size), (memtype), (rw), (why), (dataptr)); \
+}
+
+// accessors for all eflags in bx_flags_reg_t
+// The macro is used once for each flag bit
+// Do not use for arithmetic flags !
+#define DECLARE_EFLAG_ACCESSOR(name,bitnum)                     \
+  BX_SMF BX_CPP_INLINE Bit32u  get_##name ();                   \
+  BX_SMF BX_CPP_INLINE bx_bool getB_##name ();                  \
+  BX_SMF BX_CPP_INLINE void assert_##name ();                   \
+  BX_SMF BX_CPP_INLINE void clear_##name ();                    \
+  BX_SMF BX_CPP_INLINE void set_##name (bx_bool val);
+
+#define IMPLEMENT_EFLAG_ACCESSOR(name,bitnum)                   \
+  BX_CPP_INLINE bx_bool BX_CPU_C::getB_##name () {              \
+    return 1 & (BX_CPU_THIS_PTR eflags >> bitnum);              \
+  }                                                             \
+  BX_CPP_INLINE Bit32u  BX_CPU_C::get_##name () {               \
+    return BX_CPU_THIS_PTR eflags & (1 << bitnum);              \
+  }
+
+#define IMPLEMENT_EFLAG_SET_ACCESSOR(name,bitnum)               \
+  BX_CPP_INLINE void BX_CPU_C::assert_##name () {               \
+    BX_CPU_THIS_PTR eflags |= (1<<bitnum);                      \
+  }                                                             \
+  BX_CPP_INLINE void BX_CPU_C::clear_##name () {                \
+    BX_CPU_THIS_PTR eflags &= ~(1<<bitnum);                     \
+  }                                                             \
+  BX_CPP_INLINE void BX_CPU_C::set_##name (bx_bool val) {       \
+    BX_CPU_THIS_PTR eflags =                                    \
+      (BX_CPU_THIS_PTR eflags&~(1<<bitnum))|((val)<<bitnum);    \
+  }
+
+#if BX_CPU_LEVEL >= 4
+
+#define IMPLEMENT_EFLAG_SET_ACCESSOR_AC(bitnum)                 \
+  BX_CPP_INLINE void BX_CPU_C::assert_AC() {                    \
+    BX_CPU_THIS_PTR eflags |= (1<<bitnum);                      \
+    handleAlignmentCheck();                                     \
+  }                                                             \
+  BX_CPP_INLINE void BX_CPU_C::clear_AC() {                     \
+    BX_CPU_THIS_PTR eflags &= ~(1<<bitnum);                     \
+    handleAlignmentCheck();                                     \
+  }                                                             \
+  BX_CPP_INLINE void BX_CPU_C::set_AC(bx_bool val) {            \
+    BX_CPU_THIS_PTR eflags =                                    \
+      (BX_CPU_THIS_PTR eflags&~(1<<bitnum))|((val)<<bitnum);    \
+    handleAlignmentCheck();                                     \
+  }
+
+#endif
+
+#define IMPLEMENT_EFLAG_SET_ACCESSOR_VM(bitnum)                 \
+  BX_CPP_INLINE void BX_CPU_C::assert_VM() {                    \
+    set_VM(1);                                                  \
+  }                                                             \
+  BX_CPP_INLINE void BX_CPU_C::clear_VM() {                     \
+    set_VM(0);                                                  \
+  }                                                             \
+  BX_CPP_INLINE void BX_CPU_C::set_VM(bx_bool val) {            \
+    if (!long_mode()) {                                         \
+      BX_CPU_THIS_PTR eflags =                                  \
+        (BX_CPU_THIS_PTR eflags&~(1<<bitnum))|((val)<<bitnum);  \
+      handleCpuModeChange();                                    \
+    }                                                           \
+  }
+
+// need special handling when IF is set
+#define IMPLEMENT_EFLAG_SET_ACCESSOR_IF(bitnum)                 \
+  BX_CPP_INLINE void BX_CPU_C::assert_IF() {                    \
+    BX_CPU_THIS_PTR eflags |= (1<<bitnum);                      \
+    handleInterruptMaskChange();                                \
+  }                                                             \
+  BX_CPP_INLINE void BX_CPU_C::clear_IF() {                     \
+    BX_CPU_THIS_PTR eflags &= ~(1<<bitnum);                     \
+    handleInterruptMaskChange();                                \
+  }                                                             \
+  BX_CPP_INLINE void BX_CPU_C::set_IF(bx_bool val) {            \
+    if (val) assert_IF();                                       \
+    else clear_IF();                                            \
+  }
+
+// assert async_event when TF is set
+#define IMPLEMENT_EFLAG_SET_ACCESSOR_TF(bitnum)                 \
+  BX_CPP_INLINE void BX_CPU_C::assert_TF() {                    \
+    BX_CPU_THIS_PTR async_event = 1;                            \
+    BX_CPU_THIS_PTR eflags |= (1<<bitnum);                      \
+  }                                                             \
+  BX_CPP_INLINE void BX_CPU_C::clear_TF() {                     \
+    BX_CPU_THIS_PTR eflags &= ~(1<<bitnum);                     \
+  }                                                             \
+  BX_CPP_INLINE void BX_CPU_C::set_TF(bx_bool val) {            \
+    if (val) BX_CPU_THIS_PTR async_event = 1;                   \
+    BX_CPU_THIS_PTR eflags =                                    \
+      (BX_CPU_THIS_PTR eflags&~(1<<bitnum))|((val)<<bitnum);    \
+  }
+
+// invalidate prefetch queue and call prefetch() when RF is set
+#define IMPLEMENT_EFLAG_SET_ACCESSOR_RF(bitnum)                 \
+  BX_CPP_INLINE void BX_CPU_C::assert_RF() {                    \
+    invalidate_prefetch_q();                                    \
+    BX_CPU_THIS_PTR eflags |= (1<<bitnum);                      \
+  }                                                             \
+  BX_CPP_INLINE void BX_CPU_C::clear_RF() {                     \
+    BX_CPU_THIS_PTR eflags &= ~(1<<bitnum);                     \
+  }                                                             \
+  BX_CPP_INLINE void BX_CPU_C::set_RF(bx_bool val) {            \
+    if (val) invalidate_prefetch_q();                           \
+    BX_CPU_THIS_PTR eflags =                                    \
+      (BX_CPU_THIS_PTR eflags&~(1<<bitnum))|((val)<<bitnum);    \
+  }
+
+#define DECLARE_EFLAG_ACCESSOR_IOPL(bitnum)                     \
+  BX_SMF BX_CPP_INLINE void set_IOPL(Bit32u val);               \
+  BX_SMF BX_CPP_INLINE Bit32u  get_IOPL(void);                  
+
+#define IMPLEMENT_EFLAG_ACCESSOR_IOPL(bitnum)                   \
+  BX_CPP_INLINE void BX_CPU_C::set_IOPL(Bit32u val) {           \
+    BX_CPU_THIS_PTR eflags &= ~(3<<12);                         \
+    BX_CPU_THIS_PTR eflags |= ((3&val) << 12);                  \
+  }                                                             \
+  BX_CPP_INLINE Bit32u BX_CPU_C::get_IOPL() {                   \
+    return 3 & (BX_CPU_THIS_PTR eflags >> 12);                  \
+  }
+
+const Bit32u EFlagsCFMask   = (1 <<  0);
+const Bit32u EFlagsPFMask   = (1 <<  2);
+const Bit32u EFlagsAFMask   = (1 <<  4);
+const Bit32u EFlagsZFMask   = (1 <<  6);
+const Bit32u EFlagsSFMask   = (1 <<  7);
+const Bit32u EFlagsTFMask   = (1 <<  8);
+const Bit32u EFlagsIFMask   = (1 <<  9);
+const Bit32u EFlagsDFMask   = (1 << 10);
+const Bit32u EFlagsOFMask   = (1 << 11);
+const Bit32u EFlagsIOPLMask = (3 << 12);
+const Bit32u EFlagsNTMask   = (1 << 14);
+const Bit32u EFlagsRFMask   = (1 << 16);
+const Bit32u EFlagsVMMask   = (1 << 17);
+const Bit32u EFlagsACMask   = (1 << 18);
+const Bit32u EFlagsVIFMask  = (1 << 19);
+const Bit32u EFlagsVIPMask  = (1 << 20);
+const Bit32u EFlagsIDMask   = (1 << 21);
+
+const Bit32u EFlagsOSZAPCMask = \
+    (EFlagsCFMask | EFlagsPFMask | EFlagsAFMask | EFlagsZFMask | EFlagsSFMask | EFlagsOFMask);
+
+const Bit32u EFlagsOSZAPMask = \
+    (EFlagsPFMask | EFlagsAFMask | EFlagsZFMask | EFlagsSFMask | EFlagsOFMask);
+
+const Bit32u EFlagsValidMask = 0x003f7fd5; // only supported bits for EFLAGS
+
+
+
+
+
+
+
+
+
+
 
 #include "instr.h"
 
