@@ -13,6 +13,8 @@
 #include <bochs.h>
 #include <cpu.h>
 
+extern "C" {
+
 void *alloc_cpu()
 {
   return new BX_CPU_C();
@@ -26,6 +28,14 @@ void set_stack(void *cpu, void *stack)
 void free_cpu(void *cpu)
 {
   delete ((BX_CPU_C*)cpu);
+}
+
+void step(void *cpu, void *insn) {
+  BX_CPU_C *c = (BX_CPU_C*)cpu;
+  bxInstruction_c *i = (bxInstruction_c*)insn;
+  (c->*(i->execute1))(i);
+}
+
 }
 
 BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)

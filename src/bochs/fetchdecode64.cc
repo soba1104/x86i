@@ -1695,12 +1695,6 @@ void free_insn(void *insn) {
   delete reinterpret_cast<bxInstruction_c*>(insn);
 }
 
-void run_insn(void *insn) {
-  BX_CPU_C cpu;
-  bxInstruction_c *i = reinterpret_cast<bxInstruction_c*>(insn);
-  (cpu.*(i->execute1))(i);
-}
-
 int decode(uint8_t **ipp, void *insn) {
   bxInstruction_c *i = reinterpret_cast<bxInstruction_c*>(insn);
   unsigned b1, b2 = 0, ia_opcode = BX_IA_ERROR, imm_mode = 0;
