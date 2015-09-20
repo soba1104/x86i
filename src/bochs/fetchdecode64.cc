@@ -28,6 +28,7 @@
 //  ----------------------------------------------------------------------------
 /////////////////////////////////////////////////////////////////////////////////
 
+#define BX_USE_CPU_SMF 0 // FIXME
 #define BX_SUPPORT_X86_64 1 // FIXME
 #define BX_SUPPORT_FPU 1 // FIXME
 #undef BX_SUPPORT_AVX // FIXME
@@ -1715,6 +1716,12 @@ void *alloc_insn() {
 
 void free_insn(void *insn) {
   delete reinterpret_cast<bxInstruction_c*>(insn);
+}
+
+void run_insn(void *insn) {
+  BX_CPU_C cpu;
+  bxInstruction_c *i = reinterpret_cast<bxInstruction_c*>(insn);
+  (cpu.*(i->execute1))(i);
 }
 
 int decode(uint8_t **ipp, void *insn) {

@@ -11,6 +11,7 @@ int main(void) {
   printf("hello\n");
   insn = alloc_insn();
   decode(&ip, insn);
+  run_insn(insn);
   free_insn(insn);
   return 0;
 }
