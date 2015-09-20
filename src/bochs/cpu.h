@@ -29,7 +29,9 @@
 /////////////////////////////////////////////////////////////////////////////////
 
 #ifndef BX_CPU_H
-#define BX_CPU_H 1
+#  define BX_CPU_H 1
+
+#include <setjmp.h>
 
 // <TAG-DEFINES-DECODE-START>
 // segment register encoding
@@ -100,6 +102,463 @@ enum {
 #define BX_TMP_REGISTER  (BX_GENERAL_REGISTERS+1)
 #define BX_NIL_REGISTER  (BX_GENERAL_REGISTERS+2)
 // <TAG-DEFINES-DECODE-END>
+
+#if defined(NEED_CPU_REG_SHORTCUTS)
+
+/* WARNING:
+   Only BX_CPU_C member functions can use these shortcuts safely!
+   Functions that use the shortcuts outside of BX_CPU_C might work
+   when BX_USE_CPU_SMF=1 but will fail when BX_USE_CPU_SMF=0
+   (for example in SMP mode).
+*/
+
+// access to 8 bit general registers
+#define AL (BX_CPU_THIS_PTR gen_reg[0].word.byte.rl)
+#define CL (BX_CPU_THIS_PTR gen_reg[1].word.byte.rl)
+#define DL (BX_CPU_THIS_PTR gen_reg[2].word.byte.rl)
+#define BL (BX_CPU_THIS_PTR gen_reg[3].word.byte.rl)
+#define AH (BX_CPU_THIS_PTR gen_reg[0].word.byte.rh)
+#define CH (BX_CPU_THIS_PTR gen_reg[1].word.byte.rh)
+#define DH (BX_CPU_THIS_PTR gen_reg[2].word.byte.rh)
+#define BH (BX_CPU_THIS_PTR gen_reg[3].word.byte.rh)
+
+#define TMP8L (BX_CPU_THIS_PTR gen_reg[BX_TMP_REGISTER].word.byte.rl)
+
+// access to 16 bit general registers
+#define AX (BX_CPU_THIS_PTR gen_reg[0].word.rx)
+#define CX (BX_CPU_THIS_PTR gen_reg[1].word.rx)
+#define DX (BX_CPU_THIS_PTR gen_reg[2].word.rx)
+#define BX (BX_CPU_THIS_PTR gen_reg[3].word.rx)
+#define SP (BX_CPU_THIS_PTR gen_reg[4].word.rx)
+#define BP (BX_CPU_THIS_PTR gen_reg[5].word.rx)
+#define SI (BX_CPU_THIS_PTR gen_reg[6].word.rx)
+#define DI (BX_CPU_THIS_PTR gen_reg[7].word.rx)
+
+// access to 16 bit instruction pointer
+#define IP (BX_CPU_THIS_PTR gen_reg[BX_16BIT_REG_IP].word.rx)
+
+#define TMP16 (BX_CPU_THIS_PTR gen_reg[BX_TMP_REGISTER].word.rx)
+
+// accesss to 32 bit general registers
+#define EAX (BX_CPU_THIS_PTR gen_reg[0].dword.erx)
+#define ECX (BX_CPU_THIS_PTR gen_reg[1].dword.erx)
+#define EDX (BX_CPU_THIS_PTR gen_reg[2].dword.erx)
+#define EBX (BX_CPU_THIS_PTR gen_reg[3].dword.erx)
+#define ESP (BX_CPU_THIS_PTR gen_reg[4].dword.erx)
+#define EBP (BX_CPU_THIS_PTR gen_reg[5].dword.erx)
+#define ESI (BX_CPU_THIS_PTR gen_reg[6].dword.erx)
+#define EDI (BX_CPU_THIS_PTR gen_reg[7].dword.erx)
+
+// access to 32 bit instruction pointer
+#define EIP (BX_CPU_THIS_PTR gen_reg[BX_32BIT_REG_EIP].dword.erx)
+
+#define TMP32 (BX_CPU_THIS_PTR gen_reg[BX_TMP_REGISTER].dword.erx)
+
+#if BX_SUPPORT_X86_64
+
+// accesss to 64 bit general registers
+#define RAX (BX_CPU_THIS_PTR gen_reg[0].rrx)
+#define RCX (BX_CPU_THIS_PTR gen_reg[1].rrx)
+#define RDX (BX_CPU_THIS_PTR gen_reg[2].rrx)
+#define RBX (BX_CPU_THIS_PTR gen_reg[3].rrx)
+#define RSP (BX_CPU_THIS_PTR gen_reg[4].rrx)
+#define RBP (BX_CPU_THIS_PTR gen_reg[5].rrx)
+#define RSI (BX_CPU_THIS_PTR gen_reg[6].rrx)
+#define RDI (BX_CPU_THIS_PTR gen_reg[7].rrx)
+#define R8  (BX_CPU_THIS_PTR gen_reg[8].rrx)
+#define R9  (BX_CPU_THIS_PTR gen_reg[9].rrx)
+#define R10 (BX_CPU_THIS_PTR gen_reg[10].rrx)
+#define R11 (BX_CPU_THIS_PTR gen_reg[11].rrx)
+#define R12 (BX_CPU_THIS_PTR gen_reg[12].rrx)
+#define R13 (BX_CPU_THIS_PTR gen_reg[13].rrx)
+#define R14 (BX_CPU_THIS_PTR gen_reg[14].rrx)
+#define R15 (BX_CPU_THIS_PTR gen_reg[15].rrx)
+
+// access to 64 bit instruction pointer
+#define RIP (BX_CPU_THIS_PTR gen_reg[BX_64BIT_REG_RIP].rrx)
+
+#define TMP64 (BX_CPU_THIS_PTR gen_reg[BX_TMP_REGISTER].rrx)
+
+// access to 64 bit MSR registers
+#define MSR_FSBASE  (BX_CPU_THIS_PTR sregs[BX_SEG_REG_FS].cache.u.segment.base)
+#define MSR_GSBASE  (BX_CPU_THIS_PTR sregs[BX_SEG_REG_GS].cache.u.segment.base)
+
+#else // simplify merge between 32-bit and 64-bit mode
+
+#define RAX EAX
+#define RCX ECX
+#define RDX EDX
+#define RBX EBX
+#define RSP ESP
+#define RBP EBP
+#define RSI ESI
+#define RDI EDI
+#define RIP EIP
+
+#endif // BX_SUPPORT_X86_64 == 0
+
+#define PREV_RIP (BX_CPU_THIS_PTR prev_rip)
+
+#if BX_SUPPORT_X86_64
+#define BX_READ_8BIT_REGx(index,extended)  ((((index) & 4) == 0 || (extended)) ? \
+  (BX_CPU_THIS_PTR gen_reg[index].word.byte.rl) : \
+  (BX_CPU_THIS_PTR gen_reg[(index)-4].word.byte.rh))
+#define BX_READ_64BIT_REG(index) (BX_CPU_THIS_PTR gen_reg[index].rrx)
+#define BX_READ_64BIT_REG_HIGH(index) (BX_CPU_THIS_PTR gen_reg[index].dword.hrx)
+#else
+#define BX_READ_8BIT_REG(index)  (((index) & 4) ? \
+  (BX_CPU_THIS_PTR gen_reg[(index)-4].word.byte.rh) : \
+  (BX_CPU_THIS_PTR gen_reg[index].word.byte.rl))
+#define BX_READ_8BIT_REGx(index,ext) BX_READ_8BIT_REG(index)
+#endif
+
+#define BX_READ_8BIT_REGL(index) (BX_CPU_THIS_PTR gen_reg[index].word.byte.rl)
+#define BX_READ_16BIT_REG(index) (BX_CPU_THIS_PTR gen_reg[index].word.rx)
+#define BX_READ_32BIT_REG(index) (BX_CPU_THIS_PTR gen_reg[index].dword.erx)
+
+#define BX_WRITE_8BIT_REGH(index, val) {\
+  BX_CPU_THIS_PTR gen_reg[index].word.byte.rh = val; \
+}
+
+#define BX_WRITE_16BIT_REG(index, val) {\
+  BX_CPU_THIS_PTR gen_reg[index].word.rx = val; \
+}
+
+/*
+#define BX_WRITE_32BIT_REG(index, val) {\
+  BX_CPU_THIS_PTR gen_reg[index].dword.erx = val; \
+}
+*/
+
+#if BX_SUPPORT_X86_64
+
+#define BX_WRITE_8BIT_REGx(index, extended, val) {\
+  if (((index) & 4) == 0 || (extended)) \
+    BX_CPU_THIS_PTR gen_reg[index].word.byte.rl = val; \
+  else \
+    BX_CPU_THIS_PTR gen_reg[(index)-4].word.byte.rh = val; \
+}
+
+#define BX_WRITE_32BIT_REGZ(index, val) {\
+  BX_CPU_THIS_PTR gen_reg[index].rrx = (Bit32u) val; \
+}
+
+#define BX_WRITE_64BIT_REG(index, val) {\
+  BX_CPU_THIS_PTR gen_reg[index].rrx = val; \
+}
+#define BX_CLEAR_64BIT_HIGH(index) {\
+  BX_CPU_THIS_PTR gen_reg[index].dword.hrx = 0; \
+}
+
+#else
+
+#define BX_WRITE_8BIT_REG(index, val) {\
+  if ((index) & 4) \
+    BX_CPU_THIS_PTR gen_reg[(index)-4].word.byte.rh = val; \
+  else \
+    BX_CPU_THIS_PTR gen_reg[index].word.byte.rl = val; \
+}
+#define BX_WRITE_8BIT_REGx(index, ext, val) BX_WRITE_8BIT_REG(index, val)
+
+// For x86-32, I just pretend this one is like the macro above,
+// so common code can be used.
+#define BX_WRITE_32BIT_REGZ(index, val) {\
+  BX_CPU_THIS_PTR gen_reg[index].dword.erx = (Bit32u) val; \
+}
+
+#define BX_CLEAR_64BIT_HIGH(index)
+
+#endif
+
+#define CPL       (BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].selector.rpl)
+
+#define USER_PL   (BX_CPU_THIS_PTR user_pl) /* CPL == 3 */
+
+#if BX_SUPPORT_SMP
+#define BX_CPU_ID (BX_CPU_THIS_PTR bx_cpuid)
+#else
+#define BX_CPU_ID (0)
+#endif
+
+#if BX_SUPPORT_AVX
+
+#define BX_READ_8BIT_OPMASK(index)  (BX_CPU_THIS_PTR opmask[index].word.byte.rl)
+#define BX_READ_16BIT_OPMASK(index) (BX_CPU_THIS_PTR opmask[index].word.rx)
+#define BX_READ_32BIT_OPMASK(index) (BX_CPU_THIS_PTR opmask[index].dword.erx)
+#define BX_READ_OPMASK(index)       (BX_CPU_THIS_PTR opmask[index].rrx)
+
+#define BX_SCALAR_ELEMENT_MASK(index) (BX_READ_32BIT_OPMASK(index) & 0x1)
+
+#define BX_WRITE_OPMASK(index, val_64) { \
+  BX_CPU_THIS_PTR opmask[index].rrx = val_64; \
+}
+
+#endif
+
+#endif  // defined(NEED_CPU_REG_SHORTCUTS)
+
+// <TAG-INSTRUMENTATION_COMMON-BEGIN>
+
+// possible types passed to BX_INSTR_TLB_CNTRL()
+enum {
+  BX_INSTR_MOV_CR0 = 10,
+  BX_INSTR_MOV_CR3 = 11,
+  BX_INSTR_MOV_CR4 = 12,
+  BX_INSTR_TASK_SWITCH = 13,
+  BX_INSTR_CONTEXT_SWITCH = 14,
+  BX_INSTR_INVLPG = 15,
+  BX_INSTR_INVEPT = 16,
+  BX_INSTR_INVVPID = 17,
+  BX_INSTR_INVPCID = 18
+};
+
+// possible types passed to BX_INSTR_CACHE_CNTRL()
+enum {
+  BX_INSTR_INVD = 10,
+  BX_INSTR_WBINVD = 11
+};
+
+// possible types passed to BX_INSTR_FAR_BRANCH() and BX_INSTR_UCNEAR_BRANCH()
+enum {
+  BX_INSTR_IS_JMP = 10,
+  BX_INSTR_IS_JMP_INDIRECT = 11,
+  BX_INSTR_IS_CALL = 12,
+  BX_INSTR_IS_CALL_INDIRECT = 13,
+  BX_INSTR_IS_RET = 14,
+  BX_INSTR_IS_IRET = 15,
+  BX_INSTR_IS_INT = 16,
+  BX_INSTR_IS_SYSCALL = 17,
+  BX_INSTR_IS_SYSRET = 18,
+  BX_INSTR_IS_SYSENTER = 19,
+  BX_INSTR_IS_SYSEXIT = 20
+};
+
+// possible types passed to BX_INSTR_PREFETCH_HINT()
+enum {
+  BX_INSTR_PREFETCH_NTA = 0,
+  BX_INSTR_PREFETCH_T0  = 1,
+  BX_INSTR_PREFETCH_T1  = 2,
+  BX_INSTR_PREFETCH_T2  = 3
+};
+
+// <TAG-INSTRUMENTATION_COMMON-END>
+
+// passed to internal debugger together with BX_READ/BX_WRITE/BX_EXECUTE/BX_RW
+enum {
+  BX_PDPTR0_ACCESS = 1,
+  BX_PDPTR1_ACCESS,
+  BX_PDPTR2_ACCESS,
+  BX_PDPTR3_ACCESS,
+  BX_PTE_ACCESS,
+  BX_PDE_ACCESS,
+  BX_PDTE_ACCESS,
+  BX_PML4E_ACCESS,
+  BX_EPT_PTE_ACCESS,
+  BX_EPT_PDE_ACCESS,
+  BX_EPT_PDTE_ACCESS,
+  BX_EPT_PML4E_ACCESS,
+  BX_VMCS_ACCESS,
+  BX_SHADOW_VMCS_ACCESS,
+  BX_MSR_BITMAP_ACCESS,
+  BX_IO_BITMAP_ACCESS,
+  BX_VMREAD_BITMAP_ACCESS,
+  BX_VMWRITE_BITMAP_ACCESS,
+  BX_VMX_LOAD_MSR_ACCESS,
+  BX_VMX_STORE_MSR_ACCESS,
+  BX_VMX_VAPIC_ACCESS,
+  BX_VMX_PML_WRITE,
+  BX_SMRAM_ACCESS
+};
+
+struct BxExceptionInfo {
+  unsigned exception_type;
+  unsigned exception_class;
+  bx_bool push_error;
+};
+
+enum {
+  BX_DE_EXCEPTION =  0, // Divide Error (fault)
+  BX_DB_EXCEPTION =  1, // Debug (fault/trap)
+  BX_BP_EXCEPTION =  3, // Breakpoint (trap)
+  BX_OF_EXCEPTION =  4, // Overflow (trap)
+  BX_BR_EXCEPTION =  5, // BOUND (fault)
+  BX_UD_EXCEPTION =  6,
+  BX_NM_EXCEPTION =  7,
+  BX_DF_EXCEPTION =  8,
+  BX_TS_EXCEPTION = 10,
+  BX_NP_EXCEPTION = 11,
+  BX_SS_EXCEPTION = 12,
+  BX_GP_EXCEPTION = 13,
+  BX_PF_EXCEPTION = 14,
+  BX_MF_EXCEPTION = 16,
+  BX_AC_EXCEPTION = 17,
+  BX_MC_EXCEPTION = 18,
+  BX_XM_EXCEPTION = 19,
+  BX_VE_EXCEPTION = 20
+};
+
+const unsigned BX_CPU_HANDLED_EXCEPTIONS = 32;
+
+/* MSR registers */
+#define BX_MSR_TSC                 0x010
+#define BX_MSR_APICBASE            0x01b
+#define BX_MSR_TSC_ADJUST          0x03b
+
+#if BX_CPU_LEVEL >= 6
+  #define BX_MSR_SYSENTER_CS       0x174
+  #define BX_MSR_SYSENTER_ESP      0x175
+  #define BX_MSR_SYSENTER_EIP      0x176
+#endif
+
+#define BX_MSR_DEBUGCTLMSR         0x1d9
+#define BX_MSR_LASTBRANCHFROMIP    0x1db
+#define BX_MSR_LASTBRANCHTOIP      0x1dc
+#define BX_MSR_LASTINTOIP          0x1dd
+
+const unsigned BX_NUM_VARIABLE_RANGE_MTRRS = 8;
+
+#if BX_CPU_LEVEL >= 6
+  #define BX_MSR_MTRRCAP           0x0fe
+  #define BX_MSR_MTRRPHYSBASE0     0x200
+  #define BX_MSR_MTRRPHYSMASK0     0x201
+  #define BX_MSR_MTRRPHYSBASE1     0x202
+  #define BX_MSR_MTRRPHYSMASK1     0x203
+  #define BX_MSR_MTRRPHYSBASE2     0x204
+  #define BX_MSR_MTRRPHYSMASK2     0x205
+  #define BX_MSR_MTRRPHYSBASE3     0x206
+  #define BX_MSR_MTRRPHYSMASK3     0x207
+  #define BX_MSR_MTRRPHYSBASE4     0x208
+  #define BX_MSR_MTRRPHYSMASK4     0x209
+  #define BX_MSR_MTRRPHYSBASE5     0x20a
+  #define BX_MSR_MTRRPHYSMASK5     0x20b
+  #define BX_MSR_MTRRPHYSBASE6     0x20c
+  #define BX_MSR_MTRRPHYSMASK6     0x20d
+  #define BX_MSR_MTRRPHYSBASE7     0x20e
+  #define BX_MSR_MTRRPHYSMASK7     0x20f
+  #define BX_MSR_MTRRFIX64K_00000  0x250
+  #define BX_MSR_MTRRFIX16K_80000  0x258
+  #define BX_MSR_MTRRFIX16K_A0000  0x259
+  #define BX_MSR_MTRRFIX4K_C0000   0x268
+  #define BX_MSR_MTRRFIX4K_C8000   0x269
+  #define BX_MSR_MTRRFIX4K_D0000   0x26a
+  #define BX_MSR_MTRRFIX4K_D8000   0x26b
+  #define BX_MSR_MTRRFIX4K_E0000   0x26c
+  #define BX_MSR_MTRRFIX4K_E8000   0x26d
+  #define BX_MSR_MTRRFIX4K_F0000   0x26e
+  #define BX_MSR_MTRRFIX4K_F8000   0x26f
+  #define BX_MSR_PAT               0x277
+  #define BX_MSR_MTRR_DEFTYPE      0x2ff
+#endif
+
+#if BX_SUPPORT_PERFMON
+  #define BX_MSR_PMC0              0x0c1  /* PERFCTR0 */
+  #define BX_MSR_PMC1              0x0c2  /* PERFCTR1 */
+  #define BX_MSR_PMC2              0x0c3
+  #define BX_MSR_PMC3              0x0c4
+  #define BX_MSR_PMC4              0x0c5
+  #define BX_MSR_PMC5              0x0c6
+  #define BX_MSR_PMC6              0x0c7
+  #define BX_MSR_PMC7              0x0c8
+  #define BX_MSR_PERFEVTSEL0       0x186
+  #define BX_MSR_PERFEVTSEL1       0x187
+  #define BX_MSR_PERFEVTSEL2       0x188
+  #define BX_MSR_PERFEVTSEL3       0x189
+  #define BX_MSR_PERFEVTSEL4       0x18a
+  #define BX_MSR_PERFEVTSEL5       0x18b 
+  #define BX_MSR_PERFEVTSEL6       0x18c
+  #define BX_MSR_PERFEVTSEL7       0x18d
+  #define BX_MSR_PERF_FIXED_CTR0   0x309  /* Fixed Performance Counter 0 (R/W): Counts Instr_Retired.Any */
+  #define BX_MSR_PERF_FIXED_CTR1   0x30a  /* Fixed Performance Counter 1 (R/W): Counts CPU_CLK_Unhalted.Core */
+  #define BX_MSR_PERF_FIXED_CTR2   0x30b  /* Fixed Performance Counter 2 (R/W): Counts CPU_CLK_Unhalted.Ref */
+  #define BX_MSR_FIXED_CTR_CTRL    0x38d  /* Fixed Performance Counter Control (R/W) */
+  #define BX_MSR_PERF_GLOBAL_CTRL  0x38f  /* Global Performance Counter Control */
+#endif
+
+#define BX_MSR_TSC_DEADLINE        0x6E0
+
+#define BX_MSR_MAX_INDEX          0x1000
+
+enum {
+  BX_MEMTYPE_UC = 0,
+  BX_MEMTYPE_WC = 1,
+  BX_MEMTYPE_RESERVED2 = 2,
+  BX_MEMTYPE_RESERVED3 = 3,
+  BX_MEMTYPE_WT = 4,
+  BX_MEMTYPE_WP = 5,
+  BX_MEMTYPE_WB = 6,
+  BX_MEMTYPE_UC_WEAK = 7, // PAT only
+  BX_MEMTYPE_INVALID = 8
+};
+
+typedef unsigned BxMemtype;
+
+// avoid wasting cycles to determine memory type if not required
+#if BX_SUPPORT_MEMTYPE
+  #define MEMTYPE(memtype) (memtype)
+#else
+  #define MEMTYPE(memtype) (BX_MEMTYPE_UC)
+#endif
+
+#if BX_SUPPORT_VMX
+  #define BX_MSR_VMX_BASIC                0x480
+  #define BX_MSR_VMX_PINBASED_CTRLS       0x481
+  #define BX_MSR_VMX_PROCBASED_CTRLS      0x482
+  #define BX_MSR_VMX_VMEXIT_CTRLS         0x483
+  #define BX_MSR_VMX_VMENTRY_CTRLS        0x484
+  #define BX_MSR_VMX_MISC                 0x485
+  #define BX_MSR_VMX_CR0_FIXED0           0x486
+  #define BX_MSR_VMX_CR0_FIXED1           0x487
+  #define BX_MSR_VMX_CR4_FIXED0           0x488
+  #define BX_MSR_VMX_CR4_FIXED1           0x489
+  #define BX_MSR_VMX_VMCS_ENUM            0x48a
+  #define BX_MSR_VMX_PROCBASED_CTRLS2     0x48b
+  #define BX_MSR_VMX_EPT_VPID_CAP         0x48c
+  #define BX_MSR_VMX_TRUE_PINBASED_CTRLS  0x48d
+  #define BX_MSR_VMX_TRUE_PROCBASED_CTRLS 0x48e
+  #define BX_MSR_VMX_TRUE_VMEXIT_CTRLS    0x48f
+  #define BX_MSR_VMX_TRUE_VMENTRY_CTRLS   0x490
+  #define BX_MSR_VMX_VMFUNC               0x491
+  #define BX_MSR_IA32_FEATURE_CONTROL     0x03A
+  #define BX_MSR_IA32_SMM_MONITOR_CTL     0x09B
+#endif
+
+#define BX_MSR_EFER             0xc0000080
+#define BX_MSR_STAR             0xc0000081
+#define BX_MSR_LSTAR            0xc0000082
+#define BX_MSR_CSTAR            0xc0000083
+#define BX_MSR_FMASK            0xc0000084
+#define BX_MSR_FSBASE           0xc0000100
+#define BX_MSR_GSBASE           0xc0000101
+#define BX_MSR_KERNELGSBASE     0xc0000102
+#define BX_MSR_TSC_AUX          0xc0000103
+
+#define BX_SVM_VM_CR_MSR        0xc0010114
+#define BX_SVM_IGNNE_MSR        0xc0010115
+#define BX_SVM_SMM_CTL_MSR      0xc0010116
+#define BX_SVM_HSAVE_PA_MSR     0xc0010117
+
+enum BxCpuMode {
+  BX_MODE_IA32_REAL = 0,        // CR0.PE=0                |
+  BX_MODE_IA32_V8086 = 1,       // CR0.PE=1, EFLAGS.VM=1   | EFER.LMA=0
+  BX_MODE_IA32_PROTECTED = 2,   // CR0.PE=1, EFLAGS.VM=0   |
+  BX_MODE_LONG_COMPAT = 3,      // EFER.LMA = 1, CR0.PE=1, CS.L=0
+  BX_MODE_LONG_64 = 4           // EFER.LMA = 1, CR0.PE=1, CS.L=1
+};
+
+extern const char* cpu_mode_string(unsigned cpu_mode);
+
+#if BX_SUPPORT_X86_64
+#define IsCanonical(offset) ((Bit64u)((((Bit64s)(offset)) >> (BX_LIN_ADDRESS_WIDTH-1)) + 1) < 2)
+#endif
+
+
+
+
+
+
+
+
+
 
 class BX_CPU_C;
 
