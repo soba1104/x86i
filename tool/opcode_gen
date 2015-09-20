@@ -7,6 +7,12 @@ unless File.exist?(ia_opcodes)
   exit(1)
 end
 
+defined_funcs = File.join([bochs, 'funcs.cc'])
+unless File.exist?(defined_funcs)
+  STDERR.puts("#{defined_funcs} not found");
+  exit(1)
+end
+
 def func_body(name)
   return <<-EOS
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) #{name}(bxInstruction_c *i) {
@@ -18,6 +24,11 @@ end
 
 funcs = {}
 body = []
+File.read(defined_funcs).lines.each do |line|
+  next unless line =~ /^BX_INSF_TYPE/
+  raise line unless /(BX_CPU_C::\w+)\(/ =~ line
+  funcs[$1] = true
+end
 File.read(ia_opcodes).lines.each do |line|
   unless line =~ /&BX_CPU_C/
     body << line
