@@ -1886,11 +1886,7 @@ modrm_done:
     assert(false);
   }
 
-  return 0;
-}
-
-#if 0
-
+  Bit8s temp8s;
   imm_mode = attr & BxImmediate;
   if (imm_mode) {
     // make sure iptr was advanced after Ib(), Iw() and Id()
@@ -1899,113 +1895,61 @@ modrm_done:
         i->modRMForm.Ib[0] = 1;
         break;
       case BxImmediate_Ib:
-        if (remain != 0) {
-          i->modRMForm.Ib[0] = *iptr++;
-          remain--;
-        }
-        else {
-          return(-1);
-        }
+        i->modRMForm.Ib[0] = *iptr++;
         break;
       case BxImmediate_Ib_SE: // Sign extend to OS size
-        if (remain != 0) {
-          Bit8s temp8s = *iptr;
-          // this code works correctly both for LE and BE hosts
-          if (i->os32L())
-            i->modRMForm.Id    = (Bit32s) temp8s;
-          else
-            i->modRMForm.Iw[0] = (Bit16s) temp8s;
-          remain--;
-        }
-        else {
-          return(-1);
+        temp8s = *iptr;
+        // this code works correctly both for LE and BE hosts
+        if (i->os32L()) {
+          i->modRMForm.Id = (Bit32s)temp8s;
+        } else {
+          i->modRMForm.Iw[0] = (Bit16s)temp8s;
         }
         break;
       case BxImmediate_BrOff8:
-        if (remain != 0) {
-          Bit8s temp8s = *iptr;
-          i->modRMForm.Id = (Bit32s) temp8s;
-          remain--;
-        }
-        else {
-          return(-1);
-        }
+        temp8s = *iptr;
+        i->modRMForm.Id = (Bit32s) temp8s;
         break;
       case BxImmediate_Iw:
-        if (remain > 1) {
-          i->modRMForm.Iw[0] = FetchWORD(iptr);
-          iptr += 2;
-          remain -= 2;
-        }
-        else {
-          return(-1);
-        }
+        i->modRMForm.Iw[0] = FetchWORD(iptr);
+        iptr += 2;
         break;
       case BxImmediate_Id:
-        if (remain > 3) {
-          i->modRMForm.Id = FetchDWORD(iptr);
-          iptr += 4;
-          remain -= 4;
-        }
-        else {
-          return(-1);
-        }
+        i->modRMForm.Id = FetchDWORD(iptr);
+        iptr += 4;
         break;
       case BxImmediate_Iq: // MOV Rx,imm64
-        if (remain > 7) {
-          i->IqForm.Iq = FetchQWORD(iptr);
-          remain -= 8;
-        }
-        else {
-          return(-1);
-        }
+        i->IqForm.Iq = FetchQWORD(iptr);
         break;
       case BxImmediate_O:
         // For instructions which embed the address in the opcode.
         // There is only 64/32-bit addressing available in long64 mode.
         if (i->as64L()) {
-          if (remain > 7) {
-            i->IqForm.Iq = FetchQWORD(iptr);
-            remain -= 8;
-          }
-          else return(-1);
-        }
-        else { // as32
-          if (remain > 3) {
-            i->IqForm.Iq = (Bit64u) FetchDWORD(iptr);
-            remain -= 4;
-          }
-          else return(-1);
+          i->IqForm.Iq = FetchQWORD(iptr);
+        } else { // as32
+          i->IqForm.Iq = (Bit64u)FetchDWORD(iptr);
         }
         break;
       default:
-        BX_INFO(("b1 was %x", b1));
-        BX_PANIC(("fetchdecode64: imm_mode = %u", imm_mode));
+        assert(false);
     }
 
-#if BX_SUPPORT_AVX
-    if (! had_vex_xop)
-#endif
     {
       unsigned imm_mode2 = attr & BxImmediate2;
       if (imm_mode2) {
         if (imm_mode2 == BxImmediate_Ib2) {
-          if (remain != 0) {
-            i->modRMForm.Ib2[0] = *iptr;
-            remain--;
-          }
-          else {
-            return(-1);
-          }
-        }
-        else {
-          BX_INFO(("b1 was %x", b1));
-          BX_PANIC(("fetchdecode64: imm_mode2 = %u", imm_mode2));
+          i->modRMForm.Ib2[0] = *iptr;
+        } else {
+          assert(false);
         }
       }
     }
   }
 
+  return 0;
+}
+
+#if 0
 #if BX_SUPPORT_3DNOW
   if(b1 == 0x10f)
     ia_opcode = Bx3DNowOpcode[i->modRMForm.Ib[0]];
