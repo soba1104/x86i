@@ -1,5 +1,4 @@
 EXECUTE_PROCESS(COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../tool/opcode_gen"
-                "${CMAKE_CURRENT_SOURCE_DIR}/bochs/ia_opcodes.h"
                 OUTPUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/bochs/dummyfuncs.h")
 
 INCLUDE_DIRECTORIES(bochs)

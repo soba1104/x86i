@@ -1,13 +1,9 @@
 #!/usr/bin/env ruby
 
-path = ARGV.shift
-unless path
-  STDERR.puts('usage opcode_gen path')
-  exit(1)
-end
-
-unless File.exist?(path)
-  STDERR.puts("#{path} not found");
+bochs = File.join([File.dirname(__FILE__), '../src/bochs'])
+ia_opcodes = File.join([bochs, 'ia_opcodes.h'])
+unless File.exist?(ia_opcodes)
+  STDERR.puts("#{ia_opcodes} not found");
   exit(1)
 end
 
@@ -22,7 +18,7 @@ end
 
 funcs = {}
 body = []
-File.read(path).lines.each do |line|
+File.read(ia_opcodes).lines.each do |line|
   unless line =~ /&BX_CPU_C/
     body << line
     next
