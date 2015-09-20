@@ -1973,39 +1973,34 @@ modrm_done:
     }
   }
 
-  return 0;
-}
-
-#if 0
-
-  // assign memory segment override
-  if (! BX_NULL_SEG_REG(seg_override))
-     seg = seg_override;
-  i->setSeg(seg);
-
 decode_done:
 
-  i->setILen(remainingInPage - remain);
+  i->setILen(iptr - *ipp);
   i->setIaOpcode(ia_opcode);
-  if (lock) i->setLockRepUsed(1);
+  if (lock) {
+    assert(false);
+  }
 
   if (mod_mem) {
     i->execute1 = BxOpcodesTable[ia_opcode].execute1;
     i->handlers.execute2 = BxOpcodesTable[ia_opcode].execute2;
 
     if (ia_opcode == BX_IA_MOV_GqEq) {
-      if (seg == BX_SEG_REG_SS)
-        i->execute1 = &BX_CPU_C::MOV64S_GqEqM;
+      assert(false);
     }
     if (ia_opcode == BX_IA_MOV_EqGq) {
-      if (seg == BX_SEG_REG_SS)
-        i->execute1 = &BX_CPU_C::MOV64S_EqGqM;
+      assert(false);
     }
   }
   else {
     i->execute1 = BxOpcodesTable[ia_opcode].execute2;
     i->handlers.execute2 = NULL;
   }
+
+  return 0;
+}
+
+#if 0
 
   Bit32u op_flags = BxOpcodesTable[ia_opcode].opflags;
   if (! (fetchModeMask & BX_FETCH_MODE_SSE_OK)) {
