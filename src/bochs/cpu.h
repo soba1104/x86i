@@ -3936,6 +3936,9 @@ public: // for now...
   BX_SMF void    push_64(Bit64u value64) BX_CPP_AttrRegparmN(1);
   BX_SMF Bit64u  pop_64(void);
 #endif
+
+
+  void set_stack(void *stack);
 };
 
 // <TAG-DEFINES-DECODE-START>

@@ -1,5 +1,8 @@
 #include <stdint.h>
 
+void *alloc_cpu();
+void set_stack(void *cpu, void *stack);
+void free_cpu(void *cpu);
 void *alloc_insn();
 void free_insn(void *insn);
 void clear_insn(void *insn);

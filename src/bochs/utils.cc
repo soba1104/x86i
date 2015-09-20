@@ -13,6 +13,21 @@
 #include <bochs.h>
 #include <cpu.h>
 
+void *alloc_cpu()
+{
+  return new BX_CPU_C();
+}
+
+void set_stack(void *cpu, void *stack)
+{
+  ((BX_CPU_C*)cpu)->set_stack(stack);
+}
+
+void free_cpu(void *cpu)
+{
+  delete ((BX_CPU_C*)cpu);
+}
+
 BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
 {
   memset(gen_reg, 0, sizeof(gen_reg));
@@ -20,6 +35,11 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
 
 BX_CPU_C::~BX_CPU_C()
 {
+}
+
+void BX_CPU_C::set_stack(void *stack)
+{
+  RSP = (Bit64u)stack;
 }
 
 void BX_CPP_AttrRegparmN(2) BX_CPU_C::stack_write_qword(bx_address offset, Bit64u data)
