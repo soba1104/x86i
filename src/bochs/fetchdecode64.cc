@@ -2017,6 +2017,8 @@ decode_done:
      return(1);
 #endif
 
+  *ipp = iptr;
+
   return 0;
 }
 
