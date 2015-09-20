@@ -1,25 +1,33 @@
-/////////////////////////////////////////////////////////////////////////
-// $Id: instr.h 12767 2015-05-16 20:29:49Z sshwarts $
-/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+// Copyright (C) 2015 satoshi shiba
+// Copyright (C) 2008-2012 Stanislav Shwartsman
 //
-//   Copyright (c) 2008-2012 Stanislav Shwartsman
-//          Written by Stanislav Shwartsman [sshwarts at sourceforge net]
-//
-//  This library is free software; you can redistribute it and/or
-//  modify it under the terms of the GNU Lesser General Public
-//  License as published by the Free Software Foundation; either
-//  version 2 of the License, or (at your option) any later version.
-//
-//  This library is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-//  Lesser General Public License for more details.
-//
-//  You should have received a copy of the GNU Lesser General Public
-//  License along with this library; if not, write to the Free Software
-//  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA B 02110-1301 USA
-//
-/////////////////////////////////////////////////////////////////////////
+// Original source of this file is 'cpu/instr.h'.
+// You can download original source from following link.
+// http://sourceforge.net/projects/bochs/files/bochs/2.6.8/
+//  -------------------------- Original Copyright ------------------------------
+// |////////////////////////////////////////////////////////////////////////////|
+// |// $Id: instr.h 12767 2015-05-16 20:29:49Z sshwarts $                       |
+// |////////////////////////////////////////////////////////////////////////////|
+// |                                                                            |
+// | Copyright (c) 2008-2012 Stanislav Shwartsman                               |
+// |        Written by Stanislav Shwartsman [sshwarts at sourceforge net]       |
+// |                                                                            |
+// | This library is free software; you can redistribute it and/or              |
+// | modify it under the terms of the GNU Lesser General Public                 |
+// | License as published by the Free Software Foundation; either               |
+// | version 2 of the License, or (at your option) any later version.           |
+// |                                                                            |
+// | This library is distributed in the hope that it will be useful,            |
+// | but WITHOUT ANY WARRANTY; without even the implied warranty of             |
+// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU          |
+// | Lesser General Public License for more details.                            |
+// |                                                                            |
+// | You should have received a copy of the GNU Lesser General Public           |
+// | License along with this library; if not, write to the Free Software        |
+// | Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA B 02110-1301 USA |
+//  ----------------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////////////
 
 #ifndef BX_INSTR_H
 #define BX_INSTR_H
@@ -84,16 +92,6 @@ typedef void BX_INSF_TYPE;
   if (BX_SMP_PROCESSORS == 1) BX_TICK1()
 
 #endif
-
-// <TAG-TYPE-EXECUTEPTR-START>
-#if BX_USE_CPU_SMF
-typedef BX_INSF_TYPE (BX_CPP_AttrRegparmN(1) *BxExecutePtr_tR)(bxInstruction_c *);
-typedef void (BX_CPP_AttrRegparmN(1) *BxRepIterationPtr_tR)(bxInstruction_c *);
-#else
-typedef BX_INSF_TYPE (BX_CPU_C::*BxExecutePtr_tR)(bxInstruction_c *) BX_CPP_AttrRegparmN(1);
-typedef void (BX_CPU_C::*BxRepIterationPtr_tR)(bxInstruction_c *) BX_CPP_AttrRegparmN(1);
-#endif
-// <TAG-TYPE-EXECUTEPTR-END>
 
 extern bx_address bx_asize_mask[];
 
