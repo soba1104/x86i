@@ -1997,11 +1997,8 @@ decode_done:
     i->handlers.execute2 = NULL;
   }
 
-  return 0;
-}
-
+// FIXME
 #if 0
-
   Bit32u op_flags = BxOpcodesTable[ia_opcode].opflags;
   if (! (fetchModeMask & BX_FETCH_MODE_SSE_OK)) {
      if (op_flags & BX_PREPARE_SSE) {
@@ -2012,9 +2009,9 @@ decode_done:
 
   if ((op_flags & BX_TRACE_END) != 0 || i->execute1 == &BX_CPU_C::BxError)
      return(1);
-
-  return(0);
-}
 #endif
+
+  return 0;
+}
 
 #endif /* if BX_SUPPORT_X86_64 */
