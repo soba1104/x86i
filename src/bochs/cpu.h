@@ -846,6 +846,7 @@ typedef struct
 
 
 #include "instr.h"
+#include "lazy_flags.h"
 
 #define BX_SMF
 class BOCHSAPI BX_CPU_C {
