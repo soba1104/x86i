@@ -1091,6 +1091,41 @@ public: // for now...
   i387_t the_i387;
 #endif
 
+#if BX_CPU_LEVEL >= 6
+
+  // Vector register set
+  // vmm0-vmmN: up to 32 vector registers
+  // vtmp: temp register
+#if BX_SUPPORT_EVEX
+  bx_zmm_reg_t vmm[BX_XMM_REGISTERS+1] BX_CPP_AlignN(64);
+#else
+#if BX_SUPPORT_AVX
+  bx_ymm_reg_t vmm[BX_XMM_REGISTERS+1] BX_CPP_AlignN(32);
+#else
+  bx_xmm_reg_t vmm[BX_XMM_REGISTERS+1] BX_CPP_AlignN(16);
+#endif
+#endif
+
+  bx_mxcsr_t mxcsr;
+  Bit32u mxcsr_mask;
+
+#if BX_SUPPORT_EVEX
+  bx_gen_reg_t opmask[8];
+#endif
+
+#endif
+
+#if BX_CPU_LEVEL >= 6
+  unsigned sse_ok;
+#if BX_SUPPORT_AVX
+  unsigned avx_ok;
+#endif
+#if BX_SUPPORT_EVEX
+  unsigned opmask_ok;
+  unsigned evex_ok;
+#endif
+#endif
+
   BX_SMF void setEFlags(Bit32u val) BX_CPP_AttrRegparmN(1);
 
   BX_SMF BX_CPP_INLINE void setEFlagsOSZAPC(Bit32u flags32) {

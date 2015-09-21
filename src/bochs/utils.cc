@@ -72,6 +72,8 @@ const char *get_bx_opcode_name(Bit16u ia_opcode)
 
 BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
 {
+  unsigned n;
+
   memset(gen_reg, 0, sizeof(gen_reg));
 
 //init.cc のオリジナルのコンストラクタから持ってきたもの
@@ -106,6 +108,34 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
 #if BX_SUPPORT_FPU
   //if (source == BX_RESET_HARDWARE) {
     BX_CPU_THIS_PTR the_i387.reset();
+  //}
+#endif
+
+#if BX_CPU_LEVEL >= 6
+  BX_CPU_THIS_PTR sse_ok = 0;
+#if BX_SUPPORT_AVX
+  BX_CPU_THIS_PTR avx_ok = 0;
+#endif
+
+#if BX_SUPPORT_EVEX
+  BX_CPU_THIS_PTR opmask_ok = BX_CPU_THIS_PTR evex_ok = 0;
+
+  for (n=0; n<8; n++)
+    BX_WRITE_OPMASK(n, 0);
+#endif
+
+  // Reset XMM state - unchanged on #INIT
+  //if (source == BX_RESET_HARDWARE) {
+    for(n=0; n<BX_XMM_REGISTERS; n++) {
+      BX_CLEAR_AVX_REG(n);
+    }
+
+    BX_CPU_THIS_PTR mxcsr.mxcsr = MXCSR_RESET;
+    BX_CPU_THIS_PTR mxcsr_mask = 0x0000ffbf;
+    if (BX_CPUID_SUPPORT_ISA_EXTENSION(BX_ISA_SSE2))
+      BX_CPU_THIS_PTR mxcsr_mask |= MXCSR_DAZ;
+    if (BX_CPUID_SUPPORT_ISA_EXTENSION(BX_ISA_MISALIGNED_SSE))
+      BX_CPU_THIS_PTR mxcsr_mask |= MXCSR_MISALIGNED_EXCEPTION_MASK;
   //}
 #endif
 }
