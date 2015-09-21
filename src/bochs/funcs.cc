@@ -312,7 +312,14 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
   /////////////////////////////////////////////////////////////////////////////
   if ((requested_feature_bitmap & BX_XCR0_FPU_MASK) != 0)
   {
-    assert(false);
+    if (! xsaveopt || (xinuse & BX_XCR0_FPU_MASK) != 0) {
+      assert(false);
+    }
+
+    if (xinuse & BX_XCR0_FPU_MASK)
+      xstate_bv |=  BX_XCR0_FPU_MASK;
+    else
+      xstate_bv &= ~BX_XCR0_FPU_MASK;
   }
 
   /////////////////////////////////////////////////////////////////////////////
