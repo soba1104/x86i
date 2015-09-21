@@ -12,3 +12,5 @@ void free_insn(void *insn);
 void clear_insn(void *insn);
 void step(void *cpu, void *insn);
 int decode64(void *cpu, void *insn);
+
+const char *get_opcode_name(void *insn);

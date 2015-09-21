@@ -51,6 +51,11 @@ void step(void *cpu, void *insn) {
   (c->*(i->execute1))(i);
 }
 
+const char *get_opcode_name(void *insn) {
+  bxInstruction_c *i = (bxInstruction_c*)insn;
+  return get_bx_opcode_name(i->getIaOpcode());
+}
+
 }
 
 BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
