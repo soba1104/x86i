@@ -833,6 +833,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SETNZ_EbR(bxInstruction_c *i)
 // xsave.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
 {
+#define XSAVEC_COMPACTION_ENABLED BX_CONST64(0x8000000000000000)
 #if BX_CPU_LEVEL >= 6
   //BX_CPU_THIS_PTR prepareXSAVE();
 
@@ -922,4 +923,195 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
   // always update header to 'dirty' state
   WriteHostQWordToLittleEndian(((eaddr + 512) & asize_mask), xstate_bv);
 #endif
+}
+
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XRSTOR(bxInstruction_c *i)
+{
+  //BX_CPU_THIS_PTR prepareXSAVE();
+
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+
+#if 0
+#if BX_SUPPORT_ALIGNMENT_CHECK && BX_CPU_LEVEL >= 4
+  if (BX_CPU_THIS_PTR alignment_check()) {
+    if (laddr & 0x3) {
+      BX_ERROR(("XRSTOR: access not aligned to 4-byte cause model specific #AC(0)"));
+      exception(BX_AC_EXCEPTION, 0);
+    }
+  }
+#endif
+#endif
+
+  if (eaddr & 0x3f) {
+    assert(false);
+  }
+
+  bx_address asize_mask = i->asize_mask();
+
+  Bit64u xstate_bv, xcomp_bv, header3;
+  ReadHostQWordFromLittleEndian(((eaddr + 512) & asize_mask), xstate_bv);
+  ReadHostQWordFromLittleEndian(((eaddr + 520) & asize_mask), xcomp_bv);
+  ReadHostQWordFromLittleEndian(((eaddr + 528) & asize_mask), header3);
+
+  if (header3 != 0) {
+    assert(false);
+  }
+
+  bx_bool compaction = (xcomp_bv & XSAVEC_COMPACTION_ENABLED) != 0;
+
+  if (! BX_CPUID_SUPPORT_ISA_EXTENSION(BX_ISA_XSAVEC) || ! compaction) {
+    if (xcomp_bv != 0) {
+      assert(false);
+    }
+  }
+
+  if (! compaction) {
+    if ((~BX_CPU_THIS_PTR xcr0.get32() & xstate_bv) != 0 || (GET32H(xstate_bv) << 1) != 0) {
+      assert(false);
+    }
+  }
+  else {
+    if ((~BX_CPU_THIS_PTR xcr0.get32() & xcomp_bv) != 0 || (GET32H(xcomp_bv) << 1) != 0) {
+      assert(false);
+    }
+
+    if (xstate_bv & ~xcomp_bv) {
+      assert(false);
+    }
+
+    Bit64u header4, header5, header6, header7, header8;
+    ReadHostQWordFromLittleEndian(((eaddr + 536) & asize_mask), header4);
+    ReadHostQWordFromLittleEndian(((eaddr + 544) & asize_mask), header5);
+    ReadHostQWordFromLittleEndian(((eaddr + 552) & asize_mask), header6);
+    ReadHostQWordFromLittleEndian(((eaddr + 560) & asize_mask), header7);
+    ReadHostQWordFromLittleEndian(((eaddr + 568) & asize_mask), header8);
+
+    if (header4 | header5 | header6 | header7 | header8) {
+      assert(false);
+    }
+  }
+
+  //
+  // We will go feature-by-feature and not run over all XCR0 bits
+  //
+
+  Bit32u requested_feature_bitmap = BX_CPU_THIS_PTR xcr0.get32() & EAX;
+
+  /////////////////////////////////////////////////////////////////////////////
+  if ((requested_feature_bitmap & BX_XCR0_FPU_MASK) != 0)
+  {
+    assert(false);
+#if 0
+    if (xstate_bv & BX_XCR0_FPU_MASK)
+      xrstor_x87_state(i, eaddr);
+    else
+      xrstor_init_x87_state();
+#endif
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  if ((requested_feature_bitmap & BX_XCR0_SSE_MASK) != 0 || 
+     ((requested_feature_bitmap & BX_XCR0_YMM_MASK) != 0 && ! compaction))
+  {
+    assert(false);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  if ((requested_feature_bitmap & BX_XCR0_SSE_MASK) != 0)
+  {
+    assert(false);
+  }
+
+  if (compaction) {
+    Bit32u offset = XSAVE_YMM_STATE_OFFSET;
+
+#if BX_SUPPORT_AVX
+    /////////////////////////////////////////////////////////////////////////////
+    if ((requested_feature_bitmap & BX_XCR0_YMM_MASK) != 0)
+    {
+      if (xstate_bv & BX_XCR0_YMM_MASK)
+        xrstor_ymm_state(i, eaddr+offset);
+      else
+        xrstor_init_ymm_state();
+
+      offset += XSAVE_YMM_STATE_LEN;
+    }
+#endif
+
+#if BX_SUPPORT_EVEX
+    /////////////////////////////////////////////////////////////////////////////
+    if ((requested_feature_bitmap & BX_XCR0_OPMASK_MASK) != 0)
+    {
+      if (xstate_bv & BX_XCR0_OPMASK_MASK)
+        xrstor_opmask_state(i, eaddr+offset);
+      else
+        xrstor_init_opmask_state();
+
+      offset += XSAVE_OPMASK_STATE_LEN;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+    if ((requested_feature_bitmap & BX_XCR0_ZMM_HI256_MASK) != 0)
+    {
+      if (xstate_bv & BX_XCR0_ZMM_HI256_MASK)
+        xrstor_zmm_hi256_state(i, eaddr+offset);
+      else
+        xrstor_init_zmm_hi256_state();
+
+      offset += XSAVE_ZMM_HI256_STATE_LEN;
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+    if ((requested_feature_bitmap & BX_XCR0_HI_ZMM_MASK) != 0)
+    {
+      if (xstate_bv & BX_XCR0_HI_ZMM_MASK)
+        xrstor_hi_zmm_state(i, eaddr+offset);
+      else
+        xrstor_init_hi_zmm_state();
+
+      offset += XSAVE_HI_ZMM_STATE_LEN;
+    }
+#endif
+  }
+  else {
+#if BX_SUPPORT_AVX
+    /////////////////////////////////////////////////////////////////////////////
+    if ((requested_feature_bitmap & BX_XCR0_YMM_MASK) != 0)
+    {
+      if (xstate_bv & BX_XCR0_YMM_MASK)
+        xrstor_ymm_state(i, eaddr+XSAVE_YMM_STATE_OFFSET);
+      else
+        xrstor_init_ymm_state();
+    }
+#endif
+
+#if BX_SUPPORT_EVEX
+    /////////////////////////////////////////////////////////////////////////////
+    if ((requested_feature_bitmap & BX_XCR0_OPMASK_MASK) != 0)
+    {
+      if (xstate_bv & BX_XCR0_OPMASK_MASK)
+        xrstor_opmask_state(i, eaddr+XSAVE_OPMASK_STATE_OFFSET);
+      else
+        xrstor_init_opmask_state();
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+    if ((requested_feature_bitmap & BX_XCR0_ZMM_HI256_MASK) != 0)
+    {
+      if (xstate_bv & BX_XCR0_ZMM_HI256_MASK)
+        xrstor_zmm_hi256_state(i, eaddr+XSAVE_ZMM_HI256_STATE_OFFSET);
+      else
+        xrstor_init_zmm_hi256_state();
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+    if ((requested_feature_bitmap & BX_XCR0_HI_ZMM_MASK) != 0)
+    {
+      if (xstate_bv & BX_XCR0_HI_ZMM_MASK)
+        xrstor_hi_zmm_state(i, eaddr+XSAVE_HI_ZMM_STATE_OFFSET);
+      else
+        xrstor_init_hi_zmm_state();
+    }
+#endif
+  }
 }
