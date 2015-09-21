@@ -212,6 +212,22 @@ void BX_CPP_AttrRegparmN(1) BX_CPU_C::branch_near64(bxInstruction_c *i)
 #endif
 }
 
+void write_xmmword(bx_address offset, const BxPackedXmmRegister *data) {
+  Bit64u *addr = (Bit64u*)offset;
+  WriteHostQWordToLittleEndian(addr,   data->xmm64u(0));
+  WriteHostQWordToLittleEndian(addr+1, data->xmm64u(1));
+}
+
+void write_qword(bx_address offset, Bit64u data) {
+  Bit64u *addr = (Bit64u*)offset;
+  WriteHostQWordToLittleEndian(addr, data);
+}
+
+void write_dword(bx_address offset, Bit32u data) {
+  Bit32u *addr = (Bit32u*)offset;
+  WriteHostDWordToLittleEndian(addr, data);
+}
+
 // xsave 関連
 bx_bool BX_CPU_C::xsave_x87_state_xinuse(void)
 {
