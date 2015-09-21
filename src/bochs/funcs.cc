@@ -116,7 +116,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV64_GdEdM(bxInstruction_c *i)
 {
   Bit64u eaddr = BX_CPU_RESOLVE_ADDR_64(i);
   Bit32u val32;
-  ReadHostDWordFromLittleEndian((Bit64u*)eaddr, val32);
+  ReadHostDWordFromLittleEndian(eaddr, val32);
   BX_WRITE_32BIT_REGZ(i->dst(), val32);
 }
 
@@ -138,7 +138,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GqEqM(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
   Bit64u val64;
-  ReadHostQWordFromLittleEndian((Bit64u*)eaddr, val64);
+  ReadHostQWordFromLittleEndian(eaddr, val64);
   BX_WRITE_64BIT_REG(i->dst(), val64);
 }
 
@@ -376,7 +376,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EdIdM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  ReadHostDWordFromLittleEndian((Bit64u*)eaddr, op1_32);
+  ReadHostDWordFromLittleEndian(eaddr, op1_32);
   op2_32 = i->Id();
   diff_32 = op1_32 - op2_32;
 
@@ -435,7 +435,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ADD_GqEqM(bxInstruction_c *i)
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
   op1_64 = BX_READ_64BIT_REG(i->dst());
-  ReadHostQWordFromLittleEndian((Bit64u*)eaddr, op2_64);
+  ReadHostQWordFromLittleEndian(eaddr, op2_64);
   sum_64 = op1_64 + op2_64;
   BX_WRITE_64BIT_REG(i->dst(), sum_64);
 
@@ -475,7 +475,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EqIdM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
-  ReadHostQWordFromLittleEndian((Bit64u*)eaddr, op1_64);
+  ReadHostQWordFromLittleEndian(eaddr, op1_64);
   op2_64 = (Bit32s) i->Id();
   diff_64 = op1_64 - op2_64;
 
@@ -513,7 +513,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EqGqM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
-  ReadHostQWordFromLittleEndian((Bit64u*)eaddr, op1_64);
+  ReadHostQWordFromLittleEndian(eaddr, op1_64);
   op2_64 = BX_READ_64BIT_REG(i->src());
   diff_64 = op1_64 - op2_64;
 
@@ -731,7 +731,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHL_EqR(bxInstruction_c *i)
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LOAD_Eq(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
-  ReadHostQWordFromLittleEndian((Bit64u*)eaddr, TMP64);
+  ReadHostQWordFromLittleEndian(eaddr, TMP64);
   BX_CPU_CALL_METHOD(i->execute2(), (i));
 }
 
@@ -781,7 +781,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
   //
 
   Bit64u xstate_bv;
-  ReadHostQWordFromLittleEndian((Bit64u*)((eaddr + 512) & asize_mask), xstate_bv);
+  ReadHostQWordFromLittleEndian(((eaddr + 512) & asize_mask), xstate_bv);
 
   Bit32u requested_feature_bitmap = BX_CPU_THIS_PTR xcr0.get32() & EAX;
   Bit32u xinuse = get_xinuse_vector(requested_feature_bitmap);
