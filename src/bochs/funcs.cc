@@ -916,7 +916,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
 #endif
 
   // always update header to 'dirty' state
-  WriteHostQWordToLittleEndian(((eaddr + 512) & asize_mask), xstate_bv);
+  write_virtual_qword(i->seg(), (eaddr + 512) & asize_mask, xstate_bv);
 #endif
 }
 
