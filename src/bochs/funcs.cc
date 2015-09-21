@@ -205,6 +205,18 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EqIdM(bxInstruction_c *i)
 }
 
 // arith64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_GqEqR(bxInstruction_c *i)
+{
+  Bit64u op1_64, op2_64, diff_64;
+
+  op1_64 = BX_READ_64BIT_REG(i->dst());
+  op2_64 = BX_READ_64BIT_REG(i->src());
+  diff_64 = op1_64 - op2_64;
+
+  SET_FLAGS_OSZAPC_SUB_64(op1_64, op2_64, diff_64);
+}
+
+// arith64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SUB_GqEqR(bxInstruction_c *i)
 {
   Bit64u op1_64, op2_64, diff_64;
