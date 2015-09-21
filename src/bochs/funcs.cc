@@ -858,8 +858,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
   // We will go feature-by-feature and not run over all XCR0 bits
   //
 
-  Bit64u xstate_bv;
-  ReadHostQWordFromLittleEndian(((eaddr + 512) & asize_mask), xstate_bv);
+  Bit64u xstate_bv = read_virtual_qword(i->seg(), (eaddr + 512) & asize_mask);
 
   Bit32u requested_feature_bitmap = BX_CPU_THIS_PTR xcr0.get32() & EAX;
   Bit32u xinuse = get_xinuse_vector(requested_feature_bitmap);
@@ -944,10 +943,9 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XRSTOR(bxInstruction_c *i)
 
   bx_address asize_mask = i->asize_mask();
 
-  Bit64u xstate_bv, xcomp_bv, header3;
-  ReadHostQWordFromLittleEndian(((eaddr + 512) & asize_mask), xstate_bv);
-  ReadHostQWordFromLittleEndian(((eaddr + 520) & asize_mask), xcomp_bv);
-  ReadHostQWordFromLittleEndian(((eaddr + 528) & asize_mask), header3);
+  Bit64u xstate_bv = read_virtual_qword(i->seg(), (eaddr + 512) & asize_mask);
+  Bit64u xcomp_bv = read_virtual_qword(i->seg(), (eaddr + 520) & asize_mask);
+  Bit64u header3 = read_virtual_qword(i->seg(), (eaddr + 528) & asize_mask);
 
   if (header3 != 0) {
     assert(false);
@@ -975,12 +973,11 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XRSTOR(bxInstruction_c *i)
       assert(false);
     }
 
-    Bit64u header4, header5, header6, header7, header8;
-    ReadHostQWordFromLittleEndian(((eaddr + 536) & asize_mask), header4);
-    ReadHostQWordFromLittleEndian(((eaddr + 544) & asize_mask), header5);
-    ReadHostQWordFromLittleEndian(((eaddr + 552) & asize_mask), header6);
-    ReadHostQWordFromLittleEndian(((eaddr + 560) & asize_mask), header7);
-    ReadHostQWordFromLittleEndian(((eaddr + 568) & asize_mask), header8);
+    Bit64u header4 = read_virtual_qword(i->seg(), (eaddr + 536) & asize_mask);
+    Bit64u header5 = read_virtual_qword(i->seg(), (eaddr + 544) & asize_mask);
+    Bit64u header6 = read_virtual_qword(i->seg(), (eaddr + 552) & asize_mask);
+    Bit64u header7 = read_virtual_qword(i->seg(), (eaddr + 560) & asize_mask);
+    Bit64u header8 = read_virtual_qword(i->seg(), (eaddr + 568) & asize_mask);
 
     if (header4 | header5 | header6 | header7 | header8) {
       assert(false);
