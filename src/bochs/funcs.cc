@@ -337,6 +337,16 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::RETnear64(bxInstruction_c *i)
 }
 
 // arith8.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::DEC_EbR(bxInstruction_c *i)
+{
+  Bit32u op1_8 = BX_READ_8BIT_REGx(i->dst(), i->extend8bitL());
+  op1_8--;
+  BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), op1_8);
+
+  SET_FLAGS_OSZAP_SUB_8(op1_8 + 1, 0, op1_8);
+}
+
+// arith8.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EbIbM(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
