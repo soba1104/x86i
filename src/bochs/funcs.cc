@@ -67,6 +67,13 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EqGqM(bxInstruction_c *i)
 }
 
 // data_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EqIdR(bxInstruction_c *i)
+{
+  Bit64u op_64 = (Bit32s) i->Id();
+  BX_WRITE_64BIT_REG(i->dst(), op_64);
+}
+
+// data_xfer64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LEA_GqM(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
@@ -128,6 +135,19 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JNZ_Jq(bxInstruction_c *i)
   if (! get_ZF()) {
     branch_near64(i);
   }
+}
+
+// arith64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ADD_GqEqR(bxInstruction_c *i)
+{
+  Bit64u op1_64, op2_64, sum_64;
+
+  op1_64 = BX_READ_64BIT_REG(i->dst());
+  op2_64 = BX_READ_64BIT_REG(i->src());
+  sum_64 = op1_64 + op2_64;
+  BX_WRITE_64BIT_REG(i->dst(), sum_64);
+
+  SET_FLAGS_OSZAPC_ADD_64(op1_64, op2_64, sum_64);
 }
 
 // arith64.cc
