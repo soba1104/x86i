@@ -104,6 +104,13 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GdEdR(bxInstruction_c *i)
   BX_WRITE_32BIT_REGZ(i->dst(), BX_READ_32BIT_REG(i->src()));
 }
 
+// data_xfer32.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LEA_GdM(bxInstruction_c *i)
+{
+  Bit32u eaddr = (Bit32u) BX_CPU_RESOLVE_ADDR(i);
+  BX_WRITE_32BIT_REGZ(i->dst(), eaddr);
+}
+
 // data_xfer64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV64_GdEdM(bxInstruction_c *i)
 {
