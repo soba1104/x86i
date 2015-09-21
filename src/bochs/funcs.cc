@@ -551,6 +551,20 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EqGqR(bxInstruction_c *i)
 }
 
 // logical64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::OR_GqEqR(bxInstruction_c *i)
+{
+  Bit64u op1_64, op2_64;
+
+  op1_64 = BX_READ_64BIT_REG(i->dst());
+  op2_64 = BX_READ_64BIT_REG(i->src());
+  op1_64 |= op2_64;
+
+  BX_WRITE_64BIT_REG(i->dst(), op1_64);
+
+  SET_FLAGS_OSZAPC_LOGIC_64(op1_64);
+}
+
+// logical64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::AND_EqIdR(bxInstruction_c *i)
 {
   Bit64u op1_64, op2_64 = (Bit32s) i->Id();
