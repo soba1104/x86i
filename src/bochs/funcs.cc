@@ -25,6 +25,12 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PUSH64_Id(bxInstruction_c *i)
   push_64(imm64);
 }
 
+// stack64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::POP_EqR(bxInstruction_c *i)
+{
+  BX_WRITE_64BIT_REG(i->dst(), pop_64());
+}
+
 // data_xfer8.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EbIbR(bxInstruction_c *i)
 {
@@ -139,6 +145,14 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JMP_Jq(bxInstruction_c *i)
 }
 
 // ctrl_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JZ_Jq(bxInstruction_c *i)
+{
+  if (get_ZF()) {
+    branch_near64(i);
+  }
+}
+
+// ctrl_xfer64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JNZ_Jq(bxInstruction_c *i)
 {
   if (! get_ZF()) {
@@ -152,6 +166,19 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JNBE_Jq(bxInstruction_c *i)
   if (! (get_CF() || get_ZF())) {
     branch_near64(i);
   }
+}
+
+// arith32.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_GdEdR(bxInstruction_c *i)
+{
+  Bit32u op1_32, op2_32;
+
+  op1_32 = BX_READ_32BIT_REG(i->dst());
+  op2_32 = BX_READ_32BIT_REG(i->src());
+  op1_32 ^= op2_32;
+  BX_WRITE_32BIT_REGZ(i->dst(), op1_32);
+
+  SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
 }
 
 // arith64.cc
