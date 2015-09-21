@@ -176,6 +176,33 @@ Bit64u BX_CPU_C::get_rax(void)
   return RAX;
 }
 
+Bit32u BX_CPU_C::get_laddr32(unsigned seg, Bit32u offset)
+{
+  assert(false);
+}
+
+#if BX_SUPPORT_X86_64
+Bit64u BX_CPU_C::get_laddr64(unsigned seg, Bit64u offset)
+{
+  if (seg < BX_SEG_REG_FS) {
+    return offset;
+  } else {
+    assert(false);
+    //return BX_CPU_THIS_PTR sregs[seg].cache.u.segment.base + offset;
+  }
+}
+#endif
+
+bx_address BX_CPU_C::get_laddr(unsigned seg, bx_address offset)
+{
+#if BX_SUPPORT_X86_64
+  if (BX_CPU_THIS_PTR cpu_mode == BX_MODE_LONG_64) {
+    return get_laddr64(seg, offset);
+  }
+#endif
+  assert(false);
+}
+
 void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_linear_byte(unsigned s, bx_address laddr, Bit8u data)
 {
   *((Bit8u*)laddr) = data;

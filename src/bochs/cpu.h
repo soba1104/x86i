@@ -4177,6 +4177,18 @@ public: // for now...
 #endif
 // <TAG-CLASS-CPU-END>
 
+  // The linear address must be truncated to the 32-bit when CPU is not
+  // executing in long64 mode.  The function  must  be used  to compute
+  // linear address everywhere when a code is shared between long64 and
+  // legacy mode. For legacy mode only  just use Bit32u to store linear 
+  // address value.
+  BX_SMF bx_address get_laddr(unsigned seg, bx_address offset);
+
+  BX_SMF Bit32u get_laddr32(unsigned seg, Bit32u offset);
+#if BX_SUPPORT_X86_64
+  BX_SMF Bit64u get_laddr64(unsigned seg, Bit64u offset);
+#endif
+
   BX_SMF BX_CPP_INLINE bx_bool long64_mode(void);
 
   BX_SMF Bit8u read_linear_byte(unsigned seg, bx_address offset) BX_CPP_AttrRegparmN(2);
