@@ -369,10 +369,9 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::INC_EdM(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  Bit32u op1_32;
-  ReadHostDWordFromLittleEndian(eaddr, op1_32);
+  Bit32u op1_32 = read_virtual_dword(i->seg(), eaddr);
   op1_32++;
-  WriteHostDWordToLittleEndian(eaddr, op1_32);
+  write_linear_dword(i->seg(), eaddr, op1_32);
 
   SET_FLAGS_OSZAP_ADD_32(op1_32 - 1, 0, op1_32);
 }
