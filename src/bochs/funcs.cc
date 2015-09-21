@@ -367,6 +367,21 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ADD_GqEqR(bxInstruction_c *i)
 }
 
 // arith64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ADD_GqEqM(bxInstruction_c *i)
+{
+  Bit64u op1_64, op2_64, sum_64;
+
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
+
+  op1_64 = BX_READ_64BIT_REG(i->dst());
+  ReadHostQWordFromLittleEndian((Bit64u*)eaddr, op2_64);
+  sum_64 = op1_64 + op2_64;
+  BX_WRITE_64BIT_REG(i->dst(), sum_64);
+
+  SET_FLAGS_OSZAPC_ADD_64(op1_64, op2_64, sum_64);
+}
+
+// arith64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ADD_EqIdR(bxInstruction_c *i)
 {
   Bit64u op1_64, op2_64, sum_64;
