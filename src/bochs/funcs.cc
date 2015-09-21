@@ -60,6 +60,15 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GqEqR(bxInstruction_c *i)
 }
 
 // data_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GqEqM(bxInstruction_c *i)
+{
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
+  Bit64u val64;
+  ReadHostQWordFromLittleEndian((Bit64u*)eaddr, val64);
+  BX_WRITE_64BIT_REG(i->dst(), val64);
+}
+
+// data_xfer64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EqGqM(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
@@ -245,6 +254,18 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EqIdR(bxInstruction_c *i)
 
   op1_64 = BX_READ_64BIT_REG(i->dst());
   op2_64 = (Bit32s) i->Id();
+  op1_64 &= op2_64;
+
+  SET_FLAGS_OSZAPC_LOGIC_64(op1_64);
+}
+
+// logical64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EqGqR(bxInstruction_c *i)
+{
+  Bit64u op1_64, op2_64;
+
+  op1_64 = BX_READ_64BIT_REG(i->dst());
+  op2_64 = BX_READ_64BIT_REG(i->src());
   op1_64 &= op2_64;
 
   SET_FLAGS_OSZAPC_LOGIC_64(op1_64);
