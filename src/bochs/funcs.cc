@@ -150,7 +150,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EdIdM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  ReadHostQWordFromLittleEndian((Bit64u*)eaddr, op1_32);
+  ReadHostDWordFromLittleEndian((Bit64u*)eaddr, op1_32);
   op2_32 = i->Id();
   diff_32 = op1_32 - op2_32;
 
