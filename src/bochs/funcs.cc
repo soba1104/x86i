@@ -75,7 +75,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EdIdR(bxInstruction_c *i)
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EdIdM(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-  WriteHostDWordToLittleEndian(eaddr, i->Id());
+  write_virtual_dword(i->seg(), eaddr, i->Id());
 }
 
 // data_xfer32.cc
@@ -123,7 +123,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV64_GdEdM(bxInstruction_c *i)
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV64_EdGdM(bxInstruction_c *i)
 {
   Bit64u eaddr = BX_CPU_RESOLVE_ADDR_64(i);
-  WriteHostDWordToLittleEndian(eaddr, BX_READ_32BIT_REG(i->src()));
+  write_linear_dword(i->seg(), get_laddr64(i->seg(), eaddr), BX_READ_32BIT_REG(i->src()));
 }
 
 // data_xfer64.cc
@@ -144,7 +144,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GqEqM(bxInstruction_c *i)
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EqGqM(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
-  WriteHostQWordToLittleEndian(eaddr, BX_READ_64BIT_REG(i->src()));
+  write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), BX_READ_64BIT_REG(i->src()));
 }
 
 // data_xfer64.cc
@@ -159,7 +159,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EqIdM(bxInstruction_c *i)
 {
   Bit64u op_64 = (Bit32s) i->Id();
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
-  WriteHostQWordToLittleEndian(eaddr, op_64);
+  write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), op_64);
 }
 
 // data_xfer64.cc
