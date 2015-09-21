@@ -269,3 +269,89 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LOAD_Eq(bxInstruction_c *i)
   ReadHostQWordFromLittleEndian((Bit64u*)eaddr, TMP64);
   BX_CPU_CALL_METHOD(i->execute2(), (i));
 }
+
+// xsave.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  //BX_CPU_THIS_PTR prepareXSAVE();
+
+  //BX_DEBUG(("%s: save processor state XCR0=0x%08x", i->getIaOpcodeNameShort(), BX_CPU_THIS_PTR xcr0.get32()));
+
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+
+#if 0
+#if BX_SUPPORT_ALIGNMENT_CHECK && BX_CPU_LEVEL >= 4
+  if (BX_CPU_THIS_PTR alignment_check()) {
+    if (laddr & 0x3) {
+      BX_ERROR(("%s: access not aligned to 4-byte cause model specific #AC(0)", i->getIaOpcodeNameShort()));
+      exception(BX_AC_EXCEPTION, 0);
+    }
+  }
+#endif
+#endif
+
+  if (eaddr & 0x3f) {
+    assert(false);
+  }
+
+  bx_address asize_mask = i->asize_mask();
+
+  //
+  // We will go feature-by-feature and not run over all XCR0 bits
+  //
+
+  Bit64u xstate_bv;
+  ReadHostQWordFromLittleEndian((Bit64u*)((eaddr + 512) & asize_mask), xstate_bv);
+
+  Bit32u requested_feature_bitmap = BX_CPU_THIS_PTR xcr0.get32() & EAX;
+  Bit32u xinuse = get_xinuse_vector(requested_feature_bitmap);
+
+  bx_bool xsaveopt = (i->getIaOpcode() == BX_IA_XSAVEOPT);
+
+  /////////////////////////////////////////////////////////////////////////////
+  if ((requested_feature_bitmap & BX_XCR0_FPU_MASK) != 0)
+  {
+    assert(false);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  if ((requested_feature_bitmap & (BX_XCR0_SSE_MASK | BX_XCR0_YMM_MASK)) != 0)
+  {
+    assert(false);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////
+  if ((requested_feature_bitmap & BX_XCR0_SSE_MASK) != 0)
+  {
+    assert(false);
+  }
+
+#if BX_SUPPORT_AVX
+  if ((requested_feature_bitmap & BX_XCR0_YMM_MASK) != 0)
+  {
+    assert(false);
+  }
+#endif
+
+#if BX_SUPPORT_EVEX
+  if ((requested_feature_bitmap & BX_XCR0_OPMASK_MASK) != 0)
+  {
+    assert(false);
+  }
+
+  if ((requested_feature_bitmap & BX_XCR0_ZMM_HI256_MASK) != 0)
+  {
+    assert(false);
+  }
+
+  if ((requested_feature_bitmap & BX_XCR0_HI_ZMM_MASK) != 0)
+  {
+    assert(false);
+  }
+#endif
+
+  // always update header to 'dirty' state
+  WriteHostQWordToLittleEndian((Bit64u*)((eaddr + 512) & asize_mask), xstate_bv);
+#endif
+}
