@@ -315,6 +315,13 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_GdEdR(bxInstruction_c *i)
 }
 
 // arith64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::INC_EqR(bxInstruction_c *i)
+{
+  Bit64u rrx = ++BX_READ_64BIT_REG(i->dst());
+  SET_FLAGS_OSZAP_ADD_64(rrx - 1, 0, rrx);
+}
+
+// arith64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ADD_GqEqR(bxInstruction_c *i)
 {
   Bit64u op1_64, op2_64, sum_64;
@@ -439,6 +446,16 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_GdEdR(bxInstruction_c *i)
   op1_32 = BX_READ_32BIT_REG(i->dst());
   op2_32 = BX_READ_32BIT_REG(i->src());
   op1_32 ^= op2_32;
+  BX_WRITE_32BIT_REGZ(i->dst(), op1_32);
+
+  SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
+}
+
+// logical32.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::AND_EdIdR(bxInstruction_c *i)
+{
+  Bit32u op1_32 = BX_READ_32BIT_REG(i->dst());
+  op1_32 &= i->Id();
   BX_WRITE_32BIT_REGZ(i->dst(), op1_32);
 
   SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
