@@ -12,6 +12,12 @@
 
 #include "dummyfuncs.h"
 
+// proc_ctrl.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::NOP(bxInstruction_c *i)
+{
+  // No operation.
+}
+
 // stack64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PUSH_EqR(bxInstruction_c *i)
 {

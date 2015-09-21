@@ -1859,6 +1859,10 @@ fetch_b1:
     case 0x26: // ES:
     case 0x36: // SS:
     case 0x3e: // DS:
+      rex_prefix = 0;
+      goto fetch_b1;
+
+    // segment override prefixes
     case 0x64: // FS:
     case 0x65: // GS:
       assert(false);
