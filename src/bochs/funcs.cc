@@ -449,6 +449,20 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LOAD_Eq(bxInstruction_c *i)
   BX_CPU_CALL_METHOD(i->execute2(), (i));
 }
 
+// bits.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SETNZ_EbM(bxInstruction_c *i)
+{
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+  Bit8u result_8 = !getB_ZF();
+  *((Bit8u*)eaddr) = result_8;
+}
+
+// bits.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SETNZ_EbR(bxInstruction_c *i)
+{
+  BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), !getB_ZF());
+}
+
 // xsave.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
 {
