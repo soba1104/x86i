@@ -599,6 +599,19 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::AND_EbIbR(bxInstruction_c *i)
   SET_FLAGS_OSZAPC_LOGIC_8(op1);
 }
 
+// logical8.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::OR_GbEbR(bxInstruction_c *i)
+{
+  Bit8u op1, op2;
+
+  op1 = BX_READ_8BIT_REGx(i->dst(), i->extend8bitL());
+  op2 = BX_READ_8BIT_REGx(i->src(), i->extend8bitL());
+  op1 |= op2;
+  BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), op1);
+
+  SET_FLAGS_OSZAPC_LOGIC_8(op1);
+}
+
 // logical32.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_GdEdR(bxInstruction_c *i)
 {
