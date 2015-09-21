@@ -58,6 +58,17 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EdIdM(bxInstruction_c *i)
   WriteHostDWordToLittleEndian((Bit64u*)eaddr, i->Id());
 }
 
+// data_xfer32.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVZX_GdEbM(bxInstruction_c *i)
+{
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+
+  Bit8u op2_8 = *((Bit8u*)eaddr);
+
+  /* zero extend byte op2 into dword op1 */
+  BX_WRITE_32BIT_REGZ(i->dst(), (Bit32u) op2_8);
+}
+
 // data_xfer64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV64_GdEdM(bxInstruction_c *i)
 {
