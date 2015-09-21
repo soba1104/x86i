@@ -115,8 +115,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LEA_GdM(bxInstruction_c *i)
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV64_GdEdM(bxInstruction_c *i)
 {
   Bit64u eaddr = BX_CPU_RESOLVE_ADDR_64(i);
-  Bit32u val32;
-  ReadHostDWordFromLittleEndian(eaddr, val32);
+  Bit32u val32 = read_linear_dword(i->seg(), get_laddr64(i->seg(), eaddr));
   BX_WRITE_32BIT_REGZ(i->dst(), val32);
 }
 
@@ -137,8 +136,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GqEqR(bxInstruction_c *i)
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GqEqM(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
-  Bit64u val64;
-  ReadHostQWordFromLittleEndian(eaddr, val64);
+  Bit64u val64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
   BX_WRITE_64BIT_REG(i->dst(), val64);
 }
 
