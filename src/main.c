@@ -9,14 +9,14 @@ int main(void) {
   uint8_t inputs[] = {
     0x55, 0x48, 0x89, 0xe5, 0x48, 0x83, 0xec, 0x10
   };
-  uint64_t ip = (uint64_t)inputs, end = ip + sizeof(inputs);
+  uint64_t rip = (uint64_t)inputs, end = rip + sizeof(inputs);
   printf("hello\n");
   stack = malloc(0x1000000);
   cpu = alloc_cpu();
   set_stack(cpu, stack + 0x1000000);
-  set_ip(cpu, ip);
+  set_rip(cpu, rip);
   insn = alloc_insn();
-  while(get_ip(cpu) < end) {
+  while(get_rip(cpu) < end) {
     clear_insn(insn);
     decode64(cpu, insn);
     step(cpu, insn);

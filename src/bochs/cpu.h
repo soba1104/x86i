@@ -4197,8 +4197,9 @@ public: // for now...
 
   int decode64(void *insn);
   void set_stack(void *stack);
-  void set_ip(Bit64u ip);
-  Bit64u get_ip(void);
+  void set_rip(Bit64u rip);
+  Bit64u get_rip(void);
+  Bit64u get_rax(void);
 };
 
 // Can be used as LHS or RHS.

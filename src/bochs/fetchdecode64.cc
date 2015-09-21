@@ -1819,7 +1819,7 @@ int BX_CPU_C::decode64(void *insn) {
   unsigned offset = 512, rex_r = 0, rex_x = 0, rex_b = 0;
   unsigned rm = 0, mod = 0, nnn = 0, mod_mem = 0;
   bx_bool lock = 0;
-  Bit8u *iptr = (Bit8u*)get_ip();
+  Bit8u *iptr = (Bit8u*)get_rip();
   Bit8u *startip = iptr;
 
   unsigned sse_prefix = SSE_PREFIX_NONE;
@@ -2139,7 +2139,7 @@ decode_done:
      return(1);
 #endif
 
-  set_ip((Bit64u)iptr);
+  set_rip((Bit64u)iptr);
 
   return 0;
 }

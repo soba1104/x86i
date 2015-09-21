@@ -25,14 +25,19 @@ void set_stack(void *cpu, void *stack)
   ((BX_CPU_C*)cpu)->set_stack(stack);
 }
 
-void set_ip(void *cpu, uint64_t ip)
+void set_rip(void *cpu, uint64_t rip)
 {
-  ((BX_CPU_C*)cpu)->set_ip(ip);
+  ((BX_CPU_C*)cpu)->set_rip(rip);
 }
 
-uint64_t get_ip(void *cpu)
+uint64_t get_rip(void *cpu)
 {
-  return ((BX_CPU_C*)cpu)->get_ip();
+  return ((BX_CPU_C*)cpu)->get_rip();
+}
+
+uint64_t get_rax(void *cpu)
+{
+  return ((BX_CPU_C*)cpu)->get_rax();
 }
 
 void free_cpu(void *cpu)
@@ -49,6 +54,11 @@ void step(void *cpu, void *insn) {
   BX_CPU_C *c = (BX_CPU_C*)cpu;
   bxInstruction_c *i = (bxInstruction_c*)insn;
   (c->*(i->execute1))(i);
+}
+
+uint16_t get_opcode(void *insn) {
+  bxInstruction_c *i = (bxInstruction_c*)insn;
+  return i->getIaOpcode();
 }
 
 const char *get_opcode_name(void *insn) {
@@ -151,14 +161,19 @@ void BX_CPU_C::set_stack(void *stack)
   RSP = (Bit64u)stack;
 }
 
-void BX_CPU_C::set_ip(Bit64u ip)
+void BX_CPU_C::set_rip(Bit64u rip)
 {
-  RIP = ip;
+  RIP = rip;
 }
 
-Bit64u BX_CPU_C::get_ip(void)
+Bit64u BX_CPU_C::get_rip(void)
 {
   return RIP;
+}
+
+Bit64u BX_CPU_C::get_rax(void)
+{
+  return RAX;
 }
 
 void BX_CPP_AttrRegparmN(2) BX_CPU_C::stack_write_qword(bx_address offset, Bit64u data)
