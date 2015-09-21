@@ -260,19 +260,6 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::RETnear64(bxInstruction_c *i)
   RSP += 8;
 }
 
-// arith32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_GdEdR(bxInstruction_c *i)
-{
-  Bit32u op1_32, op2_32;
-
-  op1_32 = BX_READ_32BIT_REG(i->dst());
-  op2_32 = BX_READ_32BIT_REG(i->src());
-  op1_32 ^= op2_32;
-  BX_WRITE_32BIT_REGZ(i->dst(), op1_32);
-
-  SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
-}
-
 // arigh32.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::INC_EdR(bxInstruction_c *i)
 {
@@ -412,6 +399,19 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EbGbR(bxInstruction_c *i)
   SET_FLAGS_OSZAPC_LOGIC_8(op1);
 }
 
+// logical32.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_GdEdR(bxInstruction_c *i)
+{
+  Bit32u op1_32, op2_32;
+
+  op1_32 = BX_READ_32BIT_REG(i->dst());
+  op2_32 = BX_READ_32BIT_REG(i->src());
+  op1_32 ^= op2_32;
+  BX_WRITE_32BIT_REGZ(i->dst(), op1_32);
+
+  SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
+}
+
 // logical64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EqIdR(bxInstruction_c *i)
 {
@@ -446,6 +446,33 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::AND_EqIdR(bxInstruction_c *i)
   BX_WRITE_64BIT_REG(i->dst(), op1_64);
 
   SET_FLAGS_OSZAPC_LOGIC_64(op1_64);
+}
+
+// shift8.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHR_EbR(bxInstruction_c *i)
+{
+  unsigned count;
+
+  if (i->getIaOpcode() == BX_IA_SHR_Eb)
+    count = CL;
+  else
+    count = i->Ib();
+
+  count &= 0x1f;
+
+  if (count) {
+    Bit8u op1_8 = BX_READ_8BIT_REGx(i->dst(), i->extend8bitL());
+    Bit8u result_8 = (op1_8 >> count);
+    BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), result_8);
+
+    unsigned cf = (op1_8 >> (count - 1)) & 0x1;
+    // note, that of == result7 if count == 1 and
+    //            of == 0       if count >= 2
+    unsigned of = (((result_8 << 1) ^ result_8) >> 7) & 0x1;
+
+    SET_FLAGS_OSZAPC_LOGIC_8(result_8);
+    SET_FLAGS_OxxxxC(of, cf);
+  }
 }
 
 // load.cc
