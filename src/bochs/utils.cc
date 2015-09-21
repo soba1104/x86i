@@ -270,6 +270,46 @@ Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_linear_qword(unsigned s, bx_address
   return data;
 }
 
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_byte(unsigned s, bx_address laddr, Bit8u data)
+{
+  write_linear_byte(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_word(unsigned s, bx_address laddr, Bit16u data)
+{
+  write_linear_word(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_dword(unsigned s, bx_address laddr, Bit32u data)
+{
+  write_linear_dword(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_qword(unsigned s, bx_address laddr, Bit64u data)
+{
+  write_linear_qword(s, laddr, data);
+}
+
+Bit8u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_byte(unsigned s, bx_address laddr)
+{
+  return read_linear_byte(s, laddr);
+}
+
+Bit16u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_word(unsigned s, bx_address laddr)
+{
+  return read_linear_word(s, laddr);
+}
+
+Bit32u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_dword(unsigned s, bx_address laddr)
+{
+  return read_linear_dword(s, laddr);
+}
+
+Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_qword(unsigned s, bx_address laddr)
+{
+  return read_linear_qword(s, laddr);
+}
+
 void BX_CPP_AttrRegparmN(2) BX_CPU_C::stack_write_qword(bx_address offset, Bit64u data)
 {
   WriteHostQWordToLittleEndian((Bit64u*)offset, data);
