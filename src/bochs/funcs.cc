@@ -32,6 +32,13 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::POP_EqR(bxInstruction_c *i)
 }
 
 // data_xfer8.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GbEbR(bxInstruction_c *i)
+{
+  Bit8u op2 = BX_READ_8BIT_REGx(i->src(), i->extend8bitL());
+  BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), op2);
+}
+
+// data_xfer8.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EbIbR(bxInstruction_c *i)
 {
   BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), i->Ib());
@@ -240,6 +247,14 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JNL_Jq(bxInstruction_c *i)
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JNBE_Jq(bxInstruction_c *i)
 {
   if (! (get_CF() || get_ZF())) {
+    branch_near64(i);
+  }
+}
+
+// ctrl_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JNLE_Jq(bxInstruction_c *i)
+{
+  if (! get_ZF() && (getB_SF() == getB_OF())) {
     branch_near64(i);
   }
 }
