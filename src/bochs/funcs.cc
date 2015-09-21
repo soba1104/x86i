@@ -181,6 +181,28 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_GdEdR(bxInstruction_c *i)
   SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
 }
 
+// arigh32.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::INC_EdR(bxInstruction_c *i)
+{
+  Bit32u erx = ++BX_READ_32BIT_REG(i->dst());
+  SET_FLAGS_OSZAP_ADD_32(erx - 1, 0, erx);
+  BX_CLEAR_64BIT_HIGH(i->dst());
+}
+
+// arith32.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EdIdM(bxInstruction_c *i)
+{
+  Bit32u op1_32, op2_32, diff_32;
+
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+
+  ReadHostDWordFromLittleEndian((Bit64u*)eaddr, op1_32);
+  op2_32 = i->Id();
+  diff_32 = op1_32 - op2_32;
+
+  SET_FLAGS_OSZAPC_SUB_32(op1_32, op2_32, diff_32);
+}
+
 // arith64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ADD_GqEqR(bxInstruction_c *i)
 {
@@ -220,20 +242,6 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SUB_EqIdR(bxInstruction_c *i)
   SET_FLAGS_OSZAPC_SUB_64(op1_64, op2_64, diff_64);
 }
 
-// arith32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EdIdM(bxInstruction_c *i)
-{
-  Bit32u op1_32, op2_32, diff_32;
-
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-
-  ReadHostDWordFromLittleEndian((Bit64u*)eaddr, op1_32);
-  op2_32 = i->Id();
-  diff_32 = op1_32 - op2_32;
-
-  SET_FLAGS_OSZAPC_SUB_32(op1_32, op2_32, diff_32);
-}
-
 // arith64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EqIdM(bxInstruction_c *i)
 {
@@ -254,6 +262,20 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_GqEqR(bxInstruction_c *i)
   Bit64u op1_64, op2_64, diff_64;
 
   op1_64 = BX_READ_64BIT_REG(i->dst());
+  op2_64 = BX_READ_64BIT_REG(i->src());
+  diff_64 = op1_64 - op2_64;
+
+  SET_FLAGS_OSZAPC_SUB_64(op1_64, op2_64, diff_64);
+}
+
+// arith64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EqGqM(bxInstruction_c *i)
+{
+  Bit64u op1_64, op2_64, diff_64;
+
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
+
+  ReadHostQWordFromLittleEndian((Bit64u*)eaddr, op1_64);
   op2_64 = BX_READ_64BIT_REG(i->src());
   diff_64 = op1_64 - op2_64;
 
