@@ -4177,6 +4177,11 @@ public: // for now...
 #endif
 // <TAG-CLASS-CPU-END>
 
+  BX_SMF BX_CPP_INLINE bx_bool long64_mode(void);
+
+  BX_SMF bx_bool xsave_x87_state_xinuse(void);
+  BX_SMF bx_bool xsave_sse_state_xinuse(void);
+
   BX_SMF void branch_near64(bxInstruction_c *i) BX_CPP_AttrRegparmN(1);
 
   BX_SMF void stack_write_qword(bx_address offset, Bit64u data) BX_CPP_AttrRegparmN(2);
@@ -4226,6 +4231,15 @@ BX_CPP_INLINE Bit32u BX_CPP_AttrRegparmN(1) BX_CPU_C::BxResolve32(bxInstruction_
 
 #define RSP_COMMIT {                   \
   BX_CPU_THIS_PTR speculative_rsp = 0; \
+}
+
+BX_CPP_INLINE bx_bool BX_CPU_C::long64_mode(void)
+{
+#if BX_SUPPORT_X86_64
+  return (BX_CPU_THIS_PTR cpu_mode == BX_MODE_LONG_64);
+#else
+  return 0;
+#endif
 }
 
 #endif // defined(NEED_CPU_REG_SHORTCUTS)

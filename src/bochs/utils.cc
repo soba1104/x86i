@@ -76,7 +76,7 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
 
   memset(gen_reg, 0, sizeof(gen_reg));
 
-  BX_CPU_THIS_PTR cpu_mode = BX_MODE_LONG_64;
+  BX_CPU_THIS_PTR cpu_mode = BX_MODE_LONG_64; // FIXME
 
 //init.cc のオリジナルのコンストラクタから持ってきたもの
   for (unsigned n=0;n<BX_ISA_EXTENSIONS_ARRAY_SIZE;n++)
@@ -212,3 +212,33 @@ void BX_CPP_AttrRegparmN(1) BX_CPU_C::branch_near64(bxInstruction_c *i)
 #endif
 }
 
+// xsave 関連
+bx_bool BX_CPU_C::xsave_x87_state_xinuse(void)
+{
+  if (BX_CPU_THIS_PTR the_i387.get_control_word() != 0x037F ||
+      BX_CPU_THIS_PTR the_i387.get_status_word() != 0 ||
+      BX_CPU_THIS_PTR the_i387.get_tag_word() != 0xFFFF ||
+      BX_CPU_THIS_PTR the_i387.foo != 0 ||
+      BX_CPU_THIS_PTR the_i387.fip != 0 || BX_CPU_THIS_PTR the_i387.fcs != 0 ||
+      BX_CPU_THIS_PTR the_i387.fdp != 0 || BX_CPU_THIS_PTR the_i387.fds != 0) return BX_TRUE;
+
+  for (unsigned index=0;index<8;index++) {
+    floatx80 reg = BX_FPU_REG(index);
+    if (reg.exp != 0 || reg.fraction != 0) return BX_TRUE;
+  }
+
+  return BX_FALSE;
+}
+
+bx_bool BX_CPU_C::xsave_sse_state_xinuse(void)
+{
+  for(unsigned index=0; index < 16; index++) {
+    // set XMM8-XMM15 only in 64-bit mode
+    if (index < 8 || long64_mode()) {
+      const BxPackedXmmRegister *reg = &BX_XMM_REG(index);
+      if (! is_clear(reg)) return BX_TRUE;
+    }
+  }
+
+  return BX_FALSE;
+}
