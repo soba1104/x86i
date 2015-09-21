@@ -313,7 +313,8 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
   if ((requested_feature_bitmap & BX_XCR0_FPU_MASK) != 0)
   {
     if (! xsaveopt || (xinuse & BX_XCR0_FPU_MASK) != 0) {
-      assert(false);
+      // TODO
+      //xsave_x87_state(i, eaddr);
     }
 
     if (xinuse & BX_XCR0_FPU_MASK)
