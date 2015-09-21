@@ -1000,12 +1000,13 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XRSTOR(bxInstruction_c *i)
   /////////////////////////////////////////////////////////////////////////////
   if ((requested_feature_bitmap & BX_XCR0_FPU_MASK) != 0)
   {
-    assert(false);
+    // TODO
 #if 0
-    if (xstate_bv & BX_XCR0_FPU_MASK)
+    if (xstate_bv & BX_XCR0_FPU_MASK) {
       xrstor_x87_state(i, eaddr);
-    else
+    } else {
       xrstor_init_x87_state();
+    }
 #endif
   }
 
