@@ -203,6 +203,27 @@ bx_address BX_CPU_C::get_laddr(unsigned seg, bx_address offset)
   assert(false);
 }
 
+// *RMW 系の関数について。
+// 以下のようなコメントが書いてあった。
+//////////////////////////////////////////////////////////////
+// special Read-Modify-Write operations                     //
+// address translation info is kept across read/write calls //
+//////////////////////////////////////////////////////////////
+// とのこと。1命令内でメモリからの read とメモリへの write を同時に行う場合は
+// read_linear_qword とかじゃなくてこっちが使われる。
+// RMW は Read-Modify-Write の略。
+// 対象 read 時に対象の物理メモリを CPU 内に記録するので、
+// write 系の命令の引数にはアドレスが無い。
+//
+// また、virtual と linear があるけど、virtual のほうは
+// segment まわりの validation が入る。
+// virtual は validation 後に linear を呼び出す。
+// このチェックは64bitの場合は行わないようなので、
+// 64bit系の命令ではvirtualではなくlinearが使われている。
+//
+// アドレス変換を行わないので RMW 系の関数は使わずに、
+// read_linear_qword とかの関数群を使うこと。
+
 void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_linear_byte(unsigned s, bx_address laddr, Bit8u data)
 {
   *((Bit8u*)laddr) = data;
