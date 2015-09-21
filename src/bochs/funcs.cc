@@ -436,6 +436,13 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::INC_EqR(bxInstruction_c *i)
 }
 
 // arith64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::DEC_EqR(bxInstruction_c *i)
+{
+  Bit64u rrx = --BX_READ_64BIT_REG(i->dst());
+  SET_FLAGS_OSZAP_SUB_64(rrx + 1, 0, rrx);
+}
+
+// arith64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ADD_GqEqR(bxInstruction_c *i)
 {
   Bit64u op1_64, op2_64, sum_64;
