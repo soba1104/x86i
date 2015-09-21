@@ -4179,6 +4179,8 @@ public: // for now...
 
   BX_SMF BX_CPP_INLINE bx_bool long64_mode(void);
 
+  BX_SMF Bit32u get_xinuse_vector(Bit32u requested_feature_bitmap);
+
   BX_SMF bx_bool xsave_x87_state_xinuse(void);
   BX_SMF bx_bool xsave_sse_state_xinuse(void);
 

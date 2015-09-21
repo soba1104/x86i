@@ -242,3 +242,39 @@ bx_bool BX_CPU_C::xsave_sse_state_xinuse(void)
 
   return BX_FALSE;
 }
+
+Bit32u BX_CPU_C::get_xinuse_vector(Bit32u requested_feature_bitmap)
+{
+  Bit32u xinuse = 0;
+
+  if (requested_feature_bitmap & BX_XCR0_FPU_MASK) {
+    if (xsave_x87_state_xinuse()) 
+      xinuse |= BX_XCR0_FPU_MASK;
+  }
+  if (requested_feature_bitmap & BX_XCR0_SSE_MASK) {
+    if (xsave_sse_state_xinuse() || BX_MXCSR_REGISTER != MXCSR_RESET)
+      xinuse |= BX_XCR0_SSE_MASK;
+  }
+#if BX_SUPPORT_AVX
+  if (requested_feature_bitmap & BX_XCR0_YMM_MASK) {
+    if (xsave_ymm_state_xinuse()) 
+      xinuse |= BX_XCR0_YMM_MASK;
+  }
+#if BX_SUPPORT_EVEX
+  if (requested_feature_bitmap & BX_XCR0_OPMASK_MASK) {
+    if (xsave_opmask_state_xinuse()) 
+      xinuse |= BX_XCR0_OPMASK_MASK;
+  }
+  if (requested_feature_bitmap & BX_XCR0_ZMM_HI256_MASK) {
+    if (xsave_zmm_hi256_state_xinuse()) 
+      xinuse |= BX_XCR0_ZMM_HI256_MASK;
+  }
+  if (requested_feature_bitmap & BX_XCR0_HI_ZMM_MASK) {
+    if (xsave_hi_zmm_state_xinuse()) 
+      xinuse |= BX_XCR0_HI_ZMM_MASK;
+  }
+#endif
+#endif
+
+  return xinuse;
+}
