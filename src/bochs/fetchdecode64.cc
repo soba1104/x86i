@@ -105,6 +105,49 @@ static const Bit8u BxOpcodeHasModrm64[512] = {
 
 #undef X
 
+// Segment override prefixes
+// -------------------------
+// In 64-bit mode the CS, DS, ES, and SS segment overrides are ignored.
+
+// decoding instructions; accessing seg reg's by index
+static unsigned sreg_mod0_base32[16] = {
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_SS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS
+};
+
+static unsigned sreg_mod1or2_base32[16] = {
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_SS,
+  BX_SEG_REG_SS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS,
+  BX_SEG_REG_DS
+};
+
 // common fetchdecode32/64 opcode tables
 #include "fetchdecode.h"
 
@@ -1818,6 +1861,7 @@ int BX_CPU_C::decode64(void *insn) {
   unsigned b1, b2 = 0, ia_opcode = BX_IA_ERROR, imm_mode = 0;
   unsigned offset = 512, rex_r = 0, rex_x = 0, rex_b = 0;
   unsigned rm = 0, mod = 0, nnn = 0, mod_mem = 0;
+  unsigned seg = BX_SEG_REG_DS, seg_override = BX_SEG_REG_NULL;
   bx_bool lock = 0;
   Bit8u *iptr = (Bit8u*)get_rip();
   Bit8u *startip = iptr;
@@ -1969,6 +2013,8 @@ fetch_b1:
         // mod==00b, rm!=4, rm!=5
         goto modrm_done;
       }
+      // (mod == 0x40), mod==01b or (mod == 0x80), mod==10b
+      seg = sreg_mod1or2_base32[rm & 0xf];
     } else { // mod!=11b, rm==4, s-i-b byte follows
       unsigned sib, base, index, scale;
       sib = *iptr++;
@@ -1982,6 +2028,7 @@ fetch_b1:
       // assume that resolve function will do the right thing.
       i->setSibIndex(index & 0xf);
       if (mod == 0x00) { // mod==00b, rm==4
+        seg = sreg_mod0_base32[base & 0xf];
         if ((base & 0x7) == 5) {
           i->setSibBase(BX_NIL_REGISTER);
           goto get_32bit_displ;
@@ -1989,6 +2036,8 @@ fetch_b1:
         // mod==00b, rm==4, base!=5
         goto modrm_done;
       }
+      // (mod == 0x40), mod==01b or (mod == 0x80), mod==10b
+      seg = sreg_mod1or2_base32[base & 0xf];
     }
 
     // (mod == 0x40), mod==01b
@@ -2112,6 +2161,11 @@ modrm_done:
       assert(false);
     }
   }
+
+  // assign memory segment override
+  if (! BX_NULL_SEG_REG(seg_override))
+     seg = seg_override;
+  i->setSeg(seg);
 
 decode_done:
 
