@@ -4179,6 +4179,15 @@ public: // for now...
 
   BX_SMF BX_CPP_INLINE bx_bool long64_mode(void);
 
+  BX_SMF Bit8u read_linear_byte(unsigned seg, bx_address offset) BX_CPP_AttrRegparmN(2);
+  BX_SMF Bit16u read_linear_word(unsigned seg, bx_address offset) BX_CPP_AttrRegparmN(2);
+  BX_SMF Bit32u read_linear_dword(unsigned seg, bx_address offset) BX_CPP_AttrRegparmN(2);
+  BX_SMF Bit64u read_linear_qword(unsigned seg, bx_address offset) BX_CPP_AttrRegparmN(2);
+  BX_SMF void write_linear_byte(unsigned seg, bx_address offset, Bit8u data) BX_CPP_AttrRegparmN(3);
+  BX_SMF void write_linear_word(unsigned seg, bx_address offset, Bit16u data) BX_CPP_AttrRegparmN(3);
+  BX_SMF void write_linear_dword(unsigned seg, bx_address offset, Bit32u data) BX_CPP_AttrRegparmN(3);
+  BX_SMF void write_linear_qword(unsigned seg, bx_address offset, Bit64u data) BX_CPP_AttrRegparmN(3);
+
   BX_SMF Bit32u get_xinuse_vector(Bit32u requested_feature_bitmap);
 
   BX_SMF bx_bool xsave_x87_state_xinuse(void);

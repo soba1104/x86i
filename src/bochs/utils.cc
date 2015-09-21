@@ -176,6 +176,52 @@ Bit64u BX_CPU_C::get_rax(void)
   return RAX;
 }
 
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_linear_byte(unsigned s, bx_address laddr, Bit8u data)
+{
+  *((Bit8u*)laddr) = data;
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_linear_word(unsigned s, bx_address laddr, Bit16u data)
+{
+  WriteHostWordToLittleEndian(laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_linear_dword(unsigned s, bx_address laddr, Bit32u data)
+{
+  WriteHostDWordToLittleEndian(laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_linear_qword(unsigned s, bx_address laddr, Bit64u data)
+{
+  WriteHostQWordToLittleEndian(laddr, data);
+}
+
+Bit8u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_linear_byte(unsigned s, bx_address laddr)
+{
+  return *((Bit8u*)laddr);
+}
+
+Bit16u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_linear_word(unsigned s, bx_address laddr)
+{
+  Bit16u data;
+  ReadHostWordFromLittleEndian(laddr, data);
+  return data;
+}
+
+Bit32u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_linear_dword(unsigned s, bx_address laddr)
+{
+  Bit32u data;
+  ReadHostDWordFromLittleEndian(laddr, data);
+  return data;
+}
+
+Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_linear_qword(unsigned s, bx_address laddr)
+{
+  Bit64u data;
+  ReadHostQWordFromLittleEndian(laddr, data);
+  return data;
+}
+
 void BX_CPP_AttrRegparmN(2) BX_CPU_C::stack_write_qword(bx_address offset, Bit64u data)
 {
   WriteHostQWordToLittleEndian((Bit64u*)offset, data);
