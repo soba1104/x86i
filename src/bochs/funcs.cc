@@ -41,7 +41,16 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EdIdR(bxInstruction_c *i)
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EdIdM(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-  WriteHostQWordToLittleEndian((Bit64u*)eaddr, i->Id());
+  WriteHostDWordToLittleEndian((Bit64u*)eaddr, i->Id());
+}
+
+// data_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV64_GdEdM(bxInstruction_c *i)
+{
+  Bit64u eaddr = BX_CPU_RESOLVE_ADDR_64(i);
+  Bit32u val32;
+  ReadHostDWordFromLittleEndian((Bit64u*)eaddr, val32);
+  BX_WRITE_32BIT_REGZ(i->dst(), val32);
 }
 
 // data_xfer64.cc
