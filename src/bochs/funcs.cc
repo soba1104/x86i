@@ -417,6 +417,17 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_GdEdR(bxInstruction_c *i)
   SET_FLAGS_OSZAPC_SUB_32(op1_32, op2_32, diff_32);
 }
 
+// arith32.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EdIdM(bxInstruction_c *i)
+{
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+
+  Bit32u op1_32;
+  ReadHostDWordFromLittleEndian(eaddr, op1_32);
+  op1_32 &= i->Id();
+  SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
+}
+
 // arith64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::INC_EqR(bxInstruction_c *i)
 {
