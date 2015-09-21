@@ -168,6 +168,14 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JNBE_Jq(bxInstruction_c *i)
   }
 }
 
+// ctrl_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JL_Jq(bxInstruction_c *i)
+{
+  if (getB_SF() != getB_OF()) {
+    branch_near64(i);
+  }
+}
+
 // arith32.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_GdEdR(bxInstruction_c *i)
 {
