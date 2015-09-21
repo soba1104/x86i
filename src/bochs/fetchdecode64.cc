@@ -2120,15 +2120,7 @@ decode_done:
   if (mod_mem) {
     i->execute1 = BxOpcodesTable[ia_opcode].execute1;
     i->handlers.execute2 = BxOpcodesTable[ia_opcode].execute2;
-
-    if (ia_opcode == BX_IA_MOV_GqEq) {
-      assert(false);
-    }
-    if (ia_opcode == BX_IA_MOV_EqGq) {
-      assert(false);
-    }
-  }
-  else {
+  } else {
     i->execute1 = BxOpcodesTable[ia_opcode].execute2;
     i->handlers.execute2 = NULL;
   }
