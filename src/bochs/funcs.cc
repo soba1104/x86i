@@ -123,6 +123,26 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CALL_Jq(bxInstruction_c *i)
 }
 
 // ctrl_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CALL_EqR(bxInstruction_c *i)
+{
+  Bit64u new_RIP = BX_READ_64BIT_REG(i->dst());
+
+  /* push 64 bit EA of next instruction */
+  stack_write_qword(RSP-8, RIP);
+
+#if 0
+  if (! IsCanonical(new_RIP))
+  {
+    BX_ERROR(("%s: canonical RIP violation", i->getIaOpcodeNameShort()));
+    exception(BX_GP_EXCEPTION, 0);
+  }
+#endif
+
+  RIP = new_RIP;
+  RSP -= 8;
+}
+
+// ctrl_xfer64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JMP_EqR(bxInstruction_c *i)
 {
   Bit64u op1_64 = BX_READ_64BIT_REG(i->dst());
@@ -150,6 +170,14 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JMP_Jq(bxInstruction_c *i)
 #endif
 
   RIP = new_RIP;
+}
+
+// ctrl_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JB_Jq(bxInstruction_c *i)
+{
+  if (get_CF()) {
+    branch_near64(i);
+  }
 }
 
 // ctrl_xfer64.cc
