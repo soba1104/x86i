@@ -176,6 +176,22 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JL_Jq(bxInstruction_c *i)
   }
 }
 
+// ctrl_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::RETnear64(bxInstruction_c *i)
+{
+  Bit64u return_RIP = stack_read_qword(RSP);
+
+#if 0
+  if (! IsCanonical(return_RIP)) {
+    BX_ERROR(("%s: canonical RIP violation", i->getIaOpcodeNameShort()));
+    exception(BX_GP_EXCEPTION, 0);
+  }
+#endif
+
+  RIP = return_RIP;
+  RSP += 8;
+}
+
 // arith32.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_GdEdR(bxInstruction_c *i)
 {
