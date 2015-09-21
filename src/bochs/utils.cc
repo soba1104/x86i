@@ -74,7 +74,22 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
 {
   memset(gen_reg, 0, sizeof(gen_reg));
 
-//以下は init.cc:reset から持ってきた
+//init.cc のオリジナルのコンストラクタから持ってきたもの
+  for (unsigned n=0;n<BX_ISA_EXTENSIONS_ARRAY_SIZE;n++)
+    ia_extensions_bitmask[n] = 0;
+
+  ia_extensions_bitmask[0] = (1 << BX_ISA_386);
+  if (BX_SUPPORT_FPU)
+    ia_extensions_bitmask[0] |= (1 << BX_ISA_X87);
+
+#if BX_SUPPORT_VMX
+  vmx_extensions_bitmask = 0;
+#endif
+#if BX_SUPPORT_SVM
+  svm_extensions_bitmask = 0;
+#endif
+
+//init.cc:reset から持ってきたもの
 #if BX_CPU_LEVEL >= 6
   BX_CPU_THIS_PTR xcr0.set32(0x1);
   BX_CPU_THIS_PTR xcr0_suppmask = 0x3;

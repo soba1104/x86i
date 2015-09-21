@@ -1024,13 +1024,35 @@ struct BX_SMM_State;
 struct BxOpcodeInfo_t;
 struct bx_cpu_statistics;
 
-//#include "cpuid.h"
+#include "cpuid.h"
 
 class BOCHSAPI BX_CPU_C {
 
 public: // for now...
 
   unsigned bx_cpuid;
+
+//#if BX_CPU_LEVEL >= 4
+  //bx_cpuid_t *cpuid;
+//#endif
+
+  Bit32u ia_extensions_bitmask[BX_ISA_EXTENSIONS_ARRAY_SIZE];
+
+#define BX_CPUID_SUPPORT_ISA_EXTENSION(feature) \
+   (BX_CPU_THIS_PTR ia_extensions_bitmask[feature/32] & (1<<(feature%32)))
+
+#if BX_SUPPORT_VMX
+  Bit32u vmx_extensions_bitmask;
+#endif
+#if BX_SUPPORT_SVM
+  Bit32u svm_extensions_bitmask;
+#endif
+
+#define BX_SUPPORT_VMX_EXTENSION(feature_mask) \
+   (BX_CPU_THIS_PTR vmx_extensions_bitmask & (feature_mask))
+
+#define BX_SUPPORT_SVM_EXTENSION(feature_mask) \
+   (BX_CPU_THIS_PTR svm_extensions_bitmask & (feature_mask))
 
   // General register set
   // rax: accumulator
