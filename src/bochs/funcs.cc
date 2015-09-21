@@ -294,6 +294,18 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EdIdR(bxInstruction_c *i)
   SET_FLAGS_OSZAPC_SUB_32(op1_32, op2_32, diff_32);
 }
 
+// arith32.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_GdEdR(bxInstruction_c *i)
+{
+  Bit32u op1_32, op2_32, diff_32;
+
+  op1_32 = BX_READ_32BIT_REG(i->dst());
+  op2_32 = BX_READ_32BIT_REG(i->src());
+  diff_32 = op1_32 - op2_32;
+
+  SET_FLAGS_OSZAPC_SUB_32(op1_32, op2_32, diff_32);
+}
+
 // arith64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ADD_GqEqR(bxInstruction_c *i)
 {
@@ -395,6 +407,18 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EbGbR(bxInstruction_c *i)
   op1 = BX_READ_8BIT_REGx(i->dst(), i->extend8bitL());
   op2 = BX_READ_8BIT_REGx(i->src(), i->extend8bitL());
   op1 &= op2;
+
+  SET_FLAGS_OSZAPC_LOGIC_8(op1);
+}
+
+// logical8.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_EbIbR(bxInstruction_c *i)
+{
+  Bit8u op1, op2 = i->Ib();
+
+  op1 = BX_READ_8BIT_REGx(i->dst(), i->extend8bitL());
+  op1 ^= op2;
+  BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), op1);
 
   SET_FLAGS_OSZAPC_LOGIC_8(op1);
 }
