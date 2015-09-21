@@ -357,6 +357,19 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::INC_EdR(bxInstruction_c *i)
 }
 
 // arith32.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::INC_EdM(bxInstruction_c *i)
+{
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+
+  Bit32u op1_32;
+  ReadHostDWordFromLittleEndian(eaddr, op1_32);
+  op1_32++;
+  WriteHostDWordToLittleEndian(eaddr, op1_32);
+
+  SET_FLAGS_OSZAP_ADD_32(op1_32 - 1, 0, op1_32);
+}
+
+// arith32.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EdIdM(bxInstruction_c *i)
 {
   Bit32u op1_32, op2_32, diff_32;
