@@ -647,6 +647,18 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_GdEdR(bxInstruction_c *i)
 }
 
 // logical32.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EdGdR(bxInstruction_c *i)
+{
+  Bit32u op1_32, op2_32;
+
+  op1_32 = BX_READ_32BIT_REG(i->dst());
+  op2_32 = BX_READ_32BIT_REG(i->src());
+  op1_32 &= op2_32;
+
+  SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
+}
+
+// logical32.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::AND_EdIdR(bxInstruction_c *i)
 {
   Bit32u op1_32 = BX_READ_32BIT_REG(i->dst());
