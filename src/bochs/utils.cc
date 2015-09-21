@@ -61,6 +61,26 @@ const char *get_opcode_name(void *insn) {
 BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
 {
   memset(gen_reg, 0, sizeof(gen_reg));
+
+//以下は init.cc:reset から持ってきた
+#if BX_CPU_LEVEL >= 6
+  BX_CPU_THIS_PTR xcr0.set32(0x1);
+  BX_CPU_THIS_PTR xcr0_suppmask = 0x3;
+#if BX_SUPPORT_AVX
+  if (BX_CPUID_SUPPORT_ISA_EXTENSION(BX_ISA_AVX))
+    BX_CPU_THIS_PTR xcr0_suppmask |= BX_XCR0_YMM_MASK;
+#if BX_SUPPORT_EVEX
+  if (BX_CPUID_SUPPORT_ISA_EXTENSION(BX_ISA_AVX512))
+    BX_CPU_THIS_PTR xcr0_suppmask |= BX_XCR0_OPMASK_MASK | BX_XCR0_ZMM_HI256_MASK | BX_XCR0_HI_ZMM_MASK;
+#endif
+#endif // BX_SUPPORT_AVX
+#endif // BX_CPU_LEVEL >= 6
+
+#if BX_SUPPORT_FPU
+  //if (source == BX_RESET_HARDWARE) {
+    BX_CPU_THIS_PTR the_i387.reset();
+  //}
+#endif
 }
 
 BX_CPU_C::~BX_CPU_C()

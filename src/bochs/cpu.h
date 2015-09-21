@@ -1060,6 +1060,15 @@ public: // for now...
   // lazy arithmetic flags state
   bx_lf_flags_entry oszapc;
 
+#if BX_CPU_LEVEL >= 6
+  xcr0_t xcr0;
+  Bit32u xcr0_suppmask;
+#endif
+
+#if BX_SUPPORT_FPU
+  i387_t the_i387;
+#endif
+
   BX_SMF void setEFlags(Bit32u val) BX_CPP_AttrRegparmN(1);
 
   BX_SMF BX_CPP_INLINE void setEFlagsOSZAPC(Bit32u flags32) {
