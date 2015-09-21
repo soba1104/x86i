@@ -383,7 +383,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EdIdM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  ReadHostDWordFromLittleEndian(eaddr, op1_32);
+  op1_32 = read_virtual_dword(i->seg(), eaddr);
   op2_32 = i->Id();
   diff_32 = op1_32 - op2_32;
 
@@ -419,8 +419,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EdIdM(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  Bit32u op1_32;
-  ReadHostDWordFromLittleEndian(eaddr, op1_32);
+  Bit32u op1_32 = read_virtual_dword(i->seg(), eaddr);
   op1_32 &= i->Id();
   SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
 }
@@ -460,7 +459,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ADD_GqEqM(bxInstruction_c *i)
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
   op1_64 = BX_READ_64BIT_REG(i->dst());
-  ReadHostQWordFromLittleEndian(eaddr, op2_64);
+  op2_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
   sum_64 = op1_64 + op2_64;
   BX_WRITE_64BIT_REG(i->dst(), sum_64);
 
@@ -500,7 +499,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EqIdM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
-  ReadHostQWordFromLittleEndian(eaddr, op1_64);
+  op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
   op2_64 = (Bit32s) i->Id();
   diff_64 = op1_64 - op2_64;
 
@@ -527,7 +526,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_GqEqM(bxInstruction_c *i)
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
   op1_64 = BX_READ_64BIT_REG(i->dst());
-  ReadHostQWordFromLittleEndian(eaddr, op2_64);
+  op2_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
   diff_64 = op1_64 - op2_64;
 
   SET_FLAGS_OSZAPC_SUB_64(op1_64, op2_64, diff_64);
@@ -552,7 +551,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EqGqM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
-  ReadHostQWordFromLittleEndian(eaddr, op1_64);
+  op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
   op2_64 = BX_READ_64BIT_REG(i->src());
   diff_64 = op1_64 - op2_64;
 
@@ -803,7 +802,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHL_EqR(bxInstruction_c *i)
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LOAD_Eq(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
-  ReadHostQWordFromLittleEndian(eaddr, TMP64);
+  TMP64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
   BX_CPU_CALL_METHOD(i->execute2(), (i));
 }
 
