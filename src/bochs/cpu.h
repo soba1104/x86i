@@ -1115,6 +1115,17 @@ public: // for now...
 
 #endif
 
+#define BX_ASYNC_EVENT_STOP_TRACE (1<<31)
+
+//#if BX_X86_DEBUGGER
+  //bx_bool  in_repeat;
+//#endif
+  //bx_bool  in_smm;
+  unsigned cpu_mode;
+  //bx_bool  user_pl;
+//#if BX_CPU_LEVEL >= 5
+  //bx_bool  ignore_bad_msrs;
+//#endif
 #if BX_CPU_LEVEL >= 6
   unsigned sse_ok;
 #if BX_SUPPORT_AVX

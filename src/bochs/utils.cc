@@ -76,6 +76,8 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
 
   memset(gen_reg, 0, sizeof(gen_reg));
 
+  BX_CPU_THIS_PTR cpu_mode = BX_MODE_LONG_64;
+
 //init.cc のオリジナルのコンストラクタから持ってきたもの
   for (unsigned n=0;n<BX_ISA_EXTENSIONS_ARRAY_SIZE;n++)
     ia_extensions_bitmask[n] = 0;
