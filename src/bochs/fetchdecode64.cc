@@ -1909,7 +1909,9 @@ fetch_b1:
     // segment override prefixes
     case 0x64: // FS:
     case 0x65: // GS:
-      assert(false);
+      rex_prefix = 0;
+      seg_override = b1 & 0xf;
+      goto fetch_b1;
 
     // opcode size prefix
     case 0x66: // OpSize
