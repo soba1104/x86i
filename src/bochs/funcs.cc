@@ -37,6 +37,14 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EbIbR(bxInstruction_c *i)
   BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), i->Ib());
 }
 
+// data_xfer8.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GbEbM(bxInstruction_c *i)
+{
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+  Bit8u val8 = *((Bit8u*)eaddr);
+  BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), val8);
+}
+
 // data_xfer32.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EdIdR(bxInstruction_c *i)
 {
