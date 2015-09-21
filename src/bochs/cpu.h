@@ -835,7 +835,7 @@ typedef struct
 } bx_regs_msr_t;
 #endif
 
-//#include "crregs.h"
+#include "crregs.h"
 //#include "descriptor.h"
 #include "instr.h"
 #include "lazy_flags.h"
