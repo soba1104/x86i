@@ -484,6 +484,47 @@ void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_virtual_xmmword_aligned_32(unsigned s
   read_linear_xmmword_aligned(s, laddr, data);
 }
 
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_linear_xmmword(unsigned s, bx_address laddr, const BxPackedXmmRegister *data)
+{
+  Bit64u *addr = (Bit64u*)laddr;
+  WriteHostQWordToLittleEndian(addr,   data->xmm64u(0));
+  WriteHostQWordToLittleEndian(addr+1, data->xmm64u(1));
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_linear_xmmword_aligned(unsigned s, bx_address laddr, const BxPackedXmmRegister *data)
+{
+  if (laddr & 15) {
+    assert(false);
+  }
+  Bit64u *addr = (Bit64u*)laddr;
+  WriteHostQWordToLittleEndian(addr,   data->xmm64u(0));
+  WriteHostQWordToLittleEndian(addr+1, data->xmm64u(1));
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_xmmword(unsigned s, bx_address offset, const BxPackedXmmRegister *data)
+{
+  bx_address laddr = agen_write(s, offset, 16);
+  write_linear_xmmword(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_xmmword_32(unsigned s, Bit32u offset, const BxPackedXmmRegister *data)
+{
+  Bit32u laddr = agen_write32(s, offset, 16);
+  write_linear_xmmword(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_xmmword_aligned(unsigned s, bx_address offset, const BxPackedXmmRegister *data)
+{
+  bx_address laddr = agen_write_aligned(s, offset, 16);
+  write_linear_xmmword_aligned(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_xmmword_aligned_32(unsigned s, Bit32u offset, const BxPackedXmmRegister *data)
+{
+  Bit32u laddr = agen_write_aligned32(s, offset, 16);
+  write_linear_xmmword_aligned(s, laddr, data);
+}
+
 Bit8u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_RMW_linear_byte(unsigned s, bx_address laddr)
 {
   Bit8u data = *((Bit8u*)laddr);
