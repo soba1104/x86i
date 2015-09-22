@@ -1030,6 +1030,8 @@ class BOCHSAPI BX_CPU_C {
 
 public: // for now...
 
+  bx_address rmw_addr;
+
   unsigned bx_cpuid;
 
 //#if BX_CPU_LEVEL >= 4
@@ -4229,6 +4231,10 @@ public: // for now...
   BX_SMF void read_virtual_xmmword_32(unsigned seg, Bit32u off, BxPackedXmmRegister *data) BX_CPP_AttrRegparmN(3);
   BX_SMF void read_virtual_xmmword_aligned(unsigned seg, bx_address off, BxPackedXmmRegister *data) BX_CPP_AttrRegparmN(3);
   BX_SMF void read_virtual_xmmword_aligned_32(unsigned seg, Bit32u off, BxPackedXmmRegister *data) BX_CPP_AttrRegparmN(3);
+
+  BX_SMF Bit8u read_RMW_linear_byte(unsigned seg, bx_address offset) BX_CPP_AttrRegparmN(2);
+
+  BX_SMF void write_RMW_linear_byte(Bit8u val8) BX_CPP_AttrRegparmN(1);
 
   BX_SMF Bit32u get_xinuse_vector(Bit32u requested_feature_bitmap);
 

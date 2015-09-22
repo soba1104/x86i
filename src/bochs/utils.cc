@@ -89,6 +89,8 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
 {
   unsigned n;
 
+  rmw_addr = 0;
+
   memset(gen_reg, 0, sizeof(gen_reg));
 
   BX_CPU_THIS_PTR cpu_mode = BX_MODE_LONG_64; // FIXME
@@ -432,6 +434,21 @@ void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_virtual_xmmword_aligned_32(unsigned s
 {
   Bit32u laddr = agen_read_aligned32(s, offset, 16);
   read_linear_xmmword_aligned(s, laddr, data);
+}
+
+Bit8u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_RMW_linear_byte(unsigned s, bx_address laddr)
+{
+  Bit8u data = *((Bit8u*)laddr);
+  assert(BX_CPU_THIS_PTR rmw_addr == 0);
+  BX_CPU_THIS_PTR rmw_addr = laddr;
+  return data;
+}
+
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::write_RMW_linear_byte(Bit8u val8)
+{
+  Bit8u *laddr = (Bit8u *)BX_CPU_THIS_PTR rmw_addr;
+  *laddr = val8;
+  BX_CPU_THIS_PTR rmw_addr = 0;
 }
 
 void BX_CPP_AttrRegparmN(2) BX_CPU_C::stack_write_qword(bx_address offset, Bit64u data)
