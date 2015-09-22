@@ -51,14 +51,11 @@ void free_cpu(void *cpu)
 }
 
 int decode64(void *cpu, void *insn) {
-  bxInstruction_c *i = (bxInstruction_c*)insn;
-  return ((BX_CPU_C*)cpu)->decode64(i);
+  return ((BX_CPU_C*)cpu)->decode64(insn);
 }
 
 void step(void *cpu, void *insn) {
-  BX_CPU_C *c = (BX_CPU_C*)cpu;
-  bxInstruction_c *i = (bxInstruction_c*)insn;
-  (c->*(i->execute1))(i);
+  return ((BX_CPU_C*)cpu)->step(insn);
 }
 
 uint16_t get_opcode(void *insn) {
@@ -169,6 +166,11 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
 
 BX_CPU_C::~BX_CPU_C()
 {
+}
+
+void BX_CPU_C::step(void *insn) {
+  bxInstruction_c *i = (bxInstruction_c*)insn;
+  BX_CPU_CALL_METHOD(i->execute1, (i));
 }
 
 void BX_CPU_C::set_stack(void *stack)

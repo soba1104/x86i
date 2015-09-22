@@ -4304,6 +4304,7 @@ public: // for now...
 
   BX_SMF void repeat(bxInstruction_c *i, BxRepIterationPtr_tR execute) BX_CPP_AttrRegparmN(2);
 
+  void step(void *insn);
   int decode64(void *insn);
   void set_stack(void *stack);
   void set_rip(Bit64u rip);
