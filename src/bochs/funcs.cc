@@ -319,6 +319,14 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVAPS_WpsVpsM(bxInstruction_c *i)
 }
 
 // sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVAPS_VpsWpsR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  BX_WRITE_XMM_REG(i->dst(), BX_READ_XMM_REG(i->src()));
+#endif
+}
+
+// sse_move.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVUPS_VpsWpsM(bxInstruction_c *i)
 {
 /* MOVUPS:    0F 10 */
@@ -337,6 +345,16 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVUPS_WpsVpsM(bxInstruction_c *i)
 #if BX_CPU_LEVEL >= 6
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
   write_virtual_xmmword(i->seg(), eaddr, &BX_XMM_REG(i->src()));
+#endif
+}
+
+// sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSS_VssWssR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  /* If the source operand is an XMM register, the high-order
+          96 bits of the destination XMM register are not modified. */
+  BX_WRITE_XMM_REG_LO_DWORD(i->dst(), BX_READ_XMM_REG_LO_DWORD(i->src()));
 #endif
 }
 
