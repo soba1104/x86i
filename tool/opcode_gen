@@ -13,6 +13,7 @@ defined_funcs = [
                  'arith32.cc',
                  'arith64.cc',
                  'bit32.cc',
+                 'bit64.cc',
                  'data_xfer8.cc',
                  'data_xfer64.cc',
                  'logical8.cc',
