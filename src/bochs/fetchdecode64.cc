@@ -1892,11 +1892,12 @@ fetch_b1:
 
     // REPNE/REPNZ
     case 0xf2:
-      assert(false); // FIXME
-
     // REP/REPE/REPZ
     case 0xf3:
-      assert(false); // FIXME
+      rex_prefix = 0;
+      sse_prefix = (b1 & 3) ^ 1;
+      i->setLockRepUsed(b1 & 3);
+      goto fetch_b1;
 
     // segment override prefixes
     case 0x2e: // CS:
