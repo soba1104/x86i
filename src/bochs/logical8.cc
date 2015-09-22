@@ -29,6 +29,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 // 変更点
 // RMW 系命令をそうでないものに置き換えた。
+// write_linear じゃなくて write_virtual 系の命令を使った。
 
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
@@ -44,7 +45,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_EbGbM(bxInstruction_c *i)
   op1 = read_virtual_byte(i->seg(), eaddr);
   op2 = BX_READ_8BIT_REGx(i->src(), i->extend8bitL());
   op1 ^= op2;
-  write_linear_byte(i->seg(), eaddr, op1);
+  write_virtual_byte(i->seg(), eaddr, op1);
 
   SET_FLAGS_OSZAPC_LOGIC_8(op1);
 
@@ -89,7 +90,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_EbIbM(bxInstruction_c *i)
 
   op1 = read_virtual_byte(i->seg(), eaddr);
   op1 ^= op2;
-  write_linear_byte(i->seg(), eaddr, op1);
+  write_virtual_byte(i->seg(), eaddr, op1);
 
   SET_FLAGS_OSZAPC_LOGIC_8(op1);
 
@@ -117,7 +118,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::OR_EbIbM(bxInstruction_c *i)
 
   op1 = read_virtual_byte(i->seg(), eaddr);
   op1 |= op2;
-  write_linear_byte(i->seg(), eaddr, op1);
+  write_virtual_byte(i->seg(), eaddr, op1);
 
   SET_FLAGS_OSZAPC_LOGIC_8(op1);
 
@@ -143,7 +144,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::NOT_EbM(bxInstruction_c *i)
 
   Bit8u op1_8 = read_virtual_byte(i->seg(), eaddr);
   op1_8 = ~op1_8;
-  write_linear_byte(i->seg(), eaddr, op1_8);
+  write_virtual_byte(i->seg(), eaddr, op1_8);
 
   BX_NEXT_INSTR(i);
 }
@@ -166,7 +167,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::OR_EbGbM(bxInstruction_c *i)
   op1 = read_virtual_byte(i->seg(), eaddr);
   op2 = BX_READ_8BIT_REGx(i->src(), i->extend8bitL());
   op1 |= op2;
-  write_linear_byte(i->seg(), eaddr, op1);
+  write_virtual_byte(i->seg(), eaddr, op1);
 
   SET_FLAGS_OSZAPC_LOGIC_8(op1);
 
@@ -212,7 +213,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::AND_EbGbM(bxInstruction_c *i)
   op1 = read_virtual_byte(i->seg(), eaddr);
   op2 = BX_READ_8BIT_REGx(i->src(), i->extend8bitL());
   op1 &= op2;
-  write_linear_byte(i->seg(), eaddr, op1);
+  write_virtual_byte(i->seg(), eaddr, op1);
 
   SET_FLAGS_OSZAPC_LOGIC_8(op1);
 
@@ -257,7 +258,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::AND_EbIbM(bxInstruction_c *i)
 
   op1 = read_virtual_byte(i->seg(), eaddr);
   op1 &= op2;
-  write_linear_byte(i->seg(), eaddr, op1);
+  write_virtual_byte(i->seg(), eaddr, op1);
 
   SET_FLAGS_OSZAPC_LOGIC_8(op1);
 
