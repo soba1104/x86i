@@ -4242,6 +4242,11 @@ public: // for now...
   BX_SMF void write_RMW_linear_dword(Bit32u val32) BX_CPP_AttrRegparmN(1);
   BX_SMF void write_RMW_linear_qword(Bit64u val64) BX_CPP_AttrRegparmN(1);
 
+  BX_SMF Bit8u read_RMW_virtual_byte(unsigned seg, bx_address offset) BX_CPP_AttrRegparmN(2);
+  BX_SMF Bit16u read_RMW_virtual_word(unsigned seg, bx_address offset) BX_CPP_AttrRegparmN(2);
+  BX_SMF Bit32u read_RMW_virtual_dword(unsigned seg, bx_address offset) BX_CPP_AttrRegparmN(2);
+  BX_SMF Bit64u read_RMW_virtual_qword(unsigned seg, bx_address offset) BX_CPP_AttrRegparmN(2);
+
   BX_SMF Bit32u get_xinuse_vector(Bit32u requested_feature_bitmap);
 
   BX_SMF bx_bool xsave_x87_state_xinuse(void);
