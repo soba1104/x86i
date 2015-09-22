@@ -4196,6 +4196,18 @@ public: // for now...
 
   BX_SMF BX_CPP_INLINE bx_bool long64_mode(void);
 
+  DECLARE_EFLAG_ACCESSOR   (ID,  21)
+  DECLARE_EFLAG_ACCESSOR   (VIP, 20)
+  DECLARE_EFLAG_ACCESSOR   (VIF, 19)
+  DECLARE_EFLAG_ACCESSOR   (AC,  18)
+  DECLARE_EFLAG_ACCESSOR   (VM,  17)
+  DECLARE_EFLAG_ACCESSOR   (RF,  16)
+  DECLARE_EFLAG_ACCESSOR   (NT,  14)
+  DECLARE_EFLAG_ACCESSOR_IOPL(   12)
+  DECLARE_EFLAG_ACCESSOR   (DF,  10)
+  DECLARE_EFLAG_ACCESSOR   (IF,   9)
+  DECLARE_EFLAG_ACCESSOR   (TF,   8)
+
   BX_SMF bx_address agen_read(unsigned seg, bx_address offset, unsigned len);
   BX_SMF Bit32u agen_read32(unsigned seg, Bit32u offset, unsigned len);
   BX_SMF bx_address agen_read_aligned(unsigned seg, bx_address offset, unsigned len);
@@ -4290,6 +4302,8 @@ public: // for now...
   BX_SMF Bit64u  pop_64(void);
 #endif
 
+  BX_SMF void repeat(bxInstruction_c *i, BxRepIterationPtr_tR execute) BX_CPP_AttrRegparmN(2);
+
   int decode64(void *insn);
   void set_stack(void *stack);
   void set_rip(Bit64u rip);
@@ -4354,6 +4368,33 @@ BX_CPP_INLINE bx_bool BX_CPU_C::long64_mode(void)
 }
 
 #endif // defined(NEED_CPU_REG_SHORTCUTS)
+
+IMPLEMENT_EFLAG_ACCESSOR   (ID,  21)
+IMPLEMENT_EFLAG_ACCESSOR   (VIP, 20)
+IMPLEMENT_EFLAG_ACCESSOR   (VIF, 19)
+IMPLEMENT_EFLAG_ACCESSOR   (AC,  18)
+IMPLEMENT_EFLAG_ACCESSOR   (VM,  17)
+IMPLEMENT_EFLAG_ACCESSOR   (RF,  16)
+IMPLEMENT_EFLAG_ACCESSOR   (NT,  14)
+IMPLEMENT_EFLAG_ACCESSOR_IOPL(   12)
+IMPLEMENT_EFLAG_ACCESSOR   (DF,  10)
+IMPLEMENT_EFLAG_ACCESSOR   (IF,   9)
+IMPLEMENT_EFLAG_ACCESSOR   (TF,   8)
+
+IMPLEMENT_EFLAG_SET_ACCESSOR   (ID,  21)
+IMPLEMENT_EFLAG_SET_ACCESSOR   (VIP, 20)
+IMPLEMENT_EFLAG_SET_ACCESSOR   (VIF, 19)
+//#if BX_SUPPORT_ALIGNMENT_CHECK && BX_CPU_LEVEL >= 4
+//IMPLEMENT_EFLAG_SET_ACCESSOR_AC(     18)
+//#else
+//IMPLEMENT_EFLAG_SET_ACCESSOR   (AC,  18)
+//#endif
+//IMPLEMENT_EFLAG_SET_ACCESSOR_VM(     17)
+//IMPLEMENT_EFLAG_SET_ACCESSOR_RF(     16)
+//IMPLEMENT_EFLAG_SET_ACCESSOR   (NT,  14)
+//IMPLEMENT_EFLAG_SET_ACCESSOR   (DF,  10)
+//IMPLEMENT_EFLAG_SET_ACCESSOR_IF(      9)
+//IMPLEMENT_EFLAG_SET_ACCESSOR_TF(      8)
 
 // <TAG-DEFINES-DECODE-START>
 

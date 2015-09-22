@@ -255,6 +255,47 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SETNZ_EbR(bxInstruction_c *i)
   BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), !getB_ZF());
 }
 
+// string.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::REP_MOVSB_YbXb(bxInstruction_c *i)
+{
+#if BX_SUPPORT_X86_64
+  if (i->as64L())
+    BX_CPU_THIS_PTR repeat(i, &BX_CPU_C::MOVSB64_YbXb);
+  else
+#endif
+  if (i->as32L()) {
+    assert(false);
+  } else {
+    assert(false);
+  }
+}
+
+// string.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSB64_YbXb(bxInstruction_c *i)
+{
+  Bit8u temp8;
+
+  Bit64u rsi = RSI;
+  Bit64u rdi = RDI;
+
+  temp8 = read_linear_byte(i->seg(), get_laddr64(i->seg(), rsi));
+  write_linear_byte(BX_SEG_REG_ES, rdi, temp8);
+
+  if (BX_CPU_THIS_PTR get_DF()) {
+    /* decrement RSI, RDI */
+    rsi--;
+    rdi--;
+  }
+  else {
+    /* increment RSI, RDI */
+    rsi++;
+    rdi++;
+  }
+
+  RSI = rsi;
+  RDI = rdi;
+}
+
 // sse_move.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVAPS_VpsWpsM(bxInstruction_c *i)
 {

@@ -718,6 +718,49 @@ void BX_CPP_AttrRegparmN(1) BX_CPU_C::branch_near64(bxInstruction_c *i)
 #endif
 }
 
+void BX_CPP_AttrRegparmN(2) BX_CPU_C::repeat(bxInstruction_c *i, BxRepIterationPtr_tR execute)
+{
+  // non repeated instruction
+  if (! i->repUsedL()) {
+    BX_CPU_CALL_REP_ITERATION(execute, (i));
+    return;
+  }
+  assert(false);
+
+#if 0
+#if BX_SUPPORT_X86_64
+  if (i->as64L()) {
+    while(1) {
+      if (RCX != 0) {
+        BX_CPU_CALL_REP_ITERATION(execute, (i));
+        BX_INSTR_REPEAT_ITERATION(BX_CPU_ID, i);
+        RCX --;
+      }
+      if (RCX == 0) return;
+      BX_CPU_THIS_PTR icount++;
+    }
+  }
+  else
+#endif
+  if (i->as32L()) {
+    while(1) {
+      if (ECX != 0) {
+        BX_CPU_CALL_REP_ITERATION(execute, (i));
+        BX_INSTR_REPEAT_ITERATION(BX_CPU_ID, i);
+        RCX = ECX - 1;
+      }
+      if (ECX == 0) return;
+      BX_CPU_THIS_PTR icount++;
+    }
+  } else {
+    assert(false);
+  }
+
+  // repeat loop not done, restore RIP
+  RIP = BX_CPU_THIS_PTR prev_rip;
+#endif
+}
+
 // xsave 関連
 bx_bool BX_CPU_C::xsave_x87_state_xinuse(void)
 {
