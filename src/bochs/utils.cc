@@ -239,7 +239,17 @@ bx_address BX_CPU_C::get_laddr(unsigned seg, bx_address offset)
 // アドレス変換を行わないので RMW 系の関数は使わずに、
 // read_linear_qword とかの関数群を使うこと。
 
-Bit32u BX_CPU_C::agen_read_aligned32(unsigned s, Bit32u offset, unsigned len)
+bx_address BX_CPU_C::agen_read(unsigned s, bx_address offset, unsigned len)
+{
+#if BX_SUPPORT_X86_64
+  if (BX_CPU_THIS_PTR cpu_mode == BX_MODE_LONG_64) {
+    return get_laddr64(s, offset);
+  }
+#endif
+  return agen_read32(s, offset, len);
+}
+
+Bit32u BX_CPU_C::agen_read32(unsigned s, Bit32u offset, unsigned len)
 {
   return get_laddr32(s, offset);
 }
@@ -252,6 +262,41 @@ bx_address BX_CPU_C::agen_read_aligned(unsigned s, bx_address offset, unsigned l
   }
 #endif
   return agen_read_aligned32(s, offset, len);
+}
+
+Bit32u BX_CPU_C::agen_read_aligned32(unsigned s, Bit32u offset, unsigned len)
+{
+  return get_laddr32(s, offset);
+}
+
+bx_address BX_CPU_C::agen_write(unsigned s, bx_address offset, unsigned len)
+{
+#if BX_SUPPORT_X86_64
+  if (BX_CPU_THIS_PTR cpu_mode == BX_MODE_LONG_64) {
+    return get_laddr64(s, offset);
+  }
+#endif
+  return agen_write32(s, offset, len);
+}
+
+Bit32u BX_CPU_C::agen_write32(unsigned s, Bit32u offset, unsigned len)
+{
+  return get_laddr32(s, offset);
+}
+
+bx_address BX_CPU_C::agen_write_aligned(unsigned s, bx_address offset, unsigned len)
+{
+#if BX_SUPPORT_X86_64
+  if (BX_CPU_THIS_PTR cpu_mode == BX_MODE_LONG_64) {
+    return get_laddr64(s, offset);
+  }
+#endif
+  return agen_write_aligned32(s, offset, len);
+}
+
+Bit32u BX_CPU_C::agen_write_aligned32(unsigned s, Bit32u offset, unsigned len)
+{
+  return get_laddr32(s, offset);
 }
 
 void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_linear_byte(unsigned s, bx_address laddr, Bit8u data)
@@ -300,43 +345,51 @@ Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_linear_qword(unsigned s, bx_address
   return data;
 }
 
-void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_byte(unsigned s, bx_address laddr, Bit8u data)
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_byte(unsigned s, bx_address offset, Bit8u data)
 {
+  bx_address laddr = agen_write(s, offset, 1);
   write_linear_byte(s, laddr, data);
 }
 
-void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_word(unsigned s, bx_address laddr, Bit16u data)
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_word(unsigned s, bx_address offset, Bit16u data)
 {
+  bx_address laddr = agen_write(s, offset, 2);
   write_linear_word(s, laddr, data);
 }
 
-void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_dword(unsigned s, bx_address laddr, Bit32u data)
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_dword(unsigned s, bx_address offset, Bit32u data)
 {
+  bx_address laddr = agen_write(s, offset, 4);
   write_linear_dword(s, laddr, data);
 }
 
-void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_qword(unsigned s, bx_address laddr, Bit64u data)
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_qword(unsigned s, bx_address offset, Bit64u data)
 {
+  bx_address laddr = agen_write(s, offset, 8);
   write_linear_qword(s, laddr, data);
 }
 
-Bit8u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_byte(unsigned s, bx_address laddr)
+Bit8u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_byte(unsigned s, bx_address offset)
 {
+  bx_address laddr = agen_read(s, offset, 1);
   return read_linear_byte(s, laddr);
 }
 
-Bit16u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_word(unsigned s, bx_address laddr)
+Bit16u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_word(unsigned s, bx_address offset)
 {
+  bx_address laddr = agen_read(s, offset, 2);
   return read_linear_word(s, laddr);
 }
 
-Bit32u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_dword(unsigned s, bx_address laddr)
+Bit32u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_dword(unsigned s, bx_address offset)
 {
+  bx_address laddr = agen_read(s, offset, 4);
   return read_linear_dword(s, laddr);
 }
 
-Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_qword(unsigned s, bx_address laddr)
+Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_qword(unsigned s, bx_address offset)
 {
+  bx_address laddr = agen_read(s, offset, 8);
   return read_linear_qword(s, laddr);
 }
 

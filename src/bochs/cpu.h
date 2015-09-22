@@ -4194,8 +4194,15 @@ public: // for now...
 
   BX_SMF BX_CPP_INLINE bx_bool long64_mode(void);
 
+  BX_SMF bx_address agen_read(unsigned seg, bx_address offset, unsigned len);
+  BX_SMF Bit32u agen_read32(unsigned seg, Bit32u offset, unsigned len);
   BX_SMF bx_address agen_read_aligned(unsigned seg, bx_address offset, unsigned len);
   BX_SMF Bit32u agen_read_aligned32(unsigned seg, Bit32u offset, unsigned len);
+
+  BX_SMF bx_address agen_write(unsigned seg, bx_address offset, unsigned len);
+  BX_SMF Bit32u agen_write32(unsigned seg, Bit32u offset, unsigned len);
+  BX_SMF bx_address agen_write_aligned(unsigned seg, bx_address offset, unsigned len);
+  BX_SMF Bit32u agen_write_aligned32(unsigned seg, Bit32u offset, unsigned len);
 
   BX_SMF Bit8u read_linear_byte(unsigned seg, bx_address offset) BX_CPP_AttrRegparmN(2);
   BX_SMF Bit16u read_linear_word(unsigned seg, bx_address offset) BX_CPP_AttrRegparmN(2);
