@@ -1,34 +1,23 @@
-/////////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2015 satoshi shiba
-// Copyright (C) 2001-2015  The Bochs Project
+/////////////////////////////////////////////////////////////////////////
+// $Id: shift64.cc 12769 2015-05-16 21:06:59Z sshwarts $
+/////////////////////////////////////////////////////////////////////////
 //
-// Original source of this file is 'cpu/shift64.cc'.
-// You can download original source from following link.
-// http://sourceforge.net/projects/bochs/files/bochs/2.6.8/
-//  -------------------------- Original Copyright ------------------------------
-// |////////////////////////////////////////////////////////////////////////////|
-// | $Id: shift64.cc 12769 2015-05-16 21:06:59Z sshwarts $
-// |////////////////////////////////////////////////////////////////////////////|
-// |                                                                            |
-// | Copyright (C) 2001-2015  The Bochs Project                                 |
-// |                                                                            |
-// | This library is free software; you can redistribute it and/or              |
-// | modify it under the terms of the GNU Lesser General Public                 |
-// | License as published by the Free Software Foundation; either               |
-// | version 2 of the License, or (at your option) any later version.           |
-// |                                                                            |
-// | This library is distributed in the hope that it will be useful,            |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of             |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU          |
-// | Lesser General Public License for more details.                            |
-// |                                                                            |
-// | You should have received a copy of the GNU Lesser General Public           |
-// | License along with this library; if not, write to the Free Software        |
-// | Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA B 02110-1301 USA |
-//  ----------------------------------------------------------------------------
-/////////////////////////////////////////////////////////////////////////////////
-// 変更点
-// RMW 系命令をそうでないものに置き換えた。
+//  Copyright (C) 2001-2015  The Bochs Project
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA B 02110-1301 USA
+/////////////////////////////////////////////////////////////////////////
 
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
@@ -46,7 +35,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHLD_EqGqM(bxInstruction_c *i)
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
   /* pointer, segment address pair */
-  op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
+  op1_64 = read_RMW_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
 
   if (i->getIaOpcode() == BX_IA_SHLD_EqGq)
     count = CL;
@@ -60,7 +49,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHLD_EqGqM(bxInstruction_c *i)
 
     result_64 = (op1_64 << count) | (op2_64 >> (64 - count));
 
-    write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), result_64);
+    write_RMW_linear_qword(result_64);
 
     SET_FLAGS_OSZAPC_LOGIC_64(result_64);
 
@@ -112,7 +101,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHRD_EqGqM(bxInstruction_c *i)
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
   /* pointer, segment address pair */
-  op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
+  op1_64 = read_RMW_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
 
   if (i->getIaOpcode() == BX_IA_SHRD_EqGq)
     count = CL;
@@ -126,7 +115,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHRD_EqGqM(bxInstruction_c *i)
 
     result_64 = (op2_64 << (64 - count)) | (op1_64 >> count);
 
-    write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), result_64);
+    write_RMW_linear_qword(result_64);
 
     SET_FLAGS_OSZAPC_LOGIC_64(result_64);
 
@@ -175,7 +164,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ROL_EqM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
-  Bit64u op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
+  Bit64u op1_64 = read_RMW_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
 
   if (i->getIaOpcode() == BX_IA_ROL_Eq)
     count = CL;
@@ -187,7 +176,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ROL_EqM(bxInstruction_c *i)
   if (count) {
     Bit64u result_64 = (op1_64 << count) | (op1_64 >> (64 - count));
 
-    write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), result_64);
+    write_RMW_linear_qword(result_64);
 
     unsigned bit0  = (result_64 & 0x1);
     unsigned bit63 = (result_64 >> 63);
@@ -229,7 +218,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ROR_EqM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
-  Bit64u op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
+  Bit64u op1_64 = read_RMW_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
 
   if (i->getIaOpcode() == BX_IA_ROR_Eq)
     count = CL;
@@ -241,7 +230,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ROR_EqM(bxInstruction_c *i)
   if (count) {
     Bit64u result_64 = (op1_64 >> count) | (op1_64 << (64 - count));
 
-    write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), result_64);
+    write_RMW_linear_qword(result_64);
 
     unsigned bit63 = (result_64 >> 63) & 1;
     unsigned bit62 = (result_64 >> 62) & 1;
@@ -285,7 +274,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::RCL_EqM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
-  Bit64u op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
+  Bit64u op1_64 = read_RMW_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
 
   if (i->getIaOpcode() == BX_IA_RCL_Eq)
     count = CL;
@@ -306,7 +295,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::RCL_EqM(bxInstruction_c *i)
                 (op1_64 >> (65 - count));
   }
 
-  write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), result_64);
+  write_RMW_linear_qword(result_64);
 
   cf = (op1_64 >> (64 - count)) & 0x1;
   of = cf ^ (result_64 >> 63); // of = cf ^ result63
@@ -359,7 +348,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::RCR_EqM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
-  Bit64u op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
+  Bit64u op1_64 = read_RMW_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
 
   if (i->getIaOpcode() == BX_IA_RCR_Eq)
     count = CL;
@@ -380,7 +369,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::RCR_EqM(bxInstruction_c *i)
                 (op1_64 << (65 - count));
   }
 
-  write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), result_64);
+  write_RMW_linear_qword(result_64);
 
   cf = (op1_64 >> (count - 1)) & 0x1;
   of = ((result_64 << 1) ^ result_64) >> 63;
@@ -431,7 +420,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHL_EqM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
-  Bit64u op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
+  Bit64u op1_64 = read_RMW_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
 
   if (i->getIaOpcode() == BX_IA_SHL_Eq)
     count = CL;
@@ -447,7 +436,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHL_EqM(bxInstruction_c *i)
     unsigned cf = (op1_64 >> (64 - count)) & 0x1;
     unsigned of = cf ^ (result_64 >> 63);
 
-    write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), result_64);
+    write_RMW_linear_qword(result_64);
 
     SET_FLAGS_OSZAPC_LOGIC_64(result_64);
     SET_FLAGS_OxxxxC(of, cf);
@@ -490,7 +479,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHR_EqM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
-  Bit64u op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
+  Bit64u op1_64 = read_RMW_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
 
   if (i->getIaOpcode() == BX_IA_SHR_Eq)
     count = CL;
@@ -502,7 +491,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHR_EqM(bxInstruction_c *i)
   if (count) {
     Bit64u result_64 = (op1_64 >> count);
 
-    write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), result_64);
+    write_RMW_linear_qword(result_64);
 
     unsigned cf = (op1_64 >> (count - 1)) & 0x1;
     // note, that of == result63 if count == 1 and
@@ -550,7 +539,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SAR_EqM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
-  Bit64u op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
+  Bit64u op1_64 = read_RMW_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
 
   if (i->getIaOpcode() == BX_IA_SAR_Eq)
     count = CL;
@@ -563,7 +552,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SAR_EqM(bxInstruction_c *i)
     /* count < 64, since only lower 6 bits used */
     Bit64u result_64 = ((Bit64s) op1_64) >> count;
 
-    write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), result_64);
+    write_RMW_linear_qword(result_64);
 
     SET_FLAGS_OSZAPC_LOGIC_64(result_64);
     unsigned cf = (op1_64 >> (count - 1)) & 1;
