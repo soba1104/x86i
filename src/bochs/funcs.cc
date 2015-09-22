@@ -479,33 +479,6 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHR_EdR(bxInstruction_c *i)
   }
 }
 
-// shift64.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHL_EqR(bxInstruction_c *i)
-{
-  Bit64u op1_64, result_64;
-  unsigned count;
-  unsigned cf, of;
-
-  if (i->getIaOpcode() == BX_IA_SHL_Eq)
-    count = CL;
-  else
-    count = i->Ib();
-
-  count &= 0x3f;
-
-  if (count) {
-    op1_64 = BX_READ_64BIT_REG(i->dst());
-    /* count < 64, since only lower 6 bits used */
-    result_64 = (op1_64 << count);
-    BX_WRITE_64BIT_REG(i->dst(), result_64);
-
-    cf = (op1_64 >> (64 - count)) & 0x1;
-    of = cf ^ (result_64 >> 63);
-    SET_FLAGS_OSZAPC_LOGIC_64(result_64);
-    SET_FLAGS_OxxxxC(of, cf);
-  }
-}
-
 // load.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LOAD_Eq(bxInstruction_c *i)
 {
