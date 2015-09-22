@@ -9,6 +9,7 @@ end
 
 defined_funcs = [
                  'funcs.cc',
+                 'arith64.cc',
                  'data_xfer64.cc',
                  'logical8.cc',
                  'sse.cc',
