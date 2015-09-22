@@ -836,7 +836,7 @@ typedef struct
 #endif
 
 #include "crregs.h"
-//#include "descriptor.h"
+#include "descriptor.h"
 #include "instr.h"
 #include "lazy_flags.h"
 
@@ -1081,6 +1081,9 @@ public: // for now...
 
   // lazy arithmetic flags state
   bx_lf_flags_entry oszapc;
+
+  /* user segment register set */
+  bx_segment_reg_t  sregs[6];
 
 #if BX_CPU_LEVEL >= 6
   xcr0_t xcr0;
@@ -4228,6 +4231,12 @@ public: // for now...
   int decode64(void *insn);
   void set_stack(void *stack);
   void set_rip(Bit64u rip);
+  void set_rdi(Bit64u rdi);
+  void set_rsi(Bit64u rsi);
+  void set_rdx(Bit64u rdx);
+  void set_rcx(Bit64u rcx);
+  void set_r8(Bit64u r8);
+  void set_r9(Bit64u r9);
   Bit64u get_rip(void);
   Bit64u get_rax(void);
 };

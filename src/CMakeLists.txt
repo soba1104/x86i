@@ -16,6 +16,7 @@ SET(BOCHS_HEADERS bochs/bochs.h
                   bochs/cpu.h
                   bochs/xmm.h
                   bochs/crregs.h
+                  bochs/descriptor.h
                   bochs/instr.h
                   bochs/ia_opcodes.h
                   bochs/fetchdecode.h

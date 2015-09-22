@@ -13,6 +13,8 @@
 #include <bochs.h>
 #include <cpu.h>
 
+#include <stdio.h>
+
 extern "C" {
 
 void *alloc_cpu()
@@ -25,10 +27,13 @@ void set_stack(void *cpu, void *stack)
   ((BX_CPU_C*)cpu)->set_stack(stack);
 }
 
-void set_rip(void *cpu, uint64_t rip)
-{
-  ((BX_CPU_C*)cpu)->set_rip(rip);
-}
+void set_rip(void *cpu, uint64_t rip) { ((BX_CPU_C*)cpu)->set_rip(rip); }
+void set_rdi(void *cpu, uint64_t rdi) { ((BX_CPU_C*)cpu)->set_rdi(rdi); }
+void set_rsi(void *cpu, uint64_t rsi) { ((BX_CPU_C*)cpu)->set_rsi(rsi); }
+void set_rdx(void *cpu, uint64_t rdx) { ((BX_CPU_C*)cpu)->set_rdx(rdx); }
+void set_rcx(void *cpu, uint64_t rcx) { ((BX_CPU_C*)cpu)->set_rcx(rcx); }
+void set_r8(void *cpu,  uint64_t r8)  { ((BX_CPU_C*)cpu)->set_r8(r8); }
+void set_r9(void *cpu,  uint64_t r9)  { ((BX_CPU_C*)cpu)->set_r9(r9); }
 
 uint64_t get_rip(void *cpu)
 {
@@ -87,6 +92,14 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
   memset(gen_reg, 0, sizeof(gen_reg));
 
   BX_CPU_THIS_PTR cpu_mode = BX_MODE_LONG_64; // FIXME
+
+  // 暫定。今の所 segment.base 以外は参照しない。
+  BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.base = 0;
+  BX_CPU_THIS_PTR sregs[BX_SEG_REG_DS].cache.u.segment.base = 0;
+  BX_CPU_THIS_PTR sregs[BX_SEG_REG_SS].cache.u.segment.base = 0;
+  BX_CPU_THIS_PTR sregs[BX_SEG_REG_ES].cache.u.segment.base = 0;
+  BX_CPU_THIS_PTR sregs[BX_SEG_REG_FS].cache.u.segment.base = 0;
+  BX_CPU_THIS_PTR sregs[BX_SEG_REG_GS].cache.u.segment.base = 0;
 
 //init.cc のオリジナルのコンストラクタから持ってきたもの
   for (unsigned n=0;n<BX_ISA_EXTENSIONS_ARRAY_SIZE;n++)
@@ -161,10 +174,13 @@ void BX_CPU_C::set_stack(void *stack)
   RSP = (Bit64u)stack;
 }
 
-void BX_CPU_C::set_rip(Bit64u rip)
-{
-  RIP = rip;
-}
+void BX_CPU_C::set_rip(Bit64u rip) { RIP = rip; }
+void BX_CPU_C::set_rdi(Bit64u rdi) { RDI = rdi; }
+void BX_CPU_C::set_rsi(Bit64u rsi) { RSI = rsi; }
+void BX_CPU_C::set_rdx(Bit64u rdx) { RDX = rdx; }
+void BX_CPU_C::set_rcx(Bit64u rcx) { RCX = rcx; }
+void BX_CPU_C::set_r8(Bit64u r8)   { R8 = r8; }
+void BX_CPU_C::set_r9(Bit64u r9)   { R9 = r9; }
 
 Bit64u BX_CPU_C::get_rip(void)
 {
@@ -187,8 +203,7 @@ Bit64u BX_CPU_C::get_laddr64(unsigned seg, Bit64u offset)
   if (seg < BX_SEG_REG_FS) {
     return offset;
   } else {
-    assert(false);
-    //return BX_CPU_THIS_PTR sregs[seg].cache.u.segment.base + offset;
+    return BX_CPU_THIS_PTR sregs[seg].cache.u.segment.base + offset;
   }
 }
 #endif
