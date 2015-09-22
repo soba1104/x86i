@@ -9,6 +9,7 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g")
 SET(X86I_HEADERS x86i.h)
 SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/arith64.cc
+                  bochs/bit32.cc
                   bochs/data_xfer64.cc
                   bochs/logical8.cc
                   bochs/logical32.cc
@@ -22,6 +23,7 @@ SET(BOCHS_HEADERS bochs/bochs.h
                   bochs/xmm.h
                   bochs/simd_int.h
                   bochs/simd_compare.h
+                  bochs/scalar_arith.h
                   bochs/crregs.h
                   bochs/descriptor.h
                   bochs/instr.h
