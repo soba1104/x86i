@@ -2182,7 +2182,7 @@ decode_done:
   i->setILen(iptr - startip);
   i->setIaOpcode(ia_opcode);
   if (lock) {
-    assert(false);
+    i->setLockRepUsed(1);
   }
 
   if (mod_mem) {
