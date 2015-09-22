@@ -10,6 +10,8 @@
 #include <bochs.h>
 #include <cpu.h>
 
+#include "simd_int.h"
+
 #include "dummyfuncs.h"
 
 // proc_ctrl.cc
@@ -596,6 +598,15 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVUPS_VpsWpsM(bxInstruction_c *i)
 #if BX_CPU_LEVEL >= 6
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
   read_virtual_xmmword(i->seg(), eaddr, &BX_XMM_REG(i->dst()));
+#endif
+}
+
+// sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PMOVMSKB_GdUdq(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  Bit32u mask = xmm_pmovmskb(&BX_XMM_REG(i->src()));
+  BX_WRITE_32BIT_REGZ(i->dst(), mask);
 #endif
 }
 
