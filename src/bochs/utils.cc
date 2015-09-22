@@ -727,40 +727,25 @@ void BX_CPP_AttrRegparmN(2) BX_CPU_C::repeat(bxInstruction_c *i, BxRepIterationP
     BX_CPU_CALL_REP_ITERATION(execute, (i));
     return;
   }
-  assert(false);
 
-#if 0
 #if BX_SUPPORT_X86_64
   if (i->as64L()) {
     while(1) {
       if (RCX != 0) {
         BX_CPU_CALL_REP_ITERATION(execute, (i));
-        BX_INSTR_REPEAT_ITERATION(BX_CPU_ID, i);
         RCX --;
       }
       if (RCX == 0) return;
-      BX_CPU_THIS_PTR icount++;
     }
   }
   else
 #endif
   if (i->as32L()) {
-    while(1) {
-      if (ECX != 0) {
-        BX_CPU_CALL_REP_ITERATION(execute, (i));
-        BX_INSTR_REPEAT_ITERATION(BX_CPU_ID, i);
-        RCX = ECX - 1;
-      }
-      if (ECX == 0) return;
-      BX_CPU_THIS_PTR icount++;
-    }
+    assert(false);
   } else {
     assert(false);
   }
-
-  // repeat loop not done, restore RIP
-  RIP = BX_CPU_THIS_PTR prev_rip;
-#endif
+  assert(false);
 }
 
 // xsave 関連
