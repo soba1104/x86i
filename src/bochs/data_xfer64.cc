@@ -1,34 +1,23 @@
-/////////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2015 satoshi shiba
-// Copyright (C) 2001-2015  The Bochs Project
+/////////////////////////////////////////////////////////////////////////
+// $Id: data_xfer64.cc 12769 2015-05-16 21:06:59Z sshwarts $
+/////////////////////////////////////////////////////////////////////////
 //
-// Original source of this file is 'cpu/data_xfer64.cc'.
-// You can download original source from following link.
-// http://sourceforge.net/projects/bochs/files/bochs/2.6.8/
-//  -------------------------- Original Copyright ------------------------------
-// |////////////////////////////////////////////////////////////////////////////|
-// | $Id: data_xfer64.cc 12769 2015-05-16 21:06:59Z sshwarts $
-// |////////////////////////////////////////////////////////////////////////////|
-// |                                                                            |
-// | Copyright (C) 2001-2015  The Bochs Project                                 |
-// |                                                                            |
-// | This library is free software; you can redistribute it and/or              |
-// | modify it under the terms of the GNU Lesser General Public                 |
-// | License as published by the Free Software Foundation; either               |
-// | version 2 of the License, or (at your option) any later version.           |
-// |                                                                            |
-// | This library is distributed in the hope that it will be useful,            |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of             |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU          |
-// | Lesser General Public License for more details.                            |
-// |                                                                            |
-// | You should have received a copy of the GNU Lesser General Public           |
-// | License along with this library; if not, write to the Free Software        |
-// | Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA B 02110-1301 USA |
-//  ----------------------------------------------------------------------------
-/////////////////////////////////////////////////////////////////////////////////
-// 変更点
-// RMW 系命令をそうでないものに置き換えた。
+//  Copyright (C) 2001-2015  The Bochs Project
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA B 02110-1301 USA
+/////////////////////////////////////////////////////////////////////////
 
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
@@ -304,10 +293,10 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XCHG_EqGqM(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
 
-  Bit64u op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
+  Bit64u op1_64 = read_RMW_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
   Bit64u op2_64 = BX_READ_64BIT_REG(i->src());
 
-  write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), op2_64);
+  write_RMW_linear_qword(op2_64);
   BX_WRITE_64BIT_REG(i->src(), op1_64);
 
   BX_NEXT_INSTR(i);
