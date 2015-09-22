@@ -1,35 +1,23 @@
-/////////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2015 satoshi shiba
-// Copyright (C) 2001-2015  The Bochs Project
+/////////////////////////////////////////////////////////////////////////
+// $Id: logical32.cc 12769 2015-05-16 21:06:59Z sshwarts $
+/////////////////////////////////////////////////////////////////////////
 //
-// Original source of this file is 'cpu/logical32.cc'.
-// You can download original source from following link.
-// http://sourceforge.net/projects/bochs/files/bochs/2.6.8/
-//  -------------------------- Original Copyright ------------------------------
-// |////////////////////////////////////////////////////////////////////////////|
-// | $Id: logical32.cc 12769 2015-05-16 21:06:59Z sshwarts $
-// |////////////////////////////////////////////////////////////////////////////|
-// |                                                                            |
-// | Copyright (C) 2001-2015  The Bochs Project                                 |
-// |                                                                            |
-// | This library is free software; you can redistribute it and/or              |
-// | modify it under the terms of the GNU Lesser General Public                 |
-// | License as published by the Free Software Foundation; either               |
-// | version 2 of the License, or (at your option) any later version.           |
-// |                                                                            |
-// | This library is distributed in the hope that it will be useful,            |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of             |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU          |
-// | Lesser General Public License for more details.                            |
-// |                                                                            |
-// | You should have received a copy of the GNU Lesser General Public           |
-// | License along with this library; if not, write to the Free Software        |
-// | Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA B 02110-1301 USA |
-//  ----------------------------------------------------------------------------
-/////////////////////////////////////////////////////////////////////////////////
-// 変更点
-// RMW 系命令をそうでないものに置き換えた。
-// write_linear じゃなくて write_virtual 系の命令を使った。
+//  Copyright (C) 2001-2015  The Bochs Project
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA B 02110-1301 USA
+/////////////////////////////////////////////////////////////////////////
 
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
@@ -42,10 +30,10 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_EdGdM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  op1_32 = read_virtual_dword(i->seg(), eaddr);
+  op1_32 = read_RMW_virtual_dword(i->seg(), eaddr);
   op2_32 = BX_READ_32BIT_REG(i->src());
   op1_32 ^= op2_32;
-  write_virtual_dword(i->seg(), eaddr, op1_32);
+  write_RMW_linear_dword(op1_32);
 
   SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
 
@@ -88,9 +76,9 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_EdIdM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  op1_32 = read_virtual_dword(i->seg(), eaddr);
+  op1_32 = read_RMW_virtual_dword(i->seg(), eaddr);
   op1_32 ^= i->Id();
-  write_virtual_dword(i->seg(), eaddr, op1_32);
+  write_RMW_linear_dword(op1_32);
 
   SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
 
@@ -114,9 +102,9 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::OR_EdIdM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  op1_32 = read_virtual_dword(i->seg(), eaddr);
+  op1_32 = read_RMW_virtual_dword(i->seg(), eaddr);
   op1_32 |= i->Id();
-  write_virtual_dword(i->seg(), eaddr, op1_32);
+  write_RMW_linear_dword(op1_32);
 
   SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
 
@@ -138,9 +126,9 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::NOT_EdM(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  Bit32u op1_32 = read_virtual_dword(i->seg(), eaddr);
+  Bit32u op1_32 = read_RMW_virtual_dword(i->seg(), eaddr);
   op1_32 = ~op1_32;
-  write_virtual_dword(i->seg(), eaddr, op1_32);
+  write_RMW_linear_dword(op1_32);
 
   BX_NEXT_INSTR(i);
 }
@@ -160,10 +148,10 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::OR_EdGdM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  op1_32 = read_virtual_dword(i->seg(), eaddr);
+  op1_32 = read_RMW_virtual_dword(i->seg(), eaddr);
   op2_32 = BX_READ_32BIT_REG(i->src());
   op1_32 |= op2_32;
-  write_virtual_dword(i->seg(), eaddr, op1_32);
+  write_RMW_linear_dword(op1_32);
 
   SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
 
@@ -206,10 +194,10 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::AND_EdGdM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  op1_32 = read_virtual_dword(i->seg(), eaddr);
+  op1_32 = read_RMW_virtual_dword(i->seg(), eaddr);
   op2_32 = BX_READ_32BIT_REG(i->src());
   op1_32 &= op2_32;
-  write_virtual_dword(i->seg(), eaddr, op1_32);
+  write_RMW_linear_dword(op1_32);
 
   SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
 
@@ -252,9 +240,9 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::AND_EdIdM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  op1_32 = read_virtual_dword(i->seg(), eaddr);
+  op1_32 = read_RMW_virtual_dword(i->seg(), eaddr);
   op1_32 &= i->Id();
-  write_virtual_dword(i->seg(), eaddr, op1_32);
+  write_RMW_linear_dword(op1_32);
 
   SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
 
