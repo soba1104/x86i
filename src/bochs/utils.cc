@@ -28,6 +28,7 @@ void set_stack(void *cpu, void *stack)
 }
 
 void set_rip(void *cpu, uint64_t rip) { ((BX_CPU_C*)cpu)->set_rip(rip); }
+void set_rax(void *cpu, uint64_t rax) { ((BX_CPU_C*)cpu)->set_rax(rax); }
 void set_rdi(void *cpu, uint64_t rdi) { ((BX_CPU_C*)cpu)->set_rdi(rdi); }
 void set_rsi(void *cpu, uint64_t rsi) { ((BX_CPU_C*)cpu)->set_rsi(rsi); }
 void set_rdx(void *cpu, uint64_t rdx) { ((BX_CPU_C*)cpu)->set_rdx(rdx); }
@@ -35,15 +36,14 @@ void set_rcx(void *cpu, uint64_t rcx) { ((BX_CPU_C*)cpu)->set_rcx(rcx); }
 void set_r8(void *cpu,  uint64_t r8)  { ((BX_CPU_C*)cpu)->set_r8(r8); }
 void set_r9(void *cpu,  uint64_t r9)  { ((BX_CPU_C*)cpu)->set_r9(r9); }
 
-uint64_t get_rip(void *cpu)
-{
-  return ((BX_CPU_C*)cpu)->get_rip();
-}
-
-uint64_t get_rax(void *cpu)
-{
-  return ((BX_CPU_C*)cpu)->get_rax();
-}
+uint64_t get_rip(void *cpu) { return ((BX_CPU_C*)cpu)->get_rip(); }
+uint64_t get_rax(void *cpu) { return ((BX_CPU_C*)cpu)->get_rax(); }
+uint64_t get_rdi(void *cpu) { return ((BX_CPU_C*)cpu)->get_rdi(); }
+uint64_t get_rsi(void *cpu) { return ((BX_CPU_C*)cpu)->get_rsi(); }
+uint64_t get_rdx(void *cpu) { return ((BX_CPU_C*)cpu)->get_rdx(); }
+uint64_t get_rcx(void *cpu) { return ((BX_CPU_C*)cpu)->get_rcx(); }
+uint64_t get_r8(void *cpu)  { return ((BX_CPU_C*)cpu)->get_r8(); }
+uint64_t get_r9(void *cpu)  { return ((BX_CPU_C*)cpu)->get_r9(); }
 
 void free_cpu(void *cpu)
 {
@@ -177,6 +177,7 @@ void BX_CPU_C::set_stack(void *stack)
 }
 
 void BX_CPU_C::set_rip(Bit64u rip) { RIP = rip; }
+void BX_CPU_C::set_rax(Bit64u rax) { RAX = rax; }
 void BX_CPU_C::set_rdi(Bit64u rdi) { RDI = rdi; }
 void BX_CPU_C::set_rsi(Bit64u rsi) { RSI = rsi; }
 void BX_CPU_C::set_rdx(Bit64u rdx) { RDX = rdx; }
@@ -184,15 +185,14 @@ void BX_CPU_C::set_rcx(Bit64u rcx) { RCX = rcx; }
 void BX_CPU_C::set_r8(Bit64u r8)   { R8 = r8; }
 void BX_CPU_C::set_r9(Bit64u r9)   { R9 = r9; }
 
-Bit64u BX_CPU_C::get_rip(void)
-{
-  return RIP;
-}
-
-Bit64u BX_CPU_C::get_rax(void)
-{
-  return RAX;
-}
+Bit64u BX_CPU_C::get_rip(void) { return RIP; }
+Bit64u BX_CPU_C::get_rax(void) { return RAX; }
+Bit64u BX_CPU_C::get_rdi(void) { return RDI; }
+Bit64u BX_CPU_C::get_rsi(void) { return RSI; }
+Bit64u BX_CPU_C::get_rdx(void) { return RDX; }
+Bit64u BX_CPU_C::get_rcx(void) { return RCX; }
+Bit64u BX_CPU_C::get_r8(void)  { return R8; }
+Bit64u BX_CPU_C::get_r9(void)  { return R9; }
 
 Bit32u BX_CPU_C::get_laddr32(unsigned seg, Bit32u offset)
 {

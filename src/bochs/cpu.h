@@ -4271,6 +4271,7 @@ public: // for now...
   int decode64(void *insn);
   void set_stack(void *stack);
   void set_rip(Bit64u rip);
+  void set_rax(Bit64u rax);
   void set_rdi(Bit64u rdi);
   void set_rsi(Bit64u rsi);
   void set_rdx(Bit64u rdx);
@@ -4279,6 +4280,12 @@ public: // for now...
   void set_r9(Bit64u r9);
   Bit64u get_rip(void);
   Bit64u get_rax(void);
+  Bit64u get_rdi(void);
+  Bit64u get_rsi(void);
+  Bit64u get_rdx(void);
+  Bit64u get_rcx(void);
+  Bit64u get_r8(void);
+  Bit64u get_r9(void);
 };
 
 // Can be used as LHS or RHS.
