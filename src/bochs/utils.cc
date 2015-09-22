@@ -393,14 +393,33 @@ Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_qword(unsigned s, bx_addres
   return read_linear_qword(s, laddr);
 }
 
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_linear_xmmword(unsigned s, bx_address laddr, BxPackedXmmRegister *data)
+{
+  Bit64u *addr = (Bit64u*)laddr;
+  ReadHostQWordFromLittleEndian(addr,   data->xmm64u(0));
+  ReadHostQWordFromLittleEndian(addr+1, data->xmm64u(1));
+}
+
 void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_linear_xmmword_aligned(unsigned s, bx_address laddr, BxPackedXmmRegister *data)
 {
   if (laddr & 15) {
     assert(false);
   }
-  Bit64u *addr = (Bit64u*)(laddr);
+  Bit64u *addr = (Bit64u*)laddr;
   ReadHostQWordFromLittleEndian(addr,   data->xmm64u(0));
   ReadHostQWordFromLittleEndian(addr+1, data->xmm64u(1));
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_virtual_xmmword(unsigned s, bx_address offset, BxPackedXmmRegister *data)
+{
+  bx_address laddr = agen_read(s, offset, 16);
+  read_linear_xmmword(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_virtual_xmmword_32(unsigned s, Bit32u offset, BxPackedXmmRegister *data)
+{
+  Bit32u laddr = agen_read32(s, offset, 16);
+  read_linear_xmmword(s, laddr, data);
 }
 
 void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_virtual_xmmword_aligned(unsigned s, bx_address offset, BxPackedXmmRegister *data)

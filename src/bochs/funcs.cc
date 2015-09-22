@@ -586,6 +586,19 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVAPS_VpsWpsM(bxInstruction_c *i)
 #endif
 }
 
+// sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVUPS_VpsWpsM(bxInstruction_c *i)
+{
+/* MOVUPS:    0F 10 */
+/* MOVUPD: 66 0F 10 */
+/* MOVDQU: F3 0F 6F */
+/* LDDQU:  F2 0F F0 */
+#if BX_CPU_LEVEL >= 6
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+  read_virtual_xmmword(i->seg(), eaddr, &BX_XMM_REG(i->dst()));
+#endif
+}
+
 // xsave.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
 {

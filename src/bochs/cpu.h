@@ -4222,8 +4222,11 @@ public: // for now...
   BX_SMF void write_virtual_dword(unsigned seg, bx_address offset, Bit32u data) BX_CPP_AttrRegparmN(3);
   BX_SMF void write_virtual_qword(unsigned seg, bx_address offset, Bit64u data) BX_CPP_AttrRegparmN(3);
 
+  BX_SMF void read_linear_xmmword(unsigned seg, bx_address off, BxPackedXmmRegister *data) BX_CPP_AttrRegparmN(3);
   BX_SMF void read_linear_xmmword_aligned(unsigned seg, bx_address off, BxPackedXmmRegister *data) BX_CPP_AttrRegparmN(3);
 
+  BX_SMF void read_virtual_xmmword(unsigned seg, bx_address off, BxPackedXmmRegister *data) BX_CPP_AttrRegparmN(3);
+  BX_SMF void read_virtual_xmmword_32(unsigned seg, Bit32u off, BxPackedXmmRegister *data) BX_CPP_AttrRegparmN(3);
   BX_SMF void read_virtual_xmmword_aligned(unsigned seg, bx_address off, BxPackedXmmRegister *data) BX_CPP_AttrRegparmN(3);
   BX_SMF void read_virtual_xmmword_aligned_32(unsigned seg, Bit32u off, BxPackedXmmRegister *data) BX_CPP_AttrRegparmN(3);
 
