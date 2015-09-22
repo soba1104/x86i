@@ -7,7 +7,11 @@ unless File.exist?(ia_opcodes)
   exit(1)
 end
 
-defined_funcs = ['funcs.cc', 'data_xfer64.cc'].map{|n| File.join([bochs, n])}
+defined_funcs = [
+                 'funcs.cc',
+                 'data_xfer64.cc',
+                 'logical8.cc',
+                ].map{|n| File.join([bochs, n])}
 defined_funcs.each do |p|
   unless File.exist?(p)
     STDERR.puts("#{p} not found");
