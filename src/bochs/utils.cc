@@ -239,6 +239,21 @@ bx_address BX_CPU_C::get_laddr(unsigned seg, bx_address offset)
 // アドレス変換を行わないので RMW 系の関数は使わずに、
 // read_linear_qword とかの関数群を使うこと。
 
+Bit32u BX_CPU_C::agen_read_aligned32(unsigned s, Bit32u offset, unsigned len)
+{
+  return get_laddr32(s, offset);
+}
+
+bx_address BX_CPU_C::agen_read_aligned(unsigned s, bx_address offset, unsigned len)
+{
+#if BX_SUPPORT_X86_64
+  if (BX_CPU_THIS_PTR cpu_mode == BX_MODE_LONG_64) {
+    return get_laddr64(s, offset);
+  }
+#endif
+  return agen_read_aligned32(s, offset, len);
+}
+
 void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_linear_byte(unsigned s, bx_address laddr, Bit8u data)
 {
   *((Bit8u*)laddr) = data;
@@ -323,6 +338,28 @@ Bit32u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_dword(unsigned s, bx_addres
 Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_qword(unsigned s, bx_address laddr)
 {
   return read_linear_qword(s, laddr);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_linear_xmmword_aligned(unsigned s, bx_address laddr, BxPackedXmmRegister *data)
+{
+  if (laddr & 15) {
+    assert(false);
+  }
+  Bit64u *addr = (Bit64u*)(laddr);
+  ReadHostQWordFromLittleEndian(addr,   data->xmm64u(0));
+  ReadHostQWordFromLittleEndian(addr+1, data->xmm64u(1));
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_virtual_xmmword_aligned(unsigned s, bx_address offset, BxPackedXmmRegister *data)
+{
+  bx_address laddr = agen_read_aligned(s, offset, 16);
+  read_linear_xmmword_aligned(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_virtual_xmmword_aligned_32(unsigned s, Bit32u offset, BxPackedXmmRegister *data)
+{
+  Bit32u laddr = agen_read_aligned32(s, offset, 16);
+  read_linear_xmmword_aligned(s, laddr, data);
 }
 
 void BX_CPP_AttrRegparmN(2) BX_CPU_C::stack_write_qword(bx_address offset, Bit64u data)

@@ -577,6 +577,15 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SETNZ_EbR(bxInstruction_c *i)
   BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), !getB_ZF());
 }
 
+// sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVAPS_VpsWpsM(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+  read_virtual_xmmword_aligned(i->seg(), eaddr, &BX_XMM_REG(i->dst()));
+#endif
+}
+
 // xsave.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
 {
