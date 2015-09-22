@@ -400,6 +400,16 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PMOVMSKB_GdUdq(bxInstruction_c *i)
 #endif
 }
 
+// sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVQ_VdqEqR(bxInstruction_c *i)
+{
+  BxPackedXmmRegister op;
+  op.xmm64u(0) = BX_READ_64BIT_REG(i->src());
+  op.xmm64u(1) = 0;
+
+  BX_WRITE_XMM_REGZ(i->dst(), op, i->getVL());
+}
+
 // xsave.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
 {
