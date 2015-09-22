@@ -21,6 +21,7 @@ defined_funcs = [
                  'logical8.cc',
                  'logical32.cc',
                  'logical64.cc',
+                 'mult64.cc',
                  'shift8.cc',
                  'shift32.cc',
                  'shift64.cc',
