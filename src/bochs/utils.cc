@@ -371,6 +371,30 @@ void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_qword(unsigned s, bx_address
   write_linear_qword(s, laddr, data);
 }
 
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_byte_32(unsigned s, Bit32u offset, Bit8u data)
+{
+  Bit32u laddr = agen_write32(s, offset, 1);
+  write_linear_byte(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_word_32(unsigned s, Bit32u offset, Bit16u data)
+{
+  Bit32u laddr = agen_write32(s, offset, 2);
+  write_linear_word(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_dword_32(unsigned s, Bit32u offset, Bit32u data)
+{
+  Bit32u laddr = agen_write32(s, offset, 4);
+  write_linear_dword(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_qword_32(unsigned s, Bit32u offset, Bit64u data)
+{
+  Bit32u laddr = agen_write32(s, offset, 8);
+  write_linear_qword(s, laddr, data);
+}
+
 Bit8u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_byte(unsigned s, bx_address offset)
 {
   bx_address laddr = agen_read(s, offset, 1);
@@ -392,6 +416,30 @@ Bit32u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_dword(unsigned s, bx_addres
 Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_qword(unsigned s, bx_address offset)
 {
   bx_address laddr = agen_read(s, offset, 8);
+  return read_linear_qword(s, laddr);
+}
+
+Bit8u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_byte_32(unsigned s, Bit32u offset)
+{
+  Bit32u laddr = agen_read32(s, offset, 1);
+  return read_linear_byte(s, laddr);
+}
+
+Bit16u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_word_32(unsigned s, Bit32u offset)
+{
+  Bit32u laddr = agen_read32(s, offset, 2);
+  return read_linear_word(s, laddr);
+}
+
+Bit32u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_dword_32(unsigned s, Bit32u offset)
+{
+  Bit32u laddr = agen_read32(s, offset, 4);
+  return read_linear_dword(s, laddr);
+}
+
+Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_virtual_qword_32(unsigned s, Bit32u offset)
+{
+  Bit32u laddr = agen_read32(s, offset, 8);
   return read_linear_qword(s, laddr);
 }
 
