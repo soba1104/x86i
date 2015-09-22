@@ -1,35 +1,23 @@
-/////////////////////////////////////////////////////////////////////////////////
-// Copyright (C) 2015 satoshi shiba
-// Copyright (C) 2001-2015  The Bochs Project
+/////////////////////////////////////////////////////////////////////////
+// $Id: bit32.cc 12769 2015-05-16 21:06:59Z sshwarts $
+/////////////////////////////////////////////////////////////////////////
 //
-// Original source of this file is 'cpu/bit32.cc'.
-// You can download original source from following link.
-// http://sourceforge.net/projects/bochs/files/bochs/2.6.8/
-//  -------------------------- Original Copyright ------------------------------
-// |////////////////////////////////////////////////////////////////////////////|
-// | $Id: bit32.cc 12769 2015-05-16 21:06:59Z sshwarts $
-// |////////////////////////////////////////////////////////////////////////////|
-// |                                                                            |
-// | Copyright (C) 2001-2015  The Bochs Project                                 |
-// |                                                                            |
-// | This library is free software; you can redistribute it and/or              |
-// | modify it under the terms of the GNU Lesser General Public                 |
-// | License as published by the Free Software Foundation; either               |
-// | version 2 of the License, or (at your option) any later version.           |
-// |                                                                            |
-// | This library is distributed in the hope that it will be useful,            |
-// | but WITHOUT ANY WARRANTY; without even the implied warranty of             |
-// | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU          |
-// | Lesser General Public License for more details.                            |
-// |                                                                            |
-// | You should have received a copy of the GNU Lesser General Public           |
-// | License along with this library; if not, write to the Free Software        |
-// | Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA B 02110-1301 USA |
-//  ----------------------------------------------------------------------------
-/////////////////////////////////////////////////////////////////////////////////
-// 変更点
-// RMW 系命令をそうでないものに置き換えた。
-// write_linear じゃなくて write_virtual 系の命令を使った。
+//  Copyright (C) 2001-2015  The Bochs Project
+//
+//  This library is free software; you can redistribute it and/or
+//  modify it under the terms of the GNU Lesser General Public
+//  License as published by the Free Software Foundation; either
+//  version 2 of the License, or (at your option) any later version.
+//
+//  This library is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//  Lesser General Public License for more details.
+//
+//  You should have received a copy of the GNU Lesser General Public
+//  License along with this library; if not, write to the Free Software
+//  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA B 02110-1301 USA
+/////////////////////////////////////////////////////////////////////////
 
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
@@ -130,12 +118,12 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::BTS_EdGdM(bxInstruction_c *i)
   op1_addr = eaddr + 4 * displacement32;
 
   /* pointer, segment address pair */
-  op1_32 = read_virtual_dword(i->seg(), op1_addr & i->asize_mask());
+  op1_32 = read_RMW_virtual_dword(i->seg(), op1_addr & i->asize_mask());
 
   bit_i = (op1_32 >> index) & 0x01;
   op1_32 |= (1 << index);
 
-  write_virtual_dword(i->seg(), op1_addr & i->asize_mask(), op1_32);
+  write_RMW_linear_dword(op1_32);
 
   set_CF(bit_i);
 
@@ -172,13 +160,13 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::BTR_EdGdM(bxInstruction_c *i)
   op1_addr = eaddr + 4 * displacement32;
 
   /* pointer, segment address pair */
-  op1_32 = read_virtual_dword(i->seg(), op1_addr & i->asize_mask());
+  op1_32 = read_RMW_virtual_dword(i->seg(), op1_addr & i->asize_mask());
 
   bx_bool temp_cf = (op1_32 >> index) & 0x01;
   op1_32 &= ~(1 << index);
 
   /* now write back to destination */
-  write_virtual_dword(i->seg(), op1_addr & i->asize_mask(), op1_32);
+  write_RMW_linear_dword(op1_32);
 
   set_CF(temp_cf);
 
@@ -215,12 +203,12 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::BTC_EdGdM(bxInstruction_c *i)
   displacement32 = ((Bit32s) (op2_32 & 0xffffffe0)) / 32;
   op1_addr = eaddr + 4 * displacement32;
 
-  op1_32 = read_virtual_dword(i->seg(), op1_addr & i->asize_mask());
+  op1_32 = read_RMW_virtual_dword(i->seg(), op1_addr & i->asize_mask());
   bx_bool temp_CF = (op1_32 >> index_32) & 0x01;
   op1_32 ^= (1 << index_32);  /* toggle bit */
   set_CF(temp_CF);
 
-  write_virtual_dword(i->seg(), op1_addr & i->asize_mask(), op1_32);
+  write_RMW_linear_dword(op1_32);
 
   BX_NEXT_INSTR(i);
 }
@@ -270,10 +258,10 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::BTS_EdIbM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  Bit32u op1_32 = read_virtual_dword(i->seg(), eaddr);
+  Bit32u op1_32 = read_RMW_virtual_dword(i->seg(), eaddr);
   bx_bool temp_CF = (op1_32 >> op2_8) & 0x01;
   op1_32 |= (1 << op2_8);
-  write_virtual_dword(i->seg(), eaddr, op1_32);
+  write_RMW_linear_dword(op1_32);
 
   set_CF(temp_CF);
 
@@ -300,10 +288,10 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::BTC_EdIbM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  Bit32u op1_32 = read_virtual_dword(i->seg(), eaddr);
+  Bit32u op1_32 = read_RMW_virtual_dword(i->seg(), eaddr);
   bx_bool temp_CF = (op1_32 >> op2_8) & 0x01;
   op1_32 ^= (1 << op2_8);  /* toggle bit */
-  write_virtual_dword(i->seg(), eaddr, op1_32);
+  write_RMW_linear_dword(op1_32);
 
   set_CF(temp_CF);
 
@@ -330,10 +318,10 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::BTR_EdIbM(bxInstruction_c *i)
 
   bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
 
-  Bit32u op1_32 = read_virtual_dword(i->seg(), eaddr);
+  Bit32u op1_32 = read_RMW_virtual_dword(i->seg(), eaddr);
   bx_bool temp_CF = (op1_32 >> op2_8) & 0x01;
   op1_32 &= ~(1 << op2_8);
-  write_virtual_dword(i->seg(), eaddr, op1_32);
+  write_RMW_linear_dword(op1_32);
 
   set_CF(temp_CF);
 
