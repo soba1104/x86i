@@ -29,6 +29,7 @@
 /////////////////////////////////////////////////////////////////////////////////
 // 変更点
 // RMW 系命令をそうでないものに置き換えた。
+// CMPXCHG16B を削除した。
 
 #define NEED_CPU_REG_SHORTCUTS 1
 #include "bochs.h"
@@ -387,7 +388,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ADD_EqIdM(bxInstruction_c *i)
   op1_64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr));
   op2_64 = (Bit32s) i->Id();
   sum_64 = op1_64 + op2_64;
-  write_linear_qword(si->seg(), get_laddr64(i->seg(), eaddr), um_64);
+  write_linear_qword(i->seg(), get_laddr64(i->seg(), eaddr), sum_64);
 
   SET_FLAGS_OSZAPC_ADD_64(op1_64, op2_64, sum_64);
 
@@ -598,33 +599,6 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMPXCHG_EqGqR(bxInstruction_c *i)
   else {
     // accumulator <-- dest
     RAX = op1_64;
-  }
-
-  BX_NEXT_INSTR(i);
-}
-
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMPXCHG16B(bxInstruction_c *i)
-{
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
-
-  Bit64u op1_64_lo, op1_64_hi, diff;
-
-  // check write permission for following write
-  read_linear_dqword_aligned_64(i->seg(), get_laddr64(i->seg(), eaddr), &op1_64_hi, &op1_64_lo);
-
-  diff  = RAX - op1_64_lo;
-  diff |= RDX - op1_64_hi;
-
-  if (diff == 0) {  // if accumulator == dest
-    write_linear_dqword(i->seg(), get_laddr64(i->seg(), eaddr), RCX, RBX);
-    assert_ZF();
-  }
-  else {
-    clear_ZF();
-    write_linear_dqword(i->seg(), get_laddr64(i->seg(), eaddr), op1_64_hi, op1_64_lo);
-    // accumulator <-- dest
-    RAX = op1_64_lo;
-    RDX = op1_64_hi;
   }
 
   BX_NEXT_INSTR(i);
