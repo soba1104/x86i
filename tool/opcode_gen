@@ -12,6 +12,7 @@ defined_funcs = [
                  'arith64.cc',
                  'data_xfer64.cc',
                  'logical8.cc',
+                 'logical32.cc',
                  'sse.cc',
                 ].map{|n| File.join([bochs, n])}
 defined_funcs.each do |p|

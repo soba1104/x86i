@@ -358,51 +358,6 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_GdEdR(bxInstruction_c *i)
   SET_FLAGS_OSZAPC_SUB_32(op1_32, op2_32, diff_32);
 }
 
-// arith32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EdIdM(bxInstruction_c *i)
-{
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-
-  Bit32u op1_32 = read_virtual_dword(i->seg(), eaddr);
-  op1_32 &= i->Id();
-  SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
-}
-
-// logical32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XOR_GdEdR(bxInstruction_c *i)
-{
-  Bit32u op1_32, op2_32;
-
-  op1_32 = BX_READ_32BIT_REG(i->dst());
-  op2_32 = BX_READ_32BIT_REG(i->src());
-  op1_32 ^= op2_32;
-  BX_WRITE_32BIT_REGZ(i->dst(), op1_32);
-
-  SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
-}
-
-// logical32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EdGdR(bxInstruction_c *i)
-{
-  Bit32u op1_32, op2_32;
-
-  op1_32 = BX_READ_32BIT_REG(i->dst());
-  op2_32 = BX_READ_32BIT_REG(i->src());
-  op1_32 &= op2_32;
-
-  SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
-}
-
-// logical32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::AND_EdIdR(bxInstruction_c *i)
-{
-  Bit32u op1_32 = BX_READ_32BIT_REG(i->dst());
-  op1_32 &= i->Id();
-  BX_WRITE_32BIT_REGZ(i->dst(), op1_32);
-
-  SET_FLAGS_OSZAPC_LOGIC_32(op1_32);
-}
-
 // logical64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EqIdR(bxInstruction_c *i)
 {
