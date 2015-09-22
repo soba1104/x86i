@@ -11,6 +11,7 @@ defined_funcs = [
                  'funcs.cc',
                  'data_xfer64.cc',
                  'logical8.cc',
+                 'sse.cc',
                 ].map{|n| File.join([bochs, n])}
 defined_funcs.each do |p|
   unless File.exist?(p)
@@ -32,9 +33,15 @@ funcs = {}
 body = []
 defined_funcs.each do |p|
   File.read(p).lines.each do |line|
-    next unless line =~ /^BX_INSF_TYPE/
-    raise line unless /(BX_CPU_C::\w+)\(/ =~ line
-    funcs[$1] = true
+    case line
+    when /^BX_INSF_TYPE/
+      raise line unless /(BX_CPU_C::\w+)\(/ =~ line
+      funcs[$1] = true
+    when /^SSE_/
+      raise line unless /SSE_\w+\((\w+), \w+\)/ =~ line
+      f = "BX_CPU_C::#{$1}"
+      funcs[f] = true
+    end
   end
 end
 File.read(ia_opcodes).lines.each do |line|

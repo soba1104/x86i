@@ -10,6 +10,7 @@ SET(X86I_HEADERS x86i.h)
 SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/data_xfer64.cc
                   bochs/logical8.cc
+                  bochs/sse.cc
                   bochs/globals.cc
                   bochs/utils.cc
                   bochs/funcs.cc)
@@ -17,6 +18,8 @@ SET(BOCHS_HEADERS bochs/bochs.h
                   bochs/config.h
                   bochs/cpu.h
                   bochs/xmm.h
+                  bochs/simd_int.h
+                  bochs/simd_compare.h
                   bochs/crregs.h
                   bochs/descriptor.h
                   bochs/instr.h
