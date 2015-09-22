@@ -4267,8 +4267,14 @@ public: // for now...
 
   BX_SMF void branch_near64(bxInstruction_c *i) BX_CPP_AttrRegparmN(1);
 
+  BX_SMF void stack_write_byte(bx_address offset, Bit8u data) BX_CPP_AttrRegparmN(2);
+  BX_SMF void stack_write_word(bx_address offset, Bit16u data) BX_CPP_AttrRegparmN(2);
+  BX_SMF void stack_write_dword(bx_address offset, Bit32u data) BX_CPP_AttrRegparmN(2);
   BX_SMF void stack_write_qword(bx_address offset, Bit64u data) BX_CPP_AttrRegparmN(2);
 
+  BX_SMF Bit8u stack_read_byte(bx_address offset) BX_CPP_AttrRegparmN(1);
+  BX_SMF Bit16u stack_read_word(bx_address offset) BX_CPP_AttrRegparmN(1);
+  BX_SMF Bit32u stack_read_dword(bx_address offset) BX_CPP_AttrRegparmN(1);
   BX_SMF Bit64u stack_read_qword(bx_address offset) BX_CPP_AttrRegparmN(1);
 
 #if BX_SUPPORT_X86_64

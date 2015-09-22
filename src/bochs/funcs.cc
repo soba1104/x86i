@@ -39,52 +39,6 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::POP_EqR(bxInstruction_c *i)
   BX_WRITE_64BIT_REG(i->dst(), pop_64());
 }
 
-// data_xfer32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EdIdR(bxInstruction_c *i)
-{
-  BX_WRITE_32BIT_REGZ(i->dst(), i->Id());
-}
-
-// data_xfer32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_EdIdM(bxInstruction_c *i)
-{
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-  write_virtual_dword(i->seg(), eaddr, i->Id());
-}
-
-// data_xfer32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVZX_GdEbM(bxInstruction_c *i)
-{
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-
-  Bit8u op2_8 = *((Bit8u*)eaddr);
-
-  /* zero extend byte op2 into dword op1 */
-  BX_WRITE_32BIT_REGZ(i->dst(), (Bit32u) op2_8);
-}
-
-// data_xfer32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVZX_GdEbR(bxInstruction_c *i)
-{
-  Bit8u op2_8 = BX_READ_8BIT_REGx(i->src(), i->extend8bitL());
-
-  /* zero extend byte op2 into dword op1 */
-  BX_WRITE_32BIT_REGZ(i->dst(), (Bit32u) op2_8);
-}
-
-// data_xfer32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOV_GdEdR(bxInstruction_c *i)
-{
-  BX_WRITE_32BIT_REGZ(i->dst(), BX_READ_32BIT_REG(i->src()));
-}
-
-// data_xfer32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LEA_GdM(bxInstruction_c *i)
-{
-  Bit32u eaddr = (Bit32u) BX_CPU_RESOLVE_ADDR(i);
-  BX_WRITE_32BIT_REGZ(i->dst(), eaddr);
-}
-
 // ctrl_xfer64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CALL_Jq(bxInstruction_c *i)
 {

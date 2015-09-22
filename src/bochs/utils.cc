@@ -592,9 +592,43 @@ Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_RMW_virtual_qword_32(unsigned s, Bi
   return read_RMW_linear_qword(s, laddr);
 }
 
+void BX_CPP_AttrRegparmN(2) BX_CPU_C::stack_write_byte(bx_address offset, Bit8u data)
+{
+  *((Bit8u*)offset) = data;
+}
+
+void BX_CPP_AttrRegparmN(2) BX_CPU_C::stack_write_word(bx_address offset, Bit16u data)
+{
+  WriteHostWordToLittleEndian((Bit16u*)offset, data);
+}
+
+void BX_CPP_AttrRegparmN(2) BX_CPU_C::stack_write_dword(bx_address offset, Bit32u data)
+{
+  WriteHostDWordToLittleEndian((Bit32u*)offset, data);
+}
+
 void BX_CPP_AttrRegparmN(2) BX_CPU_C::stack_write_qword(bx_address offset, Bit64u data)
 {
   WriteHostQWordToLittleEndian((Bit64u*)offset, data);
+}
+
+Bit8u BX_CPP_AttrRegparmN(1) BX_CPU_C::stack_read_byte(bx_address offset)
+{
+  return *((Bit8u*)offset);
+}
+
+Bit16u BX_CPP_AttrRegparmN(1) BX_CPU_C::stack_read_word(bx_address offset)
+{
+  Bit16u data;
+  ReadHostWordFromLittleEndian(offset, data);
+  return data;
+}
+
+Bit32u BX_CPP_AttrRegparmN(1) BX_CPU_C::stack_read_dword(bx_address offset)
+{
+  Bit32u data;
+  ReadHostDWordFromLittleEndian(offset, data);
+  return data;
 }
 
 Bit64u BX_CPP_AttrRegparmN(1) BX_CPU_C::stack_read_qword(bx_address offset)
