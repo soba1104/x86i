@@ -444,10 +444,55 @@ Bit8u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_RMW_linear_byte(unsigned s, bx_addre
   return data;
 }
 
+Bit16u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_RMW_linear_word(unsigned s, bx_address laddr)
+{
+  Bit16u data = *((Bit16u*)laddr);
+  assert(BX_CPU_THIS_PTR rmw_addr == 0);
+  BX_CPU_THIS_PTR rmw_addr = laddr;
+  return data;
+}
+
+Bit32u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_RMW_linear_dword(unsigned s, bx_address laddr)
+{
+  Bit32u data = *((Bit32u*)laddr);
+  assert(BX_CPU_THIS_PTR rmw_addr == 0);
+  BX_CPU_THIS_PTR rmw_addr = laddr;
+  return data;
+}
+
+Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_RMW_linear_qword(unsigned s, bx_address laddr)
+{
+  Bit64u data = *((Bit64u*)laddr);
+  assert(BX_CPU_THIS_PTR rmw_addr == 0);
+  BX_CPU_THIS_PTR rmw_addr = laddr;
+  return data;
+}
+
 void BX_CPP_AttrRegparmN(1) BX_CPU_C::write_RMW_linear_byte(Bit8u val8)
 {
-  Bit8u *laddr = (Bit8u *)BX_CPU_THIS_PTR rmw_addr;
+  Bit8u *laddr = (Bit8u*)BX_CPU_THIS_PTR rmw_addr;
   *laddr = val8;
+  BX_CPU_THIS_PTR rmw_addr = 0;
+}
+
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::write_RMW_linear_word(Bit16u val16)
+{
+  Bit16u *laddr = (Bit16u*) BX_CPU_THIS_PTR rmw_addr;
+  WriteHostWordToLittleEndian(laddr, val16);
+  BX_CPU_THIS_PTR rmw_addr = 0;
+}
+
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::write_RMW_linear_dword(Bit32u val32)
+{
+  Bit32u *laddr = (Bit32u*) BX_CPU_THIS_PTR rmw_addr;
+  WriteHostDWordToLittleEndian(laddr, val32);
+  BX_CPU_THIS_PTR rmw_addr = 0;
+}
+
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::write_RMW_linear_qword(Bit64u val64)
+{
+  Bit64u *laddr = (Bit64u*) BX_CPU_THIS_PTR rmw_addr;
+  WriteHostQWordToLittleEndian(laddr, val64);
   BX_CPU_THIS_PTR rmw_addr = 0;
 }
 
