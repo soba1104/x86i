@@ -391,36 +391,6 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHR_EbR(bxInstruction_c *i)
   }
 }
 
-// shift32.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SHR_EdR(bxInstruction_c *i)
-{
-  unsigned count;
-
-  if (i->getIaOpcode() == BX_IA_SHR_Ed)
-    count = CL;
-  else
-    count = i->Ib();
-
-  count &= 0x1f;
-
-  if (!count) {
-    BX_CLEAR_64BIT_HIGH(i->dst()); // always clear upper part of the register
-  }
-  else {
-    Bit32u op1_32 = BX_READ_32BIT_REG(i->dst());
-    Bit32u result_32 = (op1_32 >> count);
-    BX_WRITE_32BIT_REGZ(i->dst(), result_32);
-
-    unsigned cf = (op1_32 >> (count - 1)) & 0x1;
-    // note, that of == result31 if count == 1 and
-    //            of == 0        if count >= 2
-    unsigned of = ((result_32 << 1) ^ result_32) >> 31;
-
-    SET_FLAGS_OSZAPC_LOGIC_32(result_32);
-    SET_FLAGS_OxxxxC(of, cf);
-  }
-}
-
 // load.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LOAD_Eq(bxInstruction_c *i)
 {
