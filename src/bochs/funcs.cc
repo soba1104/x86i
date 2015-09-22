@@ -250,28 +250,6 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::RETnear64(bxInstruction_c *i)
   RSP += 8;
 }
 
-// arith8.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::DEC_EbR(bxInstruction_c *i)
-{
-  Bit32u op1_8 = BX_READ_8BIT_REGx(i->dst(), i->extend8bitL());
-  op1_8--;
-  BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), op1_8);
-
-  SET_FLAGS_OSZAP_SUB_8(op1_8 + 1, 0, op1_8);
-}
-
-// arith8.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMP_EbIbM(bxInstruction_c *i)
-{
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-
-  Bit32u op1_8 = *((Bit8u*)eaddr);
-  Bit32u op2_8 = i->Ib();
-  Bit32u diff_8 = op1_8 - op2_8;
-
-  SET_FLAGS_OSZAPC_SUB_8(op1_8, op2_8, diff_8);
-}
-
 // logical64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::TEST_EqIdR(bxInstruction_c *i)
 {
