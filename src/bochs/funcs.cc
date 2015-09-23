@@ -13,11 +13,46 @@
 #include "simd_int.h"
 
 #include "dummyfuncs.h"
+#include "host_adapter.h"
+
+#include <stdio.h>
 
 // proc_ctrl.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::NOP(bxInstruction_c *i)
 {
   // No operation.
+}
+
+// proc_ctrl.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::RDTSC(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 5
+#if 0
+  if (BX_CPU_THIS_PTR cr4.get_TSD() && CPL != 0) {
+    BX_ERROR(("%s: not allowed to use instruction !", i->getIaOpcodeNameShort()));
+    exception(BX_GP_EXCEPTION, 0);
+  }
+
+#if BX_SUPPORT_VMX
+  if (BX_CPU_THIS_PTR in_vmx_guest) {
+    if (VMEXIT(VMX_VM_EXEC_CTRL2_RDTSC_VMEXIT)) {
+      VMexit(VMX_VMEXIT_RDTSC, 0);
+    }
+  }
+#endif
+
+#if BX_SUPPORT_SVM
+  if (BX_CPU_THIS_PTR in_svm_guest)
+    if (SVM_INTERCEPT(SVM_INTERCEPT0_RDTSC)) Svm_Vmexit(SVM_VMEXIT_RDTSC);
+#endif
+#endif
+
+  // return ticks
+  Bit64u ticks = host_rdtsc();
+
+  RAX = GET32L(ticks);
+  RDX = GET32H(ticks);
+#endif
 }
 
 // stack64.cc

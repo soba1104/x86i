@@ -28,6 +28,7 @@ SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/shift64.cc
                   bochs/sse.cc
                   bochs/globals.cc
+                  bochs/host_adapter.s
                   bochs/utils.cc
                   bochs/funcs.cc)
 SET(BOCHS_HEADERS bochs/bochs.h
@@ -44,6 +45,7 @@ SET(BOCHS_HEADERS bochs/bochs.h
                   bochs/fetchdecode.h
                   bochs/fetchdecode_x87.h
                   bochs/fetchdecode_sse.h
+                  bochs/host_adapter.h
                   bochs/dummyfuncs.h)
 SET(X86I_SOURCES ${X86I_HEADERS} ${BOCHS_HEADERS} ${BOCHS_SOURCES} main.c)
 
