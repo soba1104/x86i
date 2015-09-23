@@ -235,26 +235,6 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LOAD_Wdq(bxInstruction_c *i)
 #endif
 }
 
-// bit.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SETZ_EbR(bxInstruction_c *i)
-{
-  BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), getB_ZF());
-}
-
-// bit.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SETNZ_EbM(bxInstruction_c *i)
-{
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-  Bit8u result_8 = !getB_ZF();
-  *((Bit8u*)eaddr) = result_8;
-}
-
-// bits.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SETNZ_EbR(bxInstruction_c *i)
-{
-  BX_WRITE_8BIT_REGx(i->dst(), i->extend8bitL(), !getB_ZF());
-}
-
 // string.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::REP_MOVSB_YbXb(bxInstruction_c *i)
 {

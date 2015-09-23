@@ -35,6 +35,7 @@
 #undef BX_SUPPORT_HANDLERS_CHAINING_SPEEDUPS
 #include <assert.h>
 #define BX_INFO(...)
+#define BX_ERROR(...)
 #define exception(A, B) assert(false)
 
 BX_CPP_INLINE Bit16u bx_bswap16(Bit16u val16)
