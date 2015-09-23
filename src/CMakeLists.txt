@@ -21,6 +21,7 @@ SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/logical8.cc
                   bochs/logical32.cc
                   bochs/logical64.cc
+                  bochs/mult32.cc
                   bochs/mult64.cc
                   bochs/shift8.cc
                   bochs/shift32.cc
