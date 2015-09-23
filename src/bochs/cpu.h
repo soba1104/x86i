@@ -4317,12 +4317,22 @@ public: // for now...
   void set_r9(Bit64u r9);
   Bit64u get_rip(void);
   Bit64u get_rax(void);
+  Bit64u get_rbx(void);
+  Bit64u get_rcx(void);
+  Bit64u get_rdx(void);
   Bit64u get_rdi(void);
   Bit64u get_rsi(void);
-  Bit64u get_rdx(void);
-  Bit64u get_rcx(void);
+  Bit64u get_rbp(void);
+  Bit64u get_rsp(void);
   Bit64u get_r8(void);
   Bit64u get_r9(void);
+  Bit64u get_r10(void);
+  Bit64u get_r11(void);
+  Bit64u get_r12(void);
+  Bit64u get_r13(void);
+  Bit64u get_r14(void);
+  Bit64u get_r15(void);
+  Bit32u get_eflags(void);
 };
 
 // Can be used as LHS or RHS.

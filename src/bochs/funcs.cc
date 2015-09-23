@@ -455,6 +455,14 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PMOVMSKB_GdUdq(bxInstruction_c *i)
 }
 
 // sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PALIGNR_VdqWdqIbR(bxInstruction_c *i)
+{
+  BxPackedXmmRegister op1 = BX_READ_XMM_REG(i->dst()), op2 = BX_READ_XMM_REG(i->src());
+  xmm_palignr(&op2, &op1, i->Ib());
+  BX_WRITE_XMM_REG(i->dst(), op2);
+}
+
+// sse_move.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVQ_VdqEqR(bxInstruction_c *i)
 {
   BxPackedXmmRegister op;

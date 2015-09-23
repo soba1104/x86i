@@ -40,12 +40,22 @@ void set_r9(void *cpu,  uint64_t r9)  { ((BX_CPU_C*)cpu)->set_r9(r9); }
 
 uint64_t get_rip(void *cpu) { return ((BX_CPU_C*)cpu)->get_rip(); }
 uint64_t get_rax(void *cpu) { return ((BX_CPU_C*)cpu)->get_rax(); }
+uint64_t get_rbx(void *cpu) { return ((BX_CPU_C*)cpu)->get_rbx(); }
+uint64_t get_rcx(void *cpu) { return ((BX_CPU_C*)cpu)->get_rcx(); }
+uint64_t get_rdx(void *cpu) { return ((BX_CPU_C*)cpu)->get_rdx(); }
 uint64_t get_rdi(void *cpu) { return ((BX_CPU_C*)cpu)->get_rdi(); }
 uint64_t get_rsi(void *cpu) { return ((BX_CPU_C*)cpu)->get_rsi(); }
-uint64_t get_rdx(void *cpu) { return ((BX_CPU_C*)cpu)->get_rdx(); }
-uint64_t get_rcx(void *cpu) { return ((BX_CPU_C*)cpu)->get_rcx(); }
+uint64_t get_rbp(void *cpu) { return ((BX_CPU_C*)cpu)->get_rbp(); }
+uint64_t get_rsp(void *cpu) { return ((BX_CPU_C*)cpu)->get_rsp(); }
 uint64_t get_r8(void *cpu)  { return ((BX_CPU_C*)cpu)->get_r8(); }
 uint64_t get_r9(void *cpu)  { return ((BX_CPU_C*)cpu)->get_r9(); }
+uint64_t get_r10(void *cpu) { return ((BX_CPU_C*)cpu)->get_r10(); }
+uint64_t get_r11(void *cpu) { return ((BX_CPU_C*)cpu)->get_r11(); }
+uint64_t get_r12(void *cpu) { return ((BX_CPU_C*)cpu)->get_r12(); }
+uint64_t get_r13(void *cpu) { return ((BX_CPU_C*)cpu)->get_r13(); }
+uint64_t get_r14(void *cpu) { return ((BX_CPU_C*)cpu)->get_r14(); }
+uint64_t get_r15(void *cpu) { return ((BX_CPU_C*)cpu)->get_r15(); }
+uint32_t get_eflags(void *cpu) { return ((BX_CPU_C*)cpu)->get_eflags(); }
 
 void free_cpu(void *cpu)
 {
@@ -195,12 +205,22 @@ void BX_CPU_C::set_r9(Bit64u r9)   { R9 = r9; }
 
 Bit64u BX_CPU_C::get_rip(void) { return RIP; }
 Bit64u BX_CPU_C::get_rax(void) { return RAX; }
+Bit64u BX_CPU_C::get_rbx(void) { return RBX; }
+Bit64u BX_CPU_C::get_rcx(void) { return RCX; }
+Bit64u BX_CPU_C::get_rdx(void) { return RDX; }
 Bit64u BX_CPU_C::get_rdi(void) { return RDI; }
 Bit64u BX_CPU_C::get_rsi(void) { return RSI; }
-Bit64u BX_CPU_C::get_rdx(void) { return RDX; }
-Bit64u BX_CPU_C::get_rcx(void) { return RCX; }
+Bit64u BX_CPU_C::get_rbp(void) { return RBP; }
+Bit64u BX_CPU_C::get_rsp(void) { return RSP; }
 Bit64u BX_CPU_C::get_r8(void)  { return R8; }
 Bit64u BX_CPU_C::get_r9(void)  { return R9; }
+Bit64u BX_CPU_C::get_r10(void) { return R10; }
+Bit64u BX_CPU_C::get_r11(void) { return R11; }
+Bit64u BX_CPU_C::get_r12(void) { return R12; }
+Bit64u BX_CPU_C::get_r13(void) { return R13; }
+Bit64u BX_CPU_C::get_r14(void) { return R14; }
+Bit64u BX_CPU_C::get_r15(void) { return R15; }
+Bit32u BX_CPU_C::get_eflags(void) { return eflags; }
 
 Bit32u BX_CPU_C::get_laddr32(unsigned seg, Bit32u offset)
 {
