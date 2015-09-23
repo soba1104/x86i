@@ -14,6 +14,8 @@
 #include <cpu.h>
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 extern "C" {
 
@@ -93,12 +95,16 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
   BX_CPU_THIS_PTR cpu_mode = BX_MODE_LONG_64; // FIXME
 
   // 暫定。今の所 segment.base 以外は参照しない。
+  void *gs; // TODO gs の領域を外から設定できるようにする。
+  int r = posix_memalign(&gs, 0x1000, 0x1000000);
+  assert(r >= 0);
+  memset(gs, 0, 0x1000000);
   BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].cache.u.segment.base = 0;
   BX_CPU_THIS_PTR sregs[BX_SEG_REG_DS].cache.u.segment.base = 0;
   BX_CPU_THIS_PTR sregs[BX_SEG_REG_SS].cache.u.segment.base = 0;
   BX_CPU_THIS_PTR sregs[BX_SEG_REG_ES].cache.u.segment.base = 0;
   BX_CPU_THIS_PTR sregs[BX_SEG_REG_FS].cache.u.segment.base = 0;
-  BX_CPU_THIS_PTR sregs[BX_SEG_REG_GS].cache.u.segment.base = 0;
+  BX_CPU_THIS_PTR sregs[BX_SEG_REG_GS].cache.u.segment.base = (bx_address)gs;
 
 //init.cc のオリジナルのコンストラクタから持ってきたもの
   for (unsigned n=0;n<BX_ISA_EXTENSIONS_ARRAY_SIZE;n++)
