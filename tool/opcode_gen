@@ -20,6 +20,7 @@ defined_funcs = [
                  'data_xfer32.cc',
                  'data_xfer64.cc',
                  'logical8.cc',
+                 'logical16.cc',
                  'logical32.cc',
                  'logical64.cc',
                  'mult32.cc',
