@@ -294,6 +294,19 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::REP_MOVSB_YbXb(bxInstruction_c *i)
 }
 
 // string.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::REP_MOVSQ_YqXq(bxInstruction_c *i)
+{
+  if (i->as64L()) {
+    BX_CPU_THIS_PTR repeat(i, &BX_CPU_C::MOVSQ64_YqXq);
+  }
+  else {
+    BX_CPU_THIS_PTR repeat(i, &BX_CPU_C::MOVSQ32_YqXq);
+    BX_CLEAR_64BIT_HIGH(BX_64BIT_REG_RSI); // always clear upper part of RSI/RDI
+    BX_CLEAR_64BIT_HIGH(BX_64BIT_REG_RDI);
+  }
+}
+
+// string.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSB64_YbXb(bxInstruction_c *i)
 {
   Bit8u temp8;
@@ -313,6 +326,57 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSB64_YbXb(bxInstruction_c *i)
     /* increment RSI, RDI */
     rsi++;
     rdi++;
+  }
+
+  RSI = rsi;
+  RDI = rdi;
+}
+
+// string.cc
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSQ32_YqXq(bxInstruction_c *i)
+{
+/* 64 bit opsize mode, 32 bit address size */
+  Bit64u temp64;
+
+  Bit32u esi = ESI;
+  Bit32u edi = EDI;
+
+  temp64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), esi));
+  write_linear_qword(BX_SEG_REG_ES, edi, temp64);
+
+  if (BX_CPU_THIS_PTR get_DF()) {
+    esi -= 8;
+    edi -= 8;
+  }
+  else {
+    esi += 8;
+    edi += 8;
+  }
+
+  // zero extension of RSI/RDI
+  RSI = esi;
+  RDI = edi;
+}
+
+// string.cc
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSQ64_YqXq(bxInstruction_c *i)
+{
+/* 64 bit opsize mode, 64 bit address size */
+  Bit64u temp64;
+
+  Bit64u rsi = RSI;
+  Bit64u rdi = RDI;
+
+  temp64 = read_linear_qword(i->seg(), get_laddr64(i->seg(), rsi));
+  write_linear_qword(BX_SEG_REG_ES, rdi, temp64);
+
+  if (BX_CPU_THIS_PTR get_DF()) {
+    rsi -= 8;
+    rdi -= 8;
+  }
+  else {
+    rsi += 8;
+    rdi += 8;
   }
 
   RSI = rsi;
