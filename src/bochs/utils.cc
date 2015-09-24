@@ -66,12 +66,7 @@ void free_cpu(void *cpu)
 }
 
 int decode64(void *cpu, void *insn) {
-  bxInstruction_c *i = (bxInstruction_c*)insn;
-  Bit8u *iptr = (Bit8u*)get_rip(cpu);
-  int res = ((BX_CPU_C*)cpu)->fetchDecode64(iptr, 0xffffffff, i, 15);
-  assert(res >= 0);
-  set_rip(cpu, (Bit64u)(iptr + i->ilen()));
-  return res;
+  return ((BX_CPU_C*)cpu)->decode64(insn);
 }
 
 void step(void *cpu, void *insn) {
@@ -190,6 +185,14 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
 
 BX_CPU_C::~BX_CPU_C()
 {
+}
+
+int BX_CPU_C::decode64(void *insn) {
+  bxInstruction_c *i = (bxInstruction_c*)insn;
+  Bit8u *iptr = (Bit8u*)RIP;
+  int res = fetchDecode64(iptr, 0xffffffff, i, 15);
+  RIP += i->ilen();
+  return res;
 }
 
 void BX_CPU_C::step(void *insn) {
