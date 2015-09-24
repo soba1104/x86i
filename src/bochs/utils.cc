@@ -556,6 +556,20 @@ void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_xmmword_aligned_32(unsigned 
   write_linear_xmmword_aligned(s, laddr, data);
 }
 
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_linear_ymmword(unsigned s, bx_address laddr, BxPackedYmmRegister *data)
+{
+  Bit64u *addr = (Bit64u*)laddr;
+  for (unsigned n=0; n < 4; n++) {
+    ReadHostQWordFromLittleEndian(addr+n, data->ymm64u(n));
+  }
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_virtual_ymmword(unsigned s, bx_address offset, BxPackedYmmRegister *data)
+{
+  bx_address laddr = agen_read(s, offset, 32);
+  read_linear_ymmword(s, laddr, data);
+}
+
 Bit8u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_RMW_linear_byte(unsigned s, bx_address laddr)
 {
   Bit8u data = *((Bit8u*)laddr);
