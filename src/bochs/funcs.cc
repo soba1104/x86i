@@ -27,7 +27,12 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::NOP(bxInstruction_c *i)
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CPUID(bxInstruction_c *i)
 {
   uint32_t eax = EAX, ebx, ecx, edx;
+  assert(eax == 1);
   host_cpuid(&eax, &ebx, &ecx, &edx);
+
+  // clear osxsave flag
+  ecx &= ~BX_CPUID_EXT_OSXSAVE;
+
   RAX = eax;
   RBX = ebx;
   RCX = ecx;
