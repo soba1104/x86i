@@ -1744,7 +1744,7 @@ void free_insn(void *insn) {
 #define SSE_PREFIX_F2   3
 
 // fetchdecode.cc から持ってきた
-Bit16u WalkOpcodeTables(const BxOpcodeInfo_t *OpcodeInfoPtr, Bit16u &attr, unsigned modrm, unsigned sse_prefix, unsigned osize, unsigned vex_vl, bx_bool vex_w)
+Bit16u BX_CPU_C::WalkOpcodeTables(const BxOpcodeInfo_t *OpcodeInfoPtr, Bit16u &attr, unsigned modrm, unsigned sse_prefix, unsigned osize, unsigned vex_vl, bx_bool vex_w)
 {
   // Parse mod-nnn-rm and related bytes
   unsigned mod_mem = (modrm & 0xc0) != 0xc0;

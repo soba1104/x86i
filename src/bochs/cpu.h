@@ -4182,6 +4182,8 @@ public: // for now...
 #endif
 // <TAG-CLASS-CPU-END>
 
+  BX_SMF Bit16u WalkOpcodeTables(const BxOpcodeInfo_t *op, Bit16u &attr, unsigned modrm, unsigned sse_prefix, unsigned osize, unsigned vex_vl, bx_bool vex_w);
+
   // The linear address must be truncated to the 32-bit when CPU is not
   // executing in long64 mode.  The function  must  be used  to compute
   // linear address everywhere when a code is shared between long64 and
@@ -4194,7 +4196,7 @@ public: // for now...
   BX_SMF Bit64u get_laddr64(unsigned seg, Bit64u offset);
 #endif
 
-  BX_SMF BX_CPP_INLINE bx_bool long64_mode(void);
+  BX_SMF bx_bool long64_mode(void);
 
   DECLARE_EFLAG_ACCESSOR   (ID,  21)
   DECLARE_EFLAG_ACCESSOR   (VIP, 20)
