@@ -19,6 +19,7 @@ defined_funcs = [
                  'data_xfer16.cc',
                  'data_xfer32.cc',
                  'data_xfer64.cc',
+                 'load.cc',
                  'logical8.cc',
                  'logical16.cc',
                  'logical32.cc',
