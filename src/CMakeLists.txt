@@ -36,17 +36,26 @@ SET(BOCHS_SOURCES bochs/fetchdecode64.cc
 SET(BOCHS_HEADERS bochs/bochs.h
                   bochs/config.h
                   bochs/cpu.h
+                  bochs/cpuid.h
+                  bochs/i387.h
                   bochs/xmm.h
                   bochs/simd_int.h
                   bochs/simd_compare.h
                   bochs/scalar_arith.h
                   bochs/crregs.h
                   bochs/descriptor.h
+                  bochs/lazy_flags.h
                   bochs/instr.h
                   bochs/ia_opcodes.h
                   bochs/fetchdecode.h
                   bochs/fetchdecode_x87.h
                   bochs/fetchdecode_sse.h
+                  bochs/fetchdecode_xop.h
+                  bochs/fetchdecode_avx.h
+                  bochs/fpu/control_w.h
+                  bochs/fpu/softfloat.h
+                  bochs/fpu/status_w.h
+                  bochs/fpu/tag_w.h
                   bochs/host_adapter.h
                   bochs/dummyfuncs.h)
 SET(X86I_SOURCES ${X86I_HEADERS} ${BOCHS_HEADERS} ${BOCHS_SOURCES} main.c)
