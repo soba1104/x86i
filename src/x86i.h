@@ -12,6 +12,7 @@ void set_rdx(void *cpu, uint64_t rdx);
 void set_rcx(void *cpu, uint64_t rcx);
 void set_r8(void *cpu, uint64_t r8);
 void set_r9(void *cpu, uint64_t r9);
+void set_rflags(void *cpu, uint64_t rflags);
 uint64_t get_rip(void *cpu);
 uint64_t get_rax(void *cpu);
 uint64_t get_rbx(void *cpu);
@@ -29,7 +30,7 @@ uint64_t get_r12(void *cpu);
 uint64_t get_r13(void *cpu);
 uint64_t get_r14(void *cpu);
 uint64_t get_r15(void *cpu);
-uint32_t get_eflags(void *cpu);
+uint64_t get_rflags(void *cpu);
 
 void *alloc_insn();
 void free_insn(void *insn);

@@ -37,6 +37,9 @@ void set_rdx(void *cpu, uint64_t rdx) { ((BX_CPU_C*)cpu)->set_rdx(rdx); }
 void set_rcx(void *cpu, uint64_t rcx) { ((BX_CPU_C*)cpu)->set_rcx(rcx); }
 void set_r8(void *cpu,  uint64_t r8)  { ((BX_CPU_C*)cpu)->set_r8(r8); }
 void set_r9(void *cpu,  uint64_t r9)  { ((BX_CPU_C*)cpu)->set_r9(r9); }
+void set_rflags(void *cpu, uint64_t rflags)  {
+  ((BX_CPU_C*)cpu)->set_eflags((Bit32u)(rflags & 0xffffffffULL));
+}
 
 uint64_t get_rip(void *cpu) { return ((BX_CPU_C*)cpu)->get_rip(); }
 uint64_t get_rax(void *cpu) { return ((BX_CPU_C*)cpu)->get_rax(); }
@@ -55,7 +58,7 @@ uint64_t get_r12(void *cpu) { return ((BX_CPU_C*)cpu)->get_r12(); }
 uint64_t get_r13(void *cpu) { return ((BX_CPU_C*)cpu)->get_r13(); }
 uint64_t get_r14(void *cpu) { return ((BX_CPU_C*)cpu)->get_r14(); }
 uint64_t get_r15(void *cpu) { return ((BX_CPU_C*)cpu)->get_r15(); }
-uint32_t get_eflags(void *cpu) { return ((BX_CPU_C*)cpu)->get_eflags(); }
+uint64_t get_rflags(void *cpu) { return ((BX_CPU_C*)cpu)->get_eflags(); }
 
 void free_cpu(void *cpu)
 {
@@ -202,6 +205,7 @@ void BX_CPU_C::set_rdx(Bit64u rdx) { RDX = rdx; }
 void BX_CPU_C::set_rcx(Bit64u rcx) { RCX = rcx; }
 void BX_CPU_C::set_r8(Bit64u r8)   { R8 = r8; }
 void BX_CPU_C::set_r9(Bit64u r9)   { R9 = r9; }
+void BX_CPU_C::set_eflags(Bit32u f) { eflags = f; }
 
 Bit64u BX_CPU_C::get_rip(void) { return RIP; }
 Bit64u BX_CPU_C::get_rax(void) { return RAX; }
