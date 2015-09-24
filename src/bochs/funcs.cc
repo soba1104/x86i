@@ -24,6 +24,17 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::NOP(bxInstruction_c *i)
 }
 
 // proc_ctrl.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CPUID(bxInstruction_c *i)
+{
+  uint32_t eax = EAX, ebx, ecx, edx;
+  host_cpuid(&eax, &ebx, &ecx, &edx);
+  RAX = eax;
+  RBX = ebx;
+  RCX = ecx;
+  RDX = edx;
+}
+
+// proc_ctrl.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::RDTSC(bxInstruction_c *i)
 {
 #if BX_CPU_LEVEL >= 5
