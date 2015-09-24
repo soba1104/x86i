@@ -662,12 +662,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XRSTOR(bxInstruction_c *i)
     /////////////////////////////////////////////////////////////////////////////
     if ((requested_feature_bitmap & BX_XCR0_YMM_MASK) != 0)
     {
-      if (xstate_bv & BX_XCR0_YMM_MASK)
-        xrstor_ymm_state(i, eaddr+offset);
-      else
-        xrstor_init_ymm_state();
-
-      offset += XSAVE_YMM_STATE_LEN;
+      assert(false);
     }
 #endif
 
@@ -711,10 +706,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XRSTOR(bxInstruction_c *i)
     /////////////////////////////////////////////////////////////////////////////
     if ((requested_feature_bitmap & BX_XCR0_YMM_MASK) != 0)
     {
-      if (xstate_bv & BX_XCR0_YMM_MASK)
-        xrstor_ymm_state(i, eaddr+XSAVE_YMM_STATE_OFFSET);
-      else
-        xrstor_init_ymm_state();
+      assert(false);
     }
 #endif
 

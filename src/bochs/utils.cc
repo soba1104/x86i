@@ -822,8 +822,9 @@ Bit32u BX_CPU_C::get_xinuse_vector(Bit32u requested_feature_bitmap)
   }
 #if BX_SUPPORT_AVX
   if (requested_feature_bitmap & BX_XCR0_YMM_MASK) {
-    if (xsave_ymm_state_xinuse()) 
-      xinuse |= BX_XCR0_YMM_MASK;
+    assert(false);
+    //if (xsave_ymm_state_xinuse()) 
+      //xinuse |= BX_XCR0_YMM_MASK;
   }
 #if BX_SUPPORT_EVEX
   if (requested_feature_bitmap & BX_XCR0_OPMASK_MASK) {
