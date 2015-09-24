@@ -12,7 +12,7 @@ void set_rdx(void *cpu, uint64_t rdx);
 void set_rcx(void *cpu, uint64_t rcx);
 void set_r8(void *cpu, uint64_t r8);
 void set_r9(void *cpu, uint64_t r9);
-void set_rflags(void *cpu, uint64_t rflags);
+void set_oszapc(void *cpu, uint32_t eflags);
 uint64_t get_rip(void *cpu);
 uint64_t get_rax(void *cpu);
 uint64_t get_rbx(void *cpu);
