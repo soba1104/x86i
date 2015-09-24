@@ -66,7 +66,12 @@ void free_cpu(void *cpu)
 }
 
 int decode64(void *cpu, void *insn) {
-  return ((BX_CPU_C*)cpu)->decode64(insn);
+  bxInstruction_c *i = (bxInstruction_c*)insn;
+  Bit8u *iptr = (Bit8u*)get_rip(cpu);
+  int res = ((BX_CPU_C*)cpu)->fetchDecode64(iptr, 0xffffffff, i, 15);
+  assert(res >= 0);
+  set_rip(cpu, (Bit64u)(iptr + i->ilen()));
+  return res;
 }
 
 void step(void *cpu, void *insn) {
