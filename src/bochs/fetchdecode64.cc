@@ -2212,6 +2212,805 @@ decode_done:
   return 0;
 }
 
+  int BX_CPP_AttrRegparmN(3)
+BX_CPU_C::fetchDecode64(const Bit8u *iptr, Bit32u fetchModeMask, bxInstruction_c *i, unsigned remainingInPage)
+{
+  if (remainingInPage > 15) remainingInPage = 15;
+
+  unsigned remain = remainingInPage; // remain must be at least 1
+  unsigned b1, b2 = 0, ia_opcode = BX_IA_ERROR, imm_mode = 0;
+  unsigned offset = 512, rex_r = 0, rex_x = 0, rex_b = 0;
+  unsigned rm = 0, mod = 0, nnn = 0, mod_mem = 0;
+  unsigned seg = BX_SEG_REG_DS, seg_override = BX_SEG_REG_NULL;
+  bx_bool lock = 0;
+
+#define SSE_PREFIX_NONE 0
+#define SSE_PREFIX_66   1
+#define SSE_PREFIX_F3   2
+#define SSE_PREFIX_F2   3
+  unsigned sse_prefix = SSE_PREFIX_NONE;
+  unsigned rex_prefix = 0;
+
+  bx_bool vex_w = 0;
+#if BX_SUPPORT_AVX
+  int had_vex_xop = 0, vvv = -1;
+  bx_bool use_vvv = 0;
+#endif
+
+#if BX_SUPPORT_EVEX
+  unsigned evex_v = 0, displ8 = 0;
+#endif
+
+  i->init(/*os32*/ 1,  // operand size 32 override defaults to 1
+          /*as32*/ 1,  // address size 32 override defaults to 1
+          /*os64*/ 0,  // operand size 64 override defaults to 0
+          /*as64*/ 1); // address size 64 override defaults to 1
+
+fetch_b1:
+  b1 = *iptr++;
+  remain--;
+
+  switch (b1) {
+    case 0x40:
+    case 0x41:
+    case 0x42:
+    case 0x43:
+    case 0x44:
+    case 0x45:
+    case 0x46:
+    case 0x47:
+    case 0x48:
+    case 0x49:
+    case 0x4A:
+    case 0x4B:
+    case 0x4C:
+    case 0x4D:
+    case 0x4E:
+    case 0x4F:
+      rex_prefix = b1;
+      if (remain != 0) {
+        goto fetch_b1;
+      }
+      return(-1);
+    case 0x0f: // 2 byte escape
+      if (remain != 0) {
+        remain--;
+        b1 = 0x100 | *iptr++;
+        break;
+      }
+      return(-1);
+    case 0xf2: // REPNE/REPNZ
+    case 0xf3: // REP/REPE/REPZ
+      rex_prefix = 0;
+      sse_prefix = (b1 & 3) ^ 1;
+      i->setLockRepUsed(b1 & 3);
+      if (remain != 0) {
+        goto fetch_b1;
+      }
+      return(-1);
+    case 0x2e: // CS:
+    case 0x26: // ES:
+    case 0x36: // SS:
+    case 0x3e: // DS:
+      /* ignore segment override prefix */
+      rex_prefix = 0;
+      if (remain != 0) {
+        goto fetch_b1;
+      }
+      return(-1);
+    case 0x64: // FS:
+    case 0x65: // GS:
+      rex_prefix = 0;
+      seg_override = b1 & 0xf;
+      if (remain != 0) {
+        goto fetch_b1;
+      }
+      return(-1);
+    case 0x66: // OpSize
+      rex_prefix = 0;
+      if(!sse_prefix) sse_prefix = SSE_PREFIX_66;
+      i->setOs32B(0);
+      offset = 0;
+      if (remain != 0) {
+        goto fetch_b1;
+      }
+      return(-1);
+    case 0x67: // AddrSize
+      rex_prefix = 0;
+      i->clearAs64();
+      if (remain != 0) {
+        goto fetch_b1;
+      }
+      return(-1);
+    case 0xf0: // LOCK:
+      rex_prefix = 0;
+      lock = 1;
+      if (remain != 0) {
+        goto fetch_b1;
+      }
+      return(-1);
+    default:
+      break;
+  }
+
+  if (rex_prefix) {
+    i->assertExtend8bit();
+    if (rex_prefix & 0x8) {
+      i->assertOs64();
+      i->assertOs32();
+      offset = 512*2;
+    }
+    rex_r = ((rex_prefix & 0x4) << 1);
+    rex_x = ((rex_prefix & 0x2) << 2);
+    rex_b = ((rex_prefix & 0x1) << 3);
+  }
+
+  i->modRMForm.Id = 0;
+
+  unsigned index = b1+offset;
+
+  const BxOpcodeInfo_t *OpcodeInfoPtr = &(BxOpcodeInfo64[index]);
+  Bit16u attr = OpcodeInfoPtr->Attr;
+
+  bx_bool has_modrm = 0;
+
+#if BX_SUPPORT_AVX
+  if ((b1 & ~0x1) == 0xc4) {
+    // VEX
+    had_vex_xop = b1;
+    if (sse_prefix | rex_prefix)
+      goto decode_done;
+    if (! protected_mode())
+      goto decode_done;
+
+    unsigned vex, vex_opcext = 1;
+    if (remain != 0) {
+      remain--;
+      vex = *iptr++;
+    }
+    else
+      return(-1);
+
+    rex_r = ((vex >> 4) & 0x8) ^ 0x8;
+    if (b1 == 0xc4) {
+      rex_x = ((vex >> 3) & 0x8) ^ 0x8;
+      rex_b = ((vex >> 2) & 0x8) ^ 0x8;
+
+      // decode 3-byte VEX prefix
+      vex_opcext = vex & 0x1f;
+      if (remain != 0) {
+        remain--;
+        vex = *iptr++;  // fetch VEX3
+      }
+      else
+        return(-1);
+
+      if (vex & 0x80) {
+        vex_w = 1;
+        i->assertOs64();
+        i->assertOs32();
+      }
+    }
+
+    vvv = 15 - ((vex >> 3) & 0xf);
+    unsigned vex_l = (vex >> 2) & 0x1;
+    i->setVL(BX_VL128 + vex_l);
+    sse_prefix = vex & 0x3;
+
+    unsigned opcode_byte = 0;
+    if (remain != 0) {
+      remain--;
+      opcode_byte = *iptr++; // fetch new b1
+    }
+    else
+      return(-1);
+
+    opcode_byte += 256 * vex_opcext;
+    if (opcode_byte < 256 || opcode_byte >= 1024)
+      goto decode_done;
+    has_modrm = (opcode_byte != 0x177); // if not VZEROUPPER/VZEROALL opcode
+
+    OpcodeInfoPtr = &BxOpcodeTableAVX[(opcode_byte-256)*2 + vex_l];
+  }
+#if BX_SUPPORT_EVEX
+  else if (b1 == 0x62) {
+    had_vex_xop = b1;
+    if (sse_prefix | rex_prefix)
+      goto decode_done;
+    if (! protected_mode())
+      goto decode_done;
+
+    Bit32u evex;
+    if (remain > 3) {
+      evex = FetchDWORD(iptr);
+      iptr += 4;
+      remain -= 4;
+    }
+    else {
+      return(-1);
+    }
+
+    // check for reserved EVEX bits
+    if ((evex & 0x0c) != 0 || (evex & 0x400) == 0)
+      goto decode_done;
+
+    unsigned evex_opcext = evex & 0x3;
+    if (evex_opcext == 0)
+      goto decode_done;
+
+    rex_r = ((evex >> 4) & 0x8) ^ 0x8;
+    rex_r |= (evex & 0x10) ^ 0x10;
+    rex_x = ((evex >> 3) & 0x8) ^ 0x8;
+    rex_b = ((evex >> 2) & 0x8) ^ 0x8;
+    rex_b |= (rex_x << 1);
+
+    sse_prefix = (evex >> 8) & 0x3;
+    vvv = 15 - ((evex >> 11) & 0xf);
+    evex_v = ((evex >> 15) & 0x10) ^ 0x10;
+    vvv |= evex_v;
+    vex_w = (evex >> 15) & 0x1;
+    if (vex_w) {
+      i->assertOs64();
+      i->assertOs32();
+    }
+
+    unsigned opmask = (evex >> 16) & 0x7;
+    i->setOpmask(opmask);
+    unsigned evex_b = (evex >> 20) & 0x1;
+    i->setEvexb(evex_b);
+
+    unsigned evex_vl_rc = (evex >> 21) & 0x3;
+    i->setRC(evex_vl_rc);
+    i->setVL(1 << evex_vl_rc);
+
+    unsigned evex_z = (evex >> 23) & 0x1;
+    i->setZeroMasking(evex_z);
+
+    if (evex_z && ! opmask)
+      goto decode_done;
+    
+    unsigned opcode_byte = (evex >> 24);
+    opcode_byte += 256 * (evex_opcext-1);
+    has_modrm = 1;
+
+    OpcodeInfoPtr = &BxOpcodeTableEVEX[opcode_byte*2 + (opmask != 0)];
+  }
+#endif
+  else if (b1 == 0x8f && (*iptr & 0x08) == 0x08) {
+    // 3 byte XOP prefix
+    had_vex_xop = b1;
+    if (sse_prefix | rex_prefix)
+      goto decode_done;
+    if (! protected_mode())
+      goto decode_done;
+
+    unsigned vex;
+    if (remain > 2) {
+      remain -= 3;
+      vex = *iptr++; // fetch XOP2
+    }
+    else
+      return(-1);
+
+    rex_r = ((vex >> 4) & 0x8) ^ 0x8;
+    rex_x = ((vex >> 3) & 0x8) ^ 0x8;
+    rex_b = ((vex >> 2) & 0x8) ^ 0x8;
+
+    unsigned xop_opcext = (vex & 0x1f) - 8;
+    if (xop_opcext >= 3)
+      goto decode_done;
+
+    vex = *iptr++; // fetch XOP3
+
+    if (vex & 0x80) {
+      vex_w = 1;
+      i->assertOs64();
+      i->assertOs32();
+    }
+
+    vvv = 15 - ((vex >> 3) & 0xf);
+    unsigned vex_l = (vex >> 2) & 0x1;
+    i->setVL(BX_VL128 + vex_l);
+    sse_prefix = vex & 0x3;
+    if (sse_prefix) goto decode_done;
+
+    unsigned opcode_byte = *iptr++;
+    has_modrm = 1;
+    opcode_byte += 256 * xop_opcext;
+
+    OpcodeInfoPtr = &BxOpcodeTableXOP[opcode_byte];
+  }
+  else
+#endif
+  {
+    has_modrm = BxOpcodeHasModrm64[b1];
+  }
+
+  if (has_modrm) {
+
+    // handle 3-byte escape
+    if (b1 == 0x138 || b1 == 0x13a) {
+      if (remain != 0) {
+        remain--;
+        unsigned b3 = *iptr++;
+        OpcodeInfoPtr = &OpcodeInfoPtr->AnotherArray[b3];
+      }
+      else
+        return(-1);
+    }
+
+    // opcode requires modrm byte
+    if (remain != 0) {
+      remain--;
+      b2 = *iptr++;
+    }
+    else
+      return(-1);
+
+    // Parse mod-nnn-rm and related bytes
+    mod = b2 & 0xc0;
+    nnn = ((b2 >> 3) & 0x7) | rex_r;
+    rm  = (b2 & 0x7) | rex_b;
+
+    if (b1 >= 0xd8 && b1 <= 0xdf)
+      i->setFoo((b2 | (b1 << 8)) & 0x7ff); /* for x87 */
+
+    // MOVs with CRx and DRx always use register ops and ignore the mod field.
+    if ((b1 & ~3) == 0x120)
+      mod = 0xc0;
+
+    if (mod == 0xc0) { // mod == 11b
+      i->assertModC0();
+      goto modrm_done;
+    }
+
+    mod_mem = 1;
+    i->setSibBase(rm & 0xf); // initialize with rm to use BxResolve64Base
+    i->setSibIndex(4);
+    // initialize displ32 with zero to include cases with no diplacement
+    i->modRMForm.displ32u = 0;
+
+    // note that mod==11b handled above
+
+    if ((rm & 0x7) != 4) { // no s-i-b byte
+      if (mod == 0x00) { // mod == 00b
+        if ((rm & 0x7) == 5) {
+          i->setSibBase(BX_64BIT_REG_RIP);
+          goto get_32bit_displ;
+        }
+        // mod==00b, rm!=4, rm!=5
+        goto modrm_done;
+      }
+      // (mod == 0x40), mod==01b or (mod == 0x80), mod==10b
+      seg = sreg_mod1or2_base32[rm & 0xf];
+    }
+    else { // mod!=11b, rm==4, s-i-b byte follows
+      unsigned sib, base, index, scale;
+      if (remain != 0) {
+        sib = *iptr++;
+        remain--;
+      }
+      else {
+        return(-1);
+      }
+      base  = (sib & 0x7) | rex_b; sib >>= 3;
+      index = (sib & 0x7) | rex_x; sib >>= 3;
+      scale =  sib;
+      i->setSibScale(scale);
+      i->setSibBase(base & 0xf);
+      // this part is a little tricky - assign index value always,
+      // it will be really used if the instruction is Gather. Others
+      // assume that resolve function will do the right thing.
+      i->setSibIndex(index & 0xf);
+      if (mod == 0x00) { // mod==00b, rm==4
+        seg = sreg_mod0_base32[base & 0xf];
+        if ((base & 0x7) == 5) {
+          i->setSibBase(BX_NIL_REGISTER);
+          goto get_32bit_displ;
+        }
+        // mod==00b, rm==4, base!=5
+        goto modrm_done;
+      }
+      // (mod == 0x40), mod==01b or (mod == 0x80), mod==10b
+      seg = sreg_mod1or2_base32[base & 0xf];
+    }
+
+    // (mod == 0x40), mod==01b
+    if (mod == 0x40) {
+      if (remain != 0) {
+        // 8 sign extended to 32
+        i->modRMForm.displ32u = (Bit8s) *iptr++;
+#if BX_SUPPORT_EVEX
+        displ8 = 1;
+#endif
+        remain--;
+      }
+      else {
+        return(-1);
+      }
+    }
+    else {
+
+get_32bit_displ:
+
+      // (mod == 0x80), mod==10b
+      if (remain > 3) {
+        i->modRMForm.displ32u = FetchDWORD(iptr);
+        iptr += 4;
+        remain -= 4;
+      }
+      else {
+        return(-1);
+      }
+    }
+
+modrm_done:
+
+#if BX_SUPPORT_EVEX
+    // EVEX.b in reg form implies 512-bit vector length
+    if (i->modC0() && i->getEvexb()) {
+      i->setVL(BX_VL512);
+    }
+#endif
+
+    ia_opcode = WalkOpcodeTables(OpcodeInfoPtr, attr, b2, sse_prefix, offset >> 9, i->getVL(), vex_w);
+  }
+  else {
+    // Opcode does not require a MODRM byte.
+    // Note that a 2-byte opcode (0F XX) will jump to before
+    // the if() above after fetching the 2nd byte, so this path is
+    // taken in all cases if a modrm byte is NOT required.
+
+    unsigned group = attr & BxGroupX;
+    if (group == BxPrefixSSE && sse_prefix)
+      OpcodeInfoPtr = &(OpcodeInfoPtr->AnotherArray[sse_prefix-1]);
+
+    ia_opcode = OpcodeInfoPtr->IA;
+    rm = (b1 & 7) | rex_b;
+    nnn = (b1 >> 3) & 7;
+    i->assertModC0();
+
+    if (b1 == 0x90) {
+      if (sse_prefix == SSE_PREFIX_F3)
+        ia_opcode = BX_IA_PAUSE;
+      else if (! rex_b)
+        ia_opcode = BX_IA_NOP;
+    }
+  }
+
+  if (lock) { // lock prefix invalid opcode
+    // lock prefix not allowed or destination operand is not memory
+    if (!mod_mem || !(attr & BxLockable)) {
+      if (BX_CPUID_SUPPORT_ISA_EXTENSION(BX_ISA_ALT_MOV_CR8) && 
+         (ia_opcode == BX_IA_MOV_CR0Rq || ia_opcode == BX_IA_MOV_RqCR0)) {
+        nnn = 8; // extend CR0 -> CR8
+      }
+      else {
+        BX_INFO(("LOCK prefix unallowed (op1=0x%x, modrm=0x%02x)", b1, b2));
+        // replace execution function with undefined-opcode
+        ia_opcode = BX_IA_ERROR;
+      }
+    }
+  }
+
+  imm_mode = attr & BxImmediate;
+  if (imm_mode) {
+    // make sure iptr was advanced after Ib(), Iw() and Id()
+    switch (imm_mode) {
+      case BxImmediate_I1:
+        i->modRMForm.Ib[0] = 1;
+        break;
+      case BxImmediate_Ib:
+        if (remain != 0) {
+          i->modRMForm.Ib[0] = *iptr++;
+          remain--;
+        }
+        else {
+          return(-1);
+        }
+        break;
+      case BxImmediate_Ib_SE: // Sign extend to OS size
+        if (remain != 0) {
+          Bit8s temp8s = *iptr;
+          // this code works correctly both for LE and BE hosts
+          if (i->os32L())
+            i->modRMForm.Id    = (Bit32s) temp8s;
+          else
+            i->modRMForm.Iw[0] = (Bit16s) temp8s;
+          remain--;
+        }
+        else {
+          return(-1);
+        }
+        break;
+      case BxImmediate_BrOff8:
+        if (remain != 0) {
+          Bit8s temp8s = *iptr;
+          i->modRMForm.Id = (Bit32s) temp8s;
+          remain--;
+        }
+        else {
+          return(-1);
+        }
+        break;
+      case BxImmediate_Iw:
+        if (remain > 1) {
+          i->modRMForm.Iw[0] = FetchWORD(iptr);
+          iptr += 2;
+          remain -= 2;
+        }
+        else {
+          return(-1);
+        }
+        break;
+      case BxImmediate_Id:
+        if (remain > 3) {
+          i->modRMForm.Id = FetchDWORD(iptr);
+          iptr += 4;
+          remain -= 4;
+        }
+        else {
+          return(-1);
+        }
+        break;
+      case BxImmediate_Iq: // MOV Rx,imm64
+        if (remain > 7) {
+          i->IqForm.Iq = FetchQWORD(iptr);
+          remain -= 8;
+        }
+        else {
+          return(-1);
+        }
+        break;
+      case BxImmediate_O:
+        // For instructions which embed the address in the opcode.
+        // There is only 64/32-bit addressing available in long64 mode.
+        if (i->as64L()) {
+          if (remain > 7) {
+            i->IqForm.Iq = FetchQWORD(iptr);
+            remain -= 8;
+          }
+          else return(-1);
+        }
+        else { // as32
+          if (remain > 3) {
+            i->IqForm.Iq = (Bit64u) FetchDWORD(iptr);
+            remain -= 4;
+          }
+          else return(-1);
+        }
+        break;
+      default:
+        BX_INFO(("b1 was %x", b1));
+        BX_PANIC(("fetchdecode64: imm_mode = %u", imm_mode));
+    }
+
+#if BX_SUPPORT_AVX
+    if (! had_vex_xop)
+#endif
+    {
+      unsigned imm_mode2 = attr & BxImmediate2;
+      if (imm_mode2) {
+        if (imm_mode2 == BxImmediate_Ib2) {
+          if (remain != 0) {
+            i->modRMForm.Ib2[0] = *iptr;
+            remain--;
+          }
+          else {
+            return(-1);
+          }
+        }
+        else {
+          BX_INFO(("b1 was %x", b1));
+          BX_PANIC(("fetchdecode64: imm_mode2 = %u", imm_mode2));
+        }
+      }
+    }
+  }
+
+#if BX_SUPPORT_3DNOW
+  if(b1 == 0x10f)
+    ia_opcode = Bx3DNowOpcode[i->modRMForm.Ib[0]];
+#endif
+
+  // assign sources
+  for (unsigned n = 0; n <= 3; n++) {
+    unsigned src = (unsigned) BxOpcodesTable[ia_opcode].src[n];
+    unsigned type = src >> 3;
+    switch(src & 0x7) {
+    case BX_SRC_NONE:
+      break;
+    case BX_SRC_EAX:
+      i->setSrcReg(n, 0);
+      break;
+    case BX_SRC_NNN:
+      i->setSrcReg(n, nnn);
+#if BX_SUPPORT_AVX
+      if (type == BX_KMASK_REG) {
+        if (nnn >= 8) ia_opcode = BX_IA_ERROR;
+      }
+#endif
+      break;
+    case BX_SRC_RM:
+      if (! mod_mem) {
+#if BX_SUPPORT_AVX
+        if (type == BX_KMASK_REG) rm &= 0x7;
+#endif
+        i->setSrcReg(n, rm);
+      }
+      else {
+        i->setSrcReg(n, (type == BX_VMM_REG) ? BX_VECTOR_TMP_REGISTER : BX_TMP_REGISTER);
+#if BX_SUPPORT_EVEX
+        if (b1 == 0x62 && displ8) {
+          if (type == BX_GPR16) i->modRMForm.displ32u *= 2;
+          else if (type == BX_GPR32) i->modRMForm.displ32u *= 4;
+          else if (type == BX_GPR64) i->modRMForm.displ32u *= 8;
+        }
+#endif
+      }
+      break;
+#if BX_SUPPORT_EVEX
+    case BX_SRC_EVEX_RM:
+      if (! mod_mem) {
+        i->setSrcReg(n, rm);
+      }
+      else {
+        i->setSrcReg(n, BX_VECTOR_TMP_REGISTER);
+        if (displ8) i->modRMForm.displ32u *= evex_displ8_compression(i, ia_opcode, type, vex_w);
+        if (n == 0 && i->isZeroMasking()) // zero masking is not allowed for memory destination
+          ia_opcode = BX_IA_ERROR;
+      }
+      break;
+#endif
+#if BX_SUPPORT_AVX
+    case BX_SRC_VVV:
+      i->setSrcReg(n, vvv);
+      use_vvv = 1;
+      if (type == BX_KMASK_REG) {
+        if (vvv >= 8) ia_opcode = BX_IA_ERROR;
+      }
+      break;
+    case BX_SRC_VIB:
+#if BX_SUPPORT_EVEX
+      if (b1 == 0x62)
+        i->setSrcReg(n, ((i->Ib() << 1) & 0x10) | (i->Ib() >> 4));
+      else
+#endif
+        i->setSrcReg(n, (i->Ib() >> 4));
+      break;
+    case BX_SRC_VSIB:
+      if (i->sibIndex() == BX_NIL_REGISTER) {
+        ia_opcode = BX_IA_ERROR;
+      }
+#if BX_SUPPORT_EVEX
+      i->setSibIndex(i->sibIndex() | evex_v);
+      if (displ8) i->modRMForm.displ32u *= 4 << vex_w;
+      // zero masking is not allowed for gather/scatter
+      if (i->isZeroMasking()) ia_opcode = BX_IA_ERROR;
+#endif
+      break;
+#endif
+    default:
+      BX_PANIC(("fetchdecode64: unknown definition %d for src %d", src, n));
+    }
+  }
+
+  // assign memory segment override
+  if (! BX_NULL_SEG_REG(seg_override))
+     seg = seg_override;
+  i->setSeg(seg);
+
+#if BX_SUPPORT_AVX
+  if (had_vex_xop) {
+    if (! use_vvv && vvv != 0) {
+      ia_opcode = BX_IA_ERROR;
+    }
+    else if ((attr & BxVexW0) != 0 && vex_w) {
+      ia_opcode = BX_IA_ERROR;
+    }
+    else if ((attr & BxVexW1) != 0 && !vex_w) {
+      ia_opcode = BX_IA_ERROR;
+    }
+#if BX_SUPPORT_EVEX
+    // EVEX specific #UD conditions
+    else if (i->getVL() > BX_VL512) {
+      ia_opcode = BX_IA_ERROR;
+    }
+#endif
+    else if ((attr & BxVexL0) != 0 && i->getVL() != BX_VL128) {
+      ia_opcode = BX_IA_ERROR;
+    }
+    else if ((attr & BxVexL1) != 0 && i->getVL() == BX_VL128) {
+      ia_opcode = BX_IA_ERROR;
+    }
+  }
+  else {
+    BX_ASSERT(! use_vvv);
+  }
+#endif
+
+decode_done:
+
+  i->setILen(remainingInPage - remain);
+  i->setIaOpcode(ia_opcode);
+  if (lock) i->setLockRepUsed(1);
+
+  if (mod_mem) {
+    i->execute1 = BxOpcodesTable[ia_opcode].execute1;
+    i->handlers.execute2 = BxOpcodesTable[ia_opcode].execute2;
+
+    if (ia_opcode == BX_IA_MOV_GqEq) {
+      if (seg == BX_SEG_REG_SS)
+        i->execute1 = &BX_CPU_C::MOV64S_GqEqM;
+    }
+    if (ia_opcode == BX_IA_MOV_EqGq) {
+      if (seg == BX_SEG_REG_SS)
+        i->execute1 = &BX_CPU_C::MOV64S_EqGqM;
+    }
+  }
+  else {
+    i->execute1 = BxOpcodesTable[ia_opcode].execute2;
+    i->handlers.execute2 = NULL;
+  }
+
+  BX_ASSERT(i->execute1);
+
+  Bit32u op_flags = BxOpcodesTable[ia_opcode].opflags;
+#if BX_SUPPORT_EVEX
+  if ((op_flags & BX_PREPARE_EVEX) != 0 && i->getEvexb()) {
+    if (mod_mem) {
+      if ((op_flags & BX_PREPARE_EVEX_NO_BROADCAST) == BX_PREPARE_EVEX_NO_BROADCAST) {
+        BX_DEBUG(("%s: broadcast is not supported for this instruction", i->getIaOpcodeNameShort()));
+        i->execute1 = &BX_CPU_C::BxError;
+      }
+    }
+    else {
+      if ((op_flags & BX_PREPARE_EVEX_NO_SAE) == BX_PREPARE_EVEX_NO_SAE) {
+        BX_DEBUG(("%s: EVEX.b in reg form is not allowed for instructions which cannot cause floating point exception", i->getIaOpcodeNameShort()));
+        i->execute1 = &BX_CPU_C::BxError;
+      }
+    }
+  }
+#endif
+  if (! (fetchModeMask & BX_FETCH_MODE_SSE_OK)) {
+     if (op_flags & BX_PREPARE_SSE) {
+        if (i->execute1 != &BX_CPU_C::BxError) {
+          assert(false);
+        }
+        return(1);
+     }
+  }
+#if BX_SUPPORT_AVX
+  if (! (fetchModeMask & BX_FETCH_MODE_AVX_OK)) {
+    if (op_flags & BX_PREPARE_AVX) {
+       if (i->execute1 != &BX_CPU_C::BxError) {
+         assert(false);
+       }
+       return(1);
+    }
+  }
+#if BX_SUPPORT_EVEX
+  if (! (fetchModeMask & BX_FETCH_MODE_OPMASK_OK)) {
+    if (op_flags & BX_PREPARE_OPMASK) {
+       if (i->execute1 != &BX_CPU_C::BxError) i->execute1 = &BX_CPU_C::BxNoOpMask;
+       return(1);
+    }
+  }
+  if (! (fetchModeMask & BX_FETCH_MODE_EVEX_OK)) {
+    if (op_flags & BX_PREPARE_EVEX) {
+       if (i->execute1 != &BX_CPU_C::BxError) i->execute1 = &BX_CPU_C::BxNoEVEX;
+       return(1);
+    }
+  }
+#endif
+#endif
+
+  if ((op_flags & BX_TRACE_END) != 0 || i->execute1 == &BX_CPU_C::BxError)
+     return(1);
+
+  return(0);
+}
+
 } // extern "C"
 
 #endif /* if BX_SUPPORT_X86_64 */

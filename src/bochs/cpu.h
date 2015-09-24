@@ -4182,6 +4182,7 @@ public: // for now...
 #endif
 // <TAG-CLASS-CPU-END>
 
+  BX_SMF int fetchDecode64(const Bit8u *fetchPtr, Bit32u fetchModeMask, bxInstruction_c *i, unsigned remainingInPage) BX_CPP_AttrRegparmN(3);
   BX_SMF Bit16u WalkOpcodeTables(const BxOpcodeInfo_t *op, Bit16u &attr, unsigned modrm, unsigned sse_prefix, unsigned osize, unsigned vex_vl, bx_bool vex_w);
 
   // The linear address must be truncated to the 32-bit when CPU is not
@@ -4196,7 +4197,8 @@ public: // for now...
   BX_SMF Bit64u get_laddr64(unsigned seg, Bit64u offset);
 #endif
 
-  BX_SMF bx_bool long64_mode(void);
+  BX_SMF BX_CPP_INLINE bx_bool protected_mode(void);
+  BX_SMF BX_CPP_INLINE bx_bool long64_mode(void);
 
   DECLARE_EFLAG_ACCESSOR   (ID,  21)
   DECLARE_EFLAG_ACCESSOR   (VIP, 20)
@@ -4374,6 +4376,29 @@ BX_CPP_INLINE Bit32u BX_CPP_AttrRegparmN(1) BX_CPU_C::BxResolve32(bxInstruction_
   BX_CPU_THIS_PTR speculative_rsp = 0; \
 }
 
+#endif // defined(NEED_CPU_REG_SHORTCUTS)
+
+//
+// bit 0 - CS.D_B
+// bit 1 - long64 mode (CS.L)
+// bit 2 - SSE_OK
+// bit 3 - AVX_OK
+// bit 4 - OPMASK_OK
+// bit 5 - EVEX_OK
+//
+
+#define BX_FETCH_MODE_IS32_MASK (1 << 0)
+#define BX_FETCH_MODE_IS64_MASK (1 << 1)
+#define BX_FETCH_MODE_SSE_OK    (1 << 2)
+#define BX_FETCH_MODE_AVX_OK    (1 << 3)
+#define BX_FETCH_MODE_OPMASK_OK (1 << 4)
+#define BX_FETCH_MODE_EVEX_OK   (1 << 5)
+
+BX_CPP_INLINE bx_bool BX_CPU_C::protected_mode(void)
+{
+  return (BX_CPU_THIS_PTR cpu_mode >= BX_MODE_IA32_PROTECTED);
+}
+
 BX_CPP_INLINE bx_bool BX_CPU_C::long64_mode(void)
 {
 #if BX_SUPPORT_X86_64
@@ -4382,8 +4407,6 @@ BX_CPP_INLINE bx_bool BX_CPU_C::long64_mode(void)
   return 0;
 #endif
 }
-
-#endif // defined(NEED_CPU_REG_SHORTCUTS)
 
 IMPLEMENT_EFLAG_ACCESSOR   (ID,  21)
 IMPLEMENT_EFLAG_ACCESSOR   (VIP, 20)
