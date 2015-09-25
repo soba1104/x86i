@@ -27,7 +27,10 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::NOP(bxInstruction_c *i)
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CPUID(bxInstruction_c *i)
 {
   uint32_t eax = EAX, ebx, ecx, edx;
-  assert(eax == 1);
+  if (eax != 1) {
+    fprintf(stderr, "eax = %x\n", eax);
+  }
+  assert(eax <= 1);
   host_cpuid(&eax, &ebx, &ecx, &edx);
 
   // clear osxsave flag
@@ -435,6 +438,23 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSS_VssWssR(bxInstruction_c *i)
   /* If the source operand is an XMM register, the high-order
           96 bits of the destination XMM register are not modified. */
   BX_WRITE_XMM_REG_LO_DWORD(i->dst(), BX_READ_XMM_REG_LO_DWORD(i->src()));
+#endif
+}
+
+// sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSS_VssWssM(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  BxPackedXmmRegister op;
+
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+
+  /* If the source operand is a memory location, the high-order
+          96 bits of the destination XMM register are cleared to 0s */
+  op.xmm64u(0) = (Bit64u) read_virtual_dword(i->seg(), eaddr);
+  op.xmm64u(1) = 0;
+
+  BX_WRITE_XMM_REGZ(i->dst(), op, i->getVL());
 #endif
 }
 
