@@ -14,6 +14,7 @@ SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/bit.cc
                   bochs/bit32.cc
                   bochs/bit64.cc
+                  bochs/bmi64.cc
                   bochs/data_xfer8.cc
                   bochs/data_xfer16.cc
                   bochs/data_xfer32.cc

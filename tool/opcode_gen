@@ -15,6 +15,7 @@ defined_funcs = [
                  'bit.cc',
                  'bit32.cc',
                  'bit64.cc',
+                 'bmi64.cc',
                  'data_xfer8.cc',
                  'data_xfer16.cc',
                  'data_xfer32.cc',
