@@ -572,10 +572,60 @@ void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_linear_ymmword(unsigned s, bx_address
   }
 }
 
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_linear_ymmword_aligned(unsigned s, bx_address laddr, BxPackedYmmRegister *data)
+{
+  if (laddr & 31) {
+    assert(false);
+  }
+
+  Bit64u *addr = (Bit64u*)laddr;
+  for (unsigned n=0; n < 4; n++) {
+    ReadHostQWordFromLittleEndian(addr+n, data->ymm64u(n));
+  }
+}
+
 void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_virtual_ymmword(unsigned s, bx_address offset, BxPackedYmmRegister *data)
 {
   bx_address laddr = agen_read(s, offset, 32);
   read_linear_ymmword(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::read_virtual_ymmword_aligned(unsigned s, bx_address offset, BxPackedYmmRegister *data)
+{
+  bx_address laddr = agen_read_aligned(s, offset, 32);
+  read_linear_ymmword_aligned(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_linear_ymmword(unsigned s, bx_address laddr, const BxPackedYmmRegister *data)
+{
+  Bit64u *addr = (Bit64u*)laddr;
+  for (unsigned n = 0; n < 4; n++) {
+    WriteHostQWordToLittleEndian(addr+n, data->ymm64u(n));
+  }
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_linear_ymmword_aligned(unsigned s, bx_address laddr, const BxPackedYmmRegister *data)
+{
+  if (laddr & 31) {
+    assert(false);
+  }
+
+  Bit64u *addr = (Bit64u*)laddr;
+  for (unsigned n = 0; n < 4; n++) {
+    WriteHostQWordToLittleEndian(addr+n, data->ymm64u(n));
+  }
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_ymmword(unsigned s, bx_address offset, const BxPackedYmmRegister *data)
+{
+  bx_address laddr = agen_write(s, offset, 32);
+  write_linear_ymmword(s, laddr, data);
+}
+
+void BX_CPP_AttrRegparmN(3) BX_CPU_C::write_virtual_ymmword_aligned(unsigned s, bx_address offset, const BxPackedYmmRegister *data)
+{
+  bx_address laddr = agen_write_aligned(s, offset, 32);
+  write_linear_ymmword_aligned(s, laddr, data);
 }
 
 Bit8u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_RMW_linear_byte(unsigned s, bx_address laddr)
