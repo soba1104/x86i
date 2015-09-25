@@ -102,6 +102,7 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
   unsigned n;
 
   rmw_addr = 0;
+  alignment_check_mask = 0;
 
   memset(gen_reg, 0, sizeof(gen_reg));
 

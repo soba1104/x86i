@@ -30,7 +30,9 @@ defined_funcs = [
                  'shift32.cc',
                  'shift64.cc',
                  'sse.cc',
+                 'avx/avx.cc',
                  'avx/avx2.cc',
+                 'avx/avx512_move.cc',
                 ].map{|n| File.join([bochs, n])}
 defined_funcs.each do |p|
   unless File.exist?(p)
