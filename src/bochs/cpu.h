@@ -4358,6 +4358,9 @@ public: // for now...
   Bit64u get_r14(void);
   Bit64u get_r15(void);
   Bit32u get_eflags(void);
+
+  void set_gs_base(uint64_t base);
+  void clear_cf();
 };
 
 // Can be used as LHS or RHS.

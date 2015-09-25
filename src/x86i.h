@@ -13,6 +13,8 @@ void set_rcx(void *cpu, uint64_t rcx);
 void set_r8(void *cpu, uint64_t r8);
 void set_r9(void *cpu, uint64_t r9);
 void set_oszapc(void *cpu, uint32_t eflags);
+void set_gs_base(void *cpu, uint64_t base);
+void clear_cf(void *cpu);
 uint64_t get_rip(void *cpu);
 uint64_t get_rax(void *cpu);
 uint64_t get_rbx(void *cpu);

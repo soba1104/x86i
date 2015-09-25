@@ -41,6 +41,14 @@ void set_oszapc(void *cpu, uint32_t eflags)  {
   ((BX_CPU_C*)cpu)->setEFlagsOSZAPC(eflags);
 }
 
+void set_gs_base(void *cpu, uint64_t base) {
+  ((BX_CPU_C*)cpu)->set_gs_base(base);
+}
+
+void clear_cf(void *cpu) {
+  ((BX_CPU_C*)cpu)->clear_cf();
+}
+
 uint64_t get_rip(void *cpu) { return ((BX_CPU_C*)cpu)->get_rip(); }
 uint64_t get_rax(void *cpu) { return ((BX_CPU_C*)cpu)->get_rax(); }
 uint64_t get_rbx(void *cpu) { return ((BX_CPU_C*)cpu)->get_rbx(); }
@@ -233,6 +241,14 @@ Bit64u BX_CPU_C::get_r13(void) { return R13; }
 Bit64u BX_CPU_C::get_r14(void) { return R14; }
 Bit64u BX_CPU_C::get_r15(void) { return R15; }
 Bit32u BX_CPU_C::get_eflags(void) { return eflags; }
+
+void BX_CPU_C::set_gs_base(uint64_t base) {
+  BX_CPU_THIS_PTR sregs[BX_SEG_REG_GS].cache.u.segment.base = (bx_address)base;
+}
+
+void BX_CPU_C::clear_cf() {
+  clear_CF();
+}
 
 Bit32u BX_CPU_C::get_laddr32(unsigned seg, Bit32u offset)
 {
