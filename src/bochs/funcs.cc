@@ -17,6 +17,14 @@
 
 #include <stdio.h>
 
+// protect_ctrl.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SIDT64_Ms(bxInstruction_c *i)
+{
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
+  bx_address laddr = get_laddr64(i->seg(), eaddr);
+  host_sidt(laddr);
+}
+
 // proc_ctrl.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::NOP(bxInstruction_c *i)
 {

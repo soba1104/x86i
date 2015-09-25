@@ -23,3 +23,9 @@ movl %edx, (%r9)
 popq %rbx
 movq $0, %rax
 ret
+
+.text
+.globl _host_sidt
+_host_sidt:
+sidtq (%rdi)
+ret
