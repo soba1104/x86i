@@ -29,6 +29,7 @@ SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/shift32.cc
                   bochs/shift64.cc
                   bochs/sse.cc
+                  bochs/avx/avx2.cc
                   bochs/globals.cc
                   bochs/host_adapter.s
                   bochs/utils.cc

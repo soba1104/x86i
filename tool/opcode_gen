@@ -30,6 +30,7 @@ defined_funcs = [
                  'shift32.cc',
                  'shift64.cc',
                  'sse.cc',
+                 'avx/avx2.cc',
                 ].map{|n| File.join([bochs, n])}
 defined_funcs.each do |p|
   unless File.exist?(p)
@@ -57,6 +58,10 @@ defined_funcs.each do |p|
       funcs[$1] = true
     when /^SSE_/
       raise line unless /SSE_\w+\((\w+), \w+\)/ =~ line
+      f = "BX_CPU_C::#{$1}"
+      funcs[f] = true
+    when /^AVX_/
+      raise line unless /AVX_\w+\((\w+), \w+\)/ =~ line
       f = "BX_CPU_C::#{$1}"
       funcs[f] = true
     end
