@@ -28,7 +28,7 @@
 //  ----------------------------------------------------------------------------
 /////////////////////////////////////////////////////////////////////////////////
 
-#include <config.h>
+#include "config.h"
 
 #undef BX_SUPPORT_AVX // FIXME
 #undef BX_SUPPORT_EVEX // FIXME
@@ -36,9 +36,9 @@
 #include <stdint.h>
 #include <assert.h>
 
-#include <bochs.h>
-#include <cpu.h>
-#include <xmm.h>
+#include "bochs.h"
+#include "cpu.h"
+#include "xmm.h"
 
 
 

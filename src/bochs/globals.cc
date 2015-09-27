@@ -2,15 +2,15 @@
 
 #define NEED_CPU_REG_SHORTCUTS 1
 
-#include <config.h>
+#include "config.h"
 #undef BX_SUPPORT_AVX // FIXME
 #undef BX_SUPPORT_EVEX // FIXME
 #define BX_CPP_INLINE inline
 #include <stdint.h>
 #include <assert.h>
 
-#include <bochs.h>
-#include <cpu.h>
+#include "bochs.h"
+#include "cpu.h"
 
 bx_address bx_asize_mask[] = {
   0xffff,                         // as16 (asize = '00)
