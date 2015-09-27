@@ -21,8 +21,13 @@
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SIDT64_Ms(bxInstruction_c *i)
 {
   bx_address eaddr = BX_CPU_RESOLVE_ADDR_64(i);
+#if 0
   bx_address laddr = get_laddr64(i->seg(), eaddr);
   host_sidt(laddr);
+#else
+  write_linear_word(i->seg(), get_laddr64(i->seg(), eaddr), 0);
+  write_linear_qword(i->seg(), get_laddr64(i->seg(), (eaddr+2) & i->asize_mask()), 0);
+#endif
 }
 
 // proc_ctrl.cc
@@ -35,11 +40,30 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::NOP(bxInstruction_c *i)
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CPUID(bxInstruction_c *i)
 {
   uint32_t eax = EAX, ebx, ecx, edx;
-  if (eax != 1) {
-    fprintf(stderr, "eax = %x\n", eax);
+  if (eax > 1) {
+    fprintf(stderr, "CPUID(0x%x)", eax);
   }
   assert(eax <= 1);
+#if 0
   host_cpuid(&eax, &ebx, &ecx, &edx);
+#else
+  switch(eax) {
+    case 0x00:
+      eax = 0xd;
+      ebx = 0x756e6547;
+      ecx = 0x6c65746e;
+      edx = 0x49656e69;
+      break;
+    case 0x01:
+      eax = 0x40651;
+      ebx = 0x3100800;
+      ecx = 0x7ffafbbf;
+      edx = 0xbfebfbff;
+      break;
+    default:
+      assert(false);
+  }
+#endif
 
   // clear osxsave flag
   ecx &= ~BX_CPUID_EXT_OSXSAVE;

@@ -1,3 +1,5 @@
+#ifndef __ARM__
+
 .text
 .globl _host_rdtsc
 _host_rdtsc:
@@ -29,3 +31,5 @@ ret
 _host_sidt:
 sidtq (%rdi)
 ret
+
+#endif
