@@ -16,6 +16,7 @@
 #include "host_adapter.h"
 
 #include <stdio.h>
+#include <mach/mach_time.h>
 
 // protect_ctrl.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SIDT64_Ms(bxInstruction_c *i)
@@ -99,7 +100,11 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::RDTSC(bxInstruction_c *i)
 #endif
 
   // return ticks
+#if 0
   Bit64u ticks = host_rdtsc();
+#else
+  Bit64u ticks = mach_absolute_time();
+#endif
 
   RAX = GET32L(ticks);
   RDX = GET32H(ticks);
