@@ -28,6 +28,7 @@ defined_funcs = [
                  'mult32.cc',
                  'mult64.cc',
                  'shift8.cc',
+                 'shift16.cc',
                  'shift32.cc',
                  'shift64.cc',
                  'sse.cc',
