@@ -522,6 +522,16 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVQ_VdqEqR(bxInstruction_c *i)
   BX_WRITE_XMM_REGZ(i->dst(), op, i->getVL());
 }
 
+// sse_pfp.cc
+float_status_t mxcsr_to_softfloat_status_word(bx_mxcsr_t mxcsr);
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CVTSI2SD_VsdEqR(bxInstruction_c *i)
+{
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  float64 result = int64_to_float64(BX_READ_64BIT_REG(i->src()), status);
+  check_exceptionsSSE(get_exception_flags(status));
+  BX_WRITE_XMM_REG_LO_QWORD(i->dst(), result);
+}
+
 // xsave.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
 {

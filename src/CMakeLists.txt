@@ -34,6 +34,10 @@ SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/avx/avx.cc
                   bochs/avx/avx2.cc
                   bochs/avx/avx512_move.cc
+                  bochs/fpu/softfloat.cc
+                  bochs/fpu/softfloat-muladd.cc
+                  bochs/fpu/softfloat-round-pack.cc
+                  bochs/fpu/softfloat-specialize.cc
                   bochs/globals.cc
                   bochs/host_adapter.s
                   bochs/utils.cc
@@ -59,6 +63,10 @@ SET(BOCHS_HEADERS bochs/bochs.h
                   bochs/fetchdecode_avx.h
                   bochs/fpu/control_w.h
                   bochs/fpu/softfloat.h
+                  bochs/fpu/softfloat-compare.h
+                  bochs/fpu/softfloat-macros.h
+                  bochs/fpu/softfloat-round-pack.h
+                  bochs/fpu/softfloat-specialize.h
                   bochs/fpu/status_w.h
                   bochs/fpu/tag_w.h
                   bochs/host_adapter.h
