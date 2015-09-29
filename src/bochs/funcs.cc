@@ -200,6 +200,14 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JMP_Jq(bxInstruction_c *i)
 }
 
 // ctrl_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JP_Jq(bxInstruction_c *i)
+{
+  if (get_PF()) {
+    branch_near64(i);
+  }
+}
+
+// ctrl_xfer64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JS_Jq(bxInstruction_c *i)
 {
   if (get_SF()) {
@@ -571,6 +579,34 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CVTSI2SD_VsdEdR(bxInstruction_c *i
   float64 result = int32_to_float64(BX_READ_32BIT_REG(i->src()));
   BX_WRITE_XMM_REG_LO_QWORD(i->dst(), result);
 #endif
+}
+
+// sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CVTTSD2SI_GdWsdR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  float64 op = BX_READ_XMM_REG_LO_QWORD(i->src());
+
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  softfloat_status_word_rc_override(status, i);
+  Bit32s result = float64_to_int32_round_to_zero(op, status);
+  check_exceptionsSSE(get_exception_flags(status));
+
+  BX_WRITE_32BIT_REGZ(i->dst(), (Bit32u) result);
+#endif
+}
+
+// sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CVTTSD2SI_GqWsdR(bxInstruction_c *i)
+{
+  float64 op = BX_READ_XMM_REG_LO_QWORD(i->src());
+
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  softfloat_status_word_rc_override(status, i);
+  Bit64s result = float64_to_int64_round_to_zero(op, status);
+  check_exceptionsSSE(get_exception_flags(status));
+
+  BX_WRITE_64BIT_REG(i->dst(), (Bit64u) result);
 }
 
 // sse_pfp.cc
