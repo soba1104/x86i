@@ -522,6 +522,38 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVQ_VdqEqR(bxInstruction_c *i)
   BX_WRITE_XMM_REGZ(i->dst(), op, i->getVL());
 }
 
+// sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSD_WsdVsdM(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+  write_virtual_qword(i->seg(), eaddr, BX_XMM_REG_LO_QWORD(i->src()));
+#endif
+}
+
+// sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSD_VsdWsdR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  /* If the source operand is an XMM register, the high-order
+          64 bits of the destination XMM register are not modified. */
+  BX_WRITE_XMM_REG_LO_QWORD(i->dst(), BX_READ_XMM_REG_LO_QWORD(i->src()));
+#endif
+}
+
+// sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSD_VsdWsdM(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  BxPackedXmmRegister op;
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+  op.xmm64u(0) = read_virtual_qword(i->seg(), eaddr);
+  op.xmm64u(1) = 0; /* zero-extension to 128 bit */
+
+  BX_WRITE_XMM_REGZ(i->dst(), op, i->getVL());
+#endif
+}
+
 // sse_pfp.cc
 float_status_t mxcsr_to_softfloat_status_word(bx_mxcsr_t mxcsr);
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CVTSI2SD_VsdEqR(bxInstruction_c *i)
@@ -549,6 +581,32 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MULSD_VsdWsdR(bxInstruction_c *i)
 
   float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
   op1 = float64_mul(op1, op2, status);
+  check_exceptionsSSE(get_exception_flags(status));
+  BX_WRITE_XMM_REG_LO_QWORD(i->dst(), op1);
+#endif
+}
+
+// sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ADDSD_VsdWsdR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->dst()), op2 = BX_READ_XMM_REG_LO_QWORD(i->src());
+
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  op1 = float64_add(op1, op2, status);
+  check_exceptionsSSE(get_exception_flags(status));
+  BX_WRITE_XMM_REG_LO_QWORD(i->dst(), op1);
+#endif
+}
+
+// sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SUBSD_VsdWsdR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->dst()), op2 = BX_READ_XMM_REG_LO_QWORD(i->src());
+
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  op1 = float64_sub(op1, op2, status);
   check_exceptionsSSE(get_exception_flags(status));
   BX_WRITE_XMM_REG_LO_QWORD(i->dst(), op1);
 #endif
