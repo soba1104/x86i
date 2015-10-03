@@ -4344,6 +4344,7 @@ public: // for now...
   void set_rcx(Bit64u rcx);
   void set_r8(Bit64u r8);
   void set_r9(Bit64u r9);
+  void set_r10(Bit64u r10);
   Bit64u get_rip(void);
   Bit64u get_rax(void);
   Bit64u get_rbx(void);
