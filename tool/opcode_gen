@@ -10,6 +10,7 @@ end
 defined_funcs = [
                  'funcs.cc',
                  'arith8.cc',
+                 'arith16.cc',
                  'arith32.cc',
                  'arith64.cc',
                  'bit.cc',
