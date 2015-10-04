@@ -530,6 +530,26 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PALIGNR_VdqWdqIbR(bxInstruction_c 
 }
 
 // sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVD_VdqEdR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  BxPackedXmmRegister op;
+  op.xmm64u(0) = (Bit64u) BX_READ_32BIT_REG(i->src());
+  op.xmm64u(1) = 0;
+
+  BX_WRITE_XMM_REGZ(i->dst(), op, i->getVL());
+#endif
+}
+
+// sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVD_EdVdR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  BX_WRITE_32BIT_REGZ(i->dst(), BX_READ_XMM_REG_LO_DWORD(i->src()));
+#endif
+}
+
+// sse_move.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVQ_VdqEqR(bxInstruction_c *i)
 {
   BxPackedXmmRegister op;
@@ -574,6 +594,14 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSD_VsdWsdM(bxInstruction_c *i)
   op.xmm64u(1) = 0; /* zero-extension to 128 bit */
 
   BX_WRITE_XMM_REGZ(i->dst(), op, i->getVL());
+#endif
+}
+
+// sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVHLPS_VpsWpsR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  BX_WRITE_XMM_REG_LO_QWORD(i->dst(), BX_READ_XMM_REG_HI_QWORD(i->src()));
 #endif
 }
 
@@ -664,6 +692,19 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SUBSD_VsdWsdR(bxInstruction_c *i)
 }
 
 // sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::DIVSD_VsdWsdR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->dst()), op2 = BX_READ_XMM_REG_LO_QWORD(i->src());
+
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  op1 = float64_div(op1, op2, status);
+  check_exceptionsSSE(get_exception_flags(status));
+  BX_WRITE_XMM_REG_LO_QWORD(i->dst(), op1);
+#endif
+}
+
+// sse_pfp.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::UCOMISD_VsdWsdR(bxInstruction_c *i)
 {
 #if BX_CPU_LEVEL >= 6
@@ -688,6 +729,27 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MAXSD_VsdWsdR(bxInstruction_c *i)
   check_exceptionsSSE(get_exception_flags(status));
   BX_WRITE_XMM_REG_LO_QWORD(i->dst(), op1);
 #endif
+}
+
+// sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::ROUNDSD_VsdWsdIbR(bxInstruction_c *i)
+{
+  float64 op = BX_READ_XMM_REG_LO_QWORD(i->src());
+
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  Bit8u control = i->Ib();
+
+  // override MXCSR rounding mode with control coming from imm8
+  if ((control & 0x4) == 0)
+    status.float_rounding_mode = control & 0x3;
+  // ignore precision exception result
+  if (control & 0x8)
+    status.float_suppress_exception |= float_flag_inexact;
+
+  op = float64_round_to_int(op, status);
+
+  check_exceptionsSSE(get_exception_flags(status));
+  BX_WRITE_XMM_REG_LO_QWORD(i->dst(), op);
 }
 
 // xsave.cc
