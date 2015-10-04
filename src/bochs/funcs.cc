@@ -130,6 +130,15 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::POP_EqR(bxInstruction_c *i)
   BX_WRITE_64BIT_REG(i->dst(), pop_64());
 }
 
+// stack64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LEAVE64(bxInstruction_c *i)
+{
+  // restore frame pointer
+  Bit64u temp64 = stack_read_qword(RBP);
+  RSP = RBP + 8;
+  RBP = temp64;
+}
+
 // ctrl_xfer64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CALL_Jq(bxInstruction_c *i)
 {
