@@ -864,6 +864,18 @@ void BX_CPP_AttrRegparmN(2) BX_CPU_C::repeat(bxInstruction_c *i, BxRepIterationP
   assert(false);
 }
 
+// fpu 関連
+void BX_CPU_C::prepareFPU(bxInstruction_c *i, bx_bool check_pending_exceptions)
+{
+  if (BX_CPU_THIS_PTR cr0.get_EM() || BX_CPU_THIS_PTR cr0.get_TS()) {
+    assert(false);
+  }
+
+  if (check_pending_exceptions) {
+    assert(false);
+  }
+}
+
 // xsave 関連
 bx_bool BX_CPU_C::xsave_x87_state_xinuse(void)
 {

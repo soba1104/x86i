@@ -4331,6 +4331,8 @@ public: // for now...
   BX_SMF Bit64u  pop_64(void);
 #endif
 
+  BX_SMF void prepareFPU(bxInstruction_c *i, bx_bool = 1);
+
   BX_SMF void repeat(bxInstruction_c *i, BxRepIterationPtr_tR execute) BX_CPP_AttrRegparmN(2);
 
   void step(void *insn);

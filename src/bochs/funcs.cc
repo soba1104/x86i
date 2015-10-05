@@ -434,6 +434,19 @@ void BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSQ64_YqXq(bxInstruction_c *i)
   RDI = rdi;
 }
 
+// fpu/fpu.cc
+#define CHECK_PENDING_EXCEPTIONS 1
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::FNSTCW(bxInstruction_c *i)
+{
+  prepareFPU(i, !CHECK_PENDING_EXCEPTIONS);
+
+  Bit16u cwd = BX_CPU_THIS_PTR the_i387.get_control_word();
+
+  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
+
+  write_virtual_word(i->seg(), eaddr, cwd);
+}
+
 // sse_move.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVAPS_VpsWpsM(bxInstruction_c *i)
 {
