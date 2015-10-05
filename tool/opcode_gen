@@ -47,7 +47,7 @@ end
 def func_body(name)
   return <<-EOS
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) #{name}(bxInstruction_c *i) {
-  fprintf(stderr, "unsupported instruction #{name}: rip = %lx\\n", RIP);
+  fprintf(stderr, "unsupported instruction #{name}(0x%x): rip = %lx\\n", i->getIaOpcode(), RIP);
   assert(false);
 }
   EOS
