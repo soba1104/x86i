@@ -11,6 +11,7 @@
 #include "cpu.h"
 
 #include "simd_int.h"
+#include "simd_pfp.h"
 
 #include "dummyfuncs.h"
 #include "host_adapter.h"
@@ -697,6 +698,20 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SUBSD_VsdWsdR(bxInstruction_c *i)
   op1 = float64_sub(op1, op2, status);
   check_exceptionsSSE(get_exception_flags(status));
   BX_WRITE_XMM_REG_LO_QWORD(i->dst(), op1);
+#endif
+}
+
+// sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SUBPD_VpdWpdR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  BxPackedXmmRegister op1 = BX_READ_XMM_REG(i->dst()), op2 = BX_READ_XMM_REG(i->src());
+
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  xmm_subpd(&op1, &op2, status);
+  check_exceptionsSSE(get_exception_flags(status));
+
+  BX_WRITE_XMM_REG(i->dst(), op1);
 #endif
 }
 

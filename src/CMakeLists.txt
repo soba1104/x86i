@@ -50,6 +50,7 @@ SET(BOCHS_HEADERS bochs/bochs.h
                   bochs/i387.h
                   bochs/xmm.h
                   bochs/simd_int.h
+                  bochs/simd_pfp.h
                   bochs/simd_compare.h
                   bochs/scalar_arith.h
                   bochs/crregs.h
