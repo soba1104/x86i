@@ -1087,6 +1087,9 @@ public: // for now...
   /* user segment register set */
   bx_segment_reg_t  sregs[6];
 
+  /* Control registers */
+  bx_cr0_t   cr0;
+
 #if BX_CPU_LEVEL >= 6
   xcr0_t xcr0;
   Bit32u xcr0_suppmask;

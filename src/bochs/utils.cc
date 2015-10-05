@@ -140,6 +140,13 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
   svm_extensions_bitmask = 0;
 #endif
 
+  // プロテクトモードの有効化のために  0x00000001
+  // 拡張タイプが1で予約されているので 0x00000010
+  // ライトスルーを無効化するので      0x20000000
+  // キャッシュを無効化するので        0x40000000
+  // ページングを有効化するので        0x80000000
+  BX_CPU_THIS_PTR cr0.set32(0xe0000011);
+
 //init.cc:reset から持ってきたもの
 #if BX_CPU_LEVEL >= 6
   BX_CPU_THIS_PTR xcr0.set32(0x1);
