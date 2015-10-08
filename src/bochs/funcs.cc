@@ -140,6 +140,12 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::LEAVE64(bxInstruction_c *i)
   RBP = temp64;
 }
 
+// flag_ctrl.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CLD(bxInstruction_c *i)
+{
+  BX_CPU_THIS_PTR clear_DF();
+}
+
 // ctrl_xfer64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CALL_Jq(bxInstruction_c *i)
 {
@@ -384,6 +390,23 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSB64_YbXb(bxInstruction_c *i)
 }
 
 // string.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::REP_STOSB_YbAL(bxInstruction_c *i)
+{
+#if BX_SUPPORT_X86_64
+  if (i->as64L())
+    BX_CPU_THIS_PTR repeat(i, &BX_CPU_C::STOSB64_YbAL);
+  else
+#endif
+  if (i->as32L()) {
+    BX_CPU_THIS_PTR repeat(i, &BX_CPU_C::STOSB32_YbAL);
+    BX_CLEAR_64BIT_HIGH(BX_64BIT_REG_RDI); // always clear upper part of RDI
+  }
+  else {
+    BX_CPU_THIS_PTR repeat(i, &BX_CPU_C::STOSB16_YbAL);
+  }
+}
+
+// string.cc
 void BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSQ32_YqXq(bxInstruction_c *i)
 {
 /* 64 bit opsize mode, 32 bit address size */
@@ -433,6 +456,89 @@ void BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSQ64_YqXq(bxInstruction_c *i)
   RSI = rsi;
   RDI = rdi;
 }
+
+// string.cc
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::STOSB16_YbAL(bxInstruction_c *i)
+{
+  Bit16u di = DI;
+
+  write_virtual_byte_32(BX_SEG_REG_ES, di, AL);
+
+  if (BX_CPU_THIS_PTR get_DF()) {
+    di--;
+  }
+  else {
+    di++;
+  }
+
+  DI = di;
+}
+
+// string.cc
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::STOSB32_YbAL(bxInstruction_c *i)
+{
+  Bit32u incr = 1;
+  Bit32u edi = EDI;
+
+#if (BX_SUPPORT_REPEAT_SPEEDUPS) && (BX_DEBUGGER == 0)
+  /* If conditions are right, we can transfer IO to physical memory
+   * in a batch, rather than one instruction at a time.
+   */
+  if (i->repUsedL() && !BX_CPU_THIS_PTR async_event)
+  {
+    Bit32u byteCount = FastRepSTOSB(i, BX_SEG_REG_ES, edi, AL, ECX);
+    if (byteCount) {
+      // Decrement the ticks count by the number of iterations, minus
+      // one, since the main cpu loop will decrement one.  Also,
+      // the count is predecremented before examined, so defintely
+      // don't roll it under zero.
+      BX_TICKN(byteCount-1);
+
+      // Decrement eCX.  Note, the main loop will decrement 1 also, so
+      // decrement by one less than expected, like the case above.
+      RCX = ECX - (byteCount-1);
+
+      incr = byteCount;
+    }
+    else {
+      write_virtual_byte(BX_SEG_REG_ES, edi, AL);
+    }
+  }
+  else
+#endif
+  {
+    write_virtual_byte(BX_SEG_REG_ES, edi, AL);
+  }
+
+  if (BX_CPU_THIS_PTR get_DF()) {
+    edi -= incr;
+  }
+  else {
+    edi += incr;
+  }
+
+  // zero extension of RDI
+  RDI = edi;
+}
+
+#if BX_SUPPORT_X86_64
+// 64 bit address size
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::STOSB64_YbAL(bxInstruction_c *i)
+{
+  Bit64u rdi = RDI;
+
+  write_linear_byte(BX_SEG_REG_ES, rdi, AL);
+
+  if (BX_CPU_THIS_PTR get_DF()) {
+    rdi--;
+  }
+  else {
+    rdi++;
+  }
+
+  RDI = rdi;
+}
+#endif
 
 // fpu/fpu.cc
 #define CHECK_PENDING_EXCEPTIONS 1

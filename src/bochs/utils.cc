@@ -682,6 +682,17 @@ Bit64u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_RMW_linear_qword(unsigned s, bx_add
   return data;
 }
 
+void BX_CPU_C::read_RMW_linear_dqword_aligned_64(unsigned s, bx_address laddr, Bit64u *hi, Bit64u *lo)
+{
+  if (laddr & 15) {
+    assert(false);
+  }
+  ReadHostQWordFromLittleEndian((Bit64u*)(laddr),     *lo);
+  ReadHostQWordFromLittleEndian((Bit64u*)(laddr + 1), *hi);
+  assert(BX_CPU_THIS_PTR rmw_addr == 0);
+  BX_CPU_THIS_PTR rmw_addr = laddr;
+}
+
 void BX_CPP_AttrRegparmN(1) BX_CPU_C::write_RMW_linear_byte(Bit8u val8)
 {
   Bit8u *laddr = (Bit8u*)BX_CPU_THIS_PTR rmw_addr;
@@ -708,6 +719,16 @@ void BX_CPP_AttrRegparmN(1) BX_CPU_C::write_RMW_linear_qword(Bit64u val64)
   Bit64u *laddr = (Bit64u*) BX_CPU_THIS_PTR rmw_addr;
   WriteHostQWordToLittleEndian(laddr, val64);
   BX_CPU_THIS_PTR rmw_addr = 0;
+}
+
+void BX_CPU_C::write_RMW_linear_dqword(Bit64u hi, Bit64u lo)
+{
+  Bit64u *laddr = (Bit64u*) BX_CPU_THIS_PTR rmw_addr;
+  assert(laddr);
+  write_RMW_linear_qword(lo);
+  // 一つ前の write_RMW_linear_qword でクリアするので再設定しないとダメ。
+  BX_CPU_THIS_PTR rmw_addr = (bx_address)(laddr + 1);
+  write_RMW_linear_qword(hi);
 }
 
 Bit8u BX_CPP_AttrRegparmN(2) BX_CPU_C::read_RMW_virtual_byte(unsigned s, bx_address offset)

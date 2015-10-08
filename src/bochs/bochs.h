@@ -43,6 +43,9 @@
 #undef BX_SUPPORT_AVX
 #define BX_SUPPORT_AVX 1
 
+#undef BX_SUPPORT_SVM
+#define BX_SUPPORT_SVM 0
+
 BX_CPP_INLINE Bit16u bx_bswap16(Bit16u val16)
 {
   return (val16<<8) | (val16>>8);

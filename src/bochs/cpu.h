@@ -4308,6 +4308,11 @@ public: // for now...
   BX_SMF Bit32u read_RMW_virtual_dword_32(unsigned seg, Bit32u offset) BX_CPP_AttrRegparmN(2);
   BX_SMF Bit64u read_RMW_virtual_qword_32(unsigned seg, Bit32u offset) BX_CPP_AttrRegparmN(2);
 
+#if BX_SUPPORT_X86_64
+  BX_SMF void read_RMW_linear_dqword_aligned_64(unsigned seg, bx_address laddr, Bit64u *hi, Bit64u *lo);
+  BX_SMF void write_RMW_linear_dqword(Bit64u hi, Bit64u lo);
+#endif
+
   BX_SMF void write_eflags_fpu_compare(int float_relation);
 
   BX_SMF void check_exceptionsSSE(int);
@@ -4462,7 +4467,7 @@ IMPLEMENT_EFLAG_SET_ACCESSOR   (VIF, 19)
 //IMPLEMENT_EFLAG_SET_ACCESSOR_VM(     17)
 //IMPLEMENT_EFLAG_SET_ACCESSOR_RF(     16)
 //IMPLEMENT_EFLAG_SET_ACCESSOR   (NT,  14)
-//IMPLEMENT_EFLAG_SET_ACCESSOR   (DF,  10)
+IMPLEMENT_EFLAG_SET_ACCESSOR   (DF,  10)
 //IMPLEMENT_EFLAG_SET_ACCESSOR_IF(      9)
 //IMPLEMENT_EFLAG_SET_ACCESSOR_TF(      8)
 
