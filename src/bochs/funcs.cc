@@ -758,6 +758,19 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVHLPS_VpsWpsR(bxInstruction_c *i
 }
 
 // sse_pfp.cc
+#include "fpu/softfloat-compare.h"
+static float64_compare_method compare64[8] = {
+  float64_eq_ordered_quiet,
+  float64_lt_ordered_signalling,
+  float64_le_ordered_signalling,
+  float64_unordered_quiet,
+  float64_neq_unordered_quiet,
+  float64_nlt_unordered_signalling,
+  float64_nle_unordered_signalling,
+  float64_ordered_quiet
+};
+
+// sse_pfp.cc
 float_status_t mxcsr_to_softfloat_status_word(bx_mxcsr_t mxcsr);
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CVTSI2SD_VsdEqR(bxInstruction_c *i)
 {
@@ -805,6 +818,21 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CVTTSD2SI_GqWsdR(bxInstruction_c *
 }
 
 // sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CVTTSS2SI_GdWssR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  float32 op = BX_READ_XMM_REG_LO_DWORD(i->src());
+
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  softfloat_status_word_rc_override(status, i);
+  Bit32s result = float32_to_int32_round_to_zero(op, status);
+  check_exceptionsSSE(get_exception_flags(status));
+
+  BX_WRITE_32BIT_REGZ(i->dst(), (Bit32u) result);
+#endif
+}
+
+// sse_pfp.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CVTSI2SS_VssEdR(bxInstruction_c *i)
 {
 #if BX_CPU_LEVEL >= 6
@@ -812,6 +840,19 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CVTSI2SS_VssEdR(bxInstruction_c *i
   float32 result = int32_to_float32(BX_READ_32BIT_REG(i->src()), status);
   check_exceptionsSSE(get_exception_flags(status));
   BX_WRITE_XMM_REG_LO_DWORD(i->dst(), result);
+#endif
+}
+
+// sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MINSD_VsdWsdR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->dst()), op2 = BX_READ_XMM_REG_LO_QWORD(i->src());
+
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  op1 = float64_min(op1, op2, status);
+  check_exceptionsSSE(get_exception_flags(status));
+  BX_WRITE_XMM_REG_LO_QWORD(i->dst(), op1);
 #endif
 }
 
@@ -930,6 +971,26 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MAXSD_VsdWsdR(bxInstruction_c *i)
 
   float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
   op1 = float64_max(op1, op2, status);
+  check_exceptionsSSE(get_exception_flags(status));
+  BX_WRITE_XMM_REG_LO_QWORD(i->dst(), op1);
+#endif
+}
+
+// sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CMPSD_VsdWsdIbR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  float64 op1 = BX_READ_XMM_REG_LO_QWORD(i->dst()), op2 = BX_READ_XMM_REG_LO_QWORD(i->src());
+
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  int ib = i->Ib() & 7;
+
+  if(compare64[ib](op1, op2, status)) {
+    op1 = BX_CONST64(0xFFFFFFFFFFFFFFFF);
+  } else {
+    op1 = 0;
+  }
+
   check_exceptionsSSE(get_exception_flags(status));
   BX_WRITE_XMM_REG_LO_QWORD(i->dst(), op1);
 #endif
