@@ -39,6 +39,21 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::NOP(bxInstruction_c *i)
 }
 
 // proc_ctrl.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PAUSE(bxInstruction_c *i)
+{
+#if BX_SUPPORT_VMX
+  if (BX_CPU_THIS_PTR in_vmx_guest)
+    VMexit_PAUSE();
+#endif
+
+#if BX_SUPPORT_SVM
+  if (BX_CPU_THIS_PTR in_svm_guest) {
+    if (SVM_INTERCEPT(SVM_INTERCEPT0_PAUSE)) SvmInterceptPAUSE();
+  }
+#endif
+}
+
+// proc_ctrl.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CPUID(bxInstruction_c *i)
 {
   uint32_t eax = EAX, ebx, ecx, edx;
@@ -642,6 +657,14 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSS_WssVssM(bxInstruction_c *i)
 }
 
 // sse_move.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVDDUP_VpdWqR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  xmm_pbroadcastq(&BX_XMM_REG(i->dst()), BX_READ_XMM_REG_LO_QWORD(i->src()));
+#endif
+}
+
+// sse_move.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PMOVMSKB_GdUdq(bxInstruction_c *i)
 {
 #if BX_CPU_LEVEL >= 6
@@ -782,6 +805,17 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CVTTSD2SI_GqWsdR(bxInstruction_c *
 }
 
 // sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CVTSI2SS_VssEdR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  float32 result = int32_to_float32(BX_READ_32BIT_REG(i->src()), status);
+  check_exceptionsSSE(get_exception_flags(status));
+  BX_WRITE_XMM_REG_LO_DWORD(i->dst(), result);
+#endif
+}
+
+// sse_pfp.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MULSD_VsdWsdR(bxInstruction_c *i)
 {
 #if BX_CPU_LEVEL >= 6
@@ -835,6 +869,19 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::SUBPD_VpdWpdR(bxInstruction_c *i)
 }
 
 // sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MULSS_VssWssR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->dst()), op2 = BX_READ_XMM_REG_LO_DWORD(i->src());
+
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  op1 = float32_mul(op1, op2, status);
+  check_exceptionsSSE(get_exception_flags(status));
+  BX_WRITE_XMM_REG_LO_DWORD(i->dst(), op1);
+#endif
+}
+
+// sse_pfp.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::DIVSD_VsdWsdR(bxInstruction_c *i)
 {
 #if BX_CPU_LEVEL >= 6
@@ -856,6 +903,20 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::UCOMISD_VsdWsdR(bxInstruction_c *i
   float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
   softfloat_status_word_rc_override(status, i);
   int rc = float64_compare_quiet(op1, op2, status);
+  check_exceptionsSSE(get_exception_flags(status));
+  BX_CPU_THIS_PTR write_eflags_fpu_compare(rc);
+#endif
+}
+
+// sse_pfp.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::UCOMISS_VssWssR(bxInstruction_c *i)
+{
+#if BX_CPU_LEVEL >= 6
+  float32 op1 = BX_READ_XMM_REG_LO_DWORD(i->dst()), op2 = BX_READ_XMM_REG_LO_DWORD(i->src());
+
+  float_status_t status = mxcsr_to_softfloat_status_word(MXCSR);
+  softfloat_status_word_rc_override(status, i);
+  int rc = float32_compare_quiet(op1, op2, status);
   check_exceptionsSSE(get_exception_flags(status));
   BX_CPU_THIS_PTR write_eflags_fpu_compare(rc);
 #endif
