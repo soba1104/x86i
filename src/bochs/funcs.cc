@@ -1018,39 +1018,6 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::HADDPD_VpdWpdR(bxInstruction_c *i)
 #endif
 }
 
-// fpu/fpu_load_store.cc
-float_status_t i387cw_to_softfloat_status_word(Bit16u control_word);
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::FLD_DOUBLE_REAL(bxInstruction_c *i)
-{
-  BX_CPU_THIS_PTR prepareFPU(i);
-
-  RMAddr(i) = BX_CPU_RESOLVE_ADDR(i);
-  float64 load_reg = read_virtual_qword(i->seg(), RMAddr(i));
-
-  FPU_update_last_instruction(i);
-
-  clear_C1();
-
-  if (! IS_TAG_EMPTY(-1)) {
-    FPU_stack_overflow();
-    BX_NEXT_INSTR(i);
-  }
-
-  float_status_t status =
-    i387cw_to_softfloat_status_word(BX_CPU_THIS_PTR the_i387.get_control_word());
-
-  // convert to floatx80 format
-  floatx80 result = float64_to_floatx80(load_reg, status);
-
-  unsigned unmasked = FPU_exception(status.float_exception_flags);
-  if (! (unmasked & FPU_CW_Invalid)) {
-    BX_CPU_THIS_PTR the_i387.FPU_push();
-    BX_WRITE_FPU_REG(result, 0);
-  }
-
-  BX_NEXT_INSTR(i);
-}
-
 // xsave.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
 {
