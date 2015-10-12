@@ -39,6 +39,7 @@ SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/fpu/ferr.cc
                   bochs/fpu/fpatan.cc
                   bochs/fpu/fprem.cc
+                  bochs/fpu/fpu.cc
                   bochs/fpu/fpu_const.cc
                   bochs/fpu/fpu_trans.cc
                   bochs/fpu/fsincos.cc

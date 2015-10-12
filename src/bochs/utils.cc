@@ -937,35 +937,6 @@ float_status_t i387cw_to_softfloat_status_word(Bit16u control_word)
   return status;
 }
 
-void BX_CPU_C::prepareFPU(bxInstruction_c *i, bx_bool check_pending_exceptions)
-{
-  if (BX_CPU_THIS_PTR cr0.get_EM() || BX_CPU_THIS_PTR cr0.get_TS())
-    exception(BX_NM_EXCEPTION, 0);
-
-  if (check_pending_exceptions)
-    BX_CPU_THIS_PTR FPU_check_pending_exceptions();
-}
-
-void BX_CPU_C::FPU_check_pending_exceptions(void)
-{
-  if(BX_CPU_THIS_PTR the_i387.get_partial_status() & FPU_SW_Summary)
-  {
-    assert(false);
-  }
-}
-
-void BX_CPU_C::FPU_update_last_instruction(bxInstruction_c *i)
-{
-  BX_CPU_THIS_PTR the_i387.foo = i->foo();
-  BX_CPU_THIS_PTR the_i387.fcs = BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].selector.value;
-  BX_CPU_THIS_PTR the_i387.fip = BX_CPU_THIS_PTR prev_rip;
-
-  if (! i->modC0()) {
-     BX_CPU_THIS_PTR the_i387.fds = BX_CPU_THIS_PTR sregs[i->seg()].selector.value;
-     BX_CPU_THIS_PTR the_i387.fdp = RMAddr(i);
-  }
-}
-
 // xsave 関連
 bx_bool BX_CPU_C::xsave_x87_state_xinuse(void)
 {

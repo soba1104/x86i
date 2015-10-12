@@ -4217,6 +4217,11 @@ public: // for now...
   BX_SMF int fetchDecode64(const Bit8u *fetchPtr, Bit32u fetchModeMask, bxInstruction_c *i, unsigned remainingInPage) BX_CPP_AttrRegparmN(3);
   BX_SMF Bit16u WalkOpcodeTables(const BxOpcodeInfo_t *op, Bit16u &attr, unsigned modrm, unsigned sse_prefix, unsigned osize, unsigned vex_vl, bx_bool vex_w);
 
+  BX_SMF BX_CPP_INLINE bx_bool is_cpu_extension_supported(unsigned extension) {
+    assert(extension < BX_ISA_EXTENSION_LAST);
+    return BX_CPU_THIS_PTR ia_extensions_bitmask[extension / 32] & (1 << (extension % 32));
+  }
+
   // The linear address must be truncated to the 32-bit when CPU is not
   // executing in long64 mode.  The function  must  be used  to compute
   // linear address everywhere when a code is shared between long64 and
@@ -4366,12 +4371,21 @@ public: // for now...
   BX_SMF Bit64u  pop_64(void);
 #endif
 
+#if BX_SUPPORT_FPU
+  BX_SMF void print_state_FPU(void);
   BX_SMF void prepareFPU(bxInstruction_c *i, bx_bool = 1);
   BX_SMF void FPU_check_pending_exceptions(void);
   BX_SMF void FPU_update_last_instruction(bxInstruction_c *i);
-  BX_SMF void FPU_stack_overflow(void);
   BX_SMF void FPU_stack_underflow(int stnr, int pop_stack = 0);
+  BX_SMF void FPU_stack_overflow(void);
   BX_SMF unsigned FPU_exception(unsigned exception, bx_bool = 0);
+  BX_SMF bx_address fpu_save_environment(bxInstruction_c *i);
+  BX_SMF bx_address fpu_load_environment(bxInstruction_c *i);
+  BX_SMF Bit8u pack_FPU_TW(Bit16u tag_word);
+  BX_SMF Bit16u unpack_FPU_TW(Bit16u tag_byte);
+  BX_SMF Bit16u x87_get_FCS(void);
+  BX_SMF Bit16u x87_get_FDS(void);
+#endif
 
   BX_SMF void repeat(bxInstruction_c *i, BxRepIterationPtr_tR execute) BX_CPP_AttrRegparmN(2);
 
