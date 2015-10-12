@@ -905,6 +905,18 @@ void BX_CPU_C::prepareFPU(bxInstruction_c *i, bx_bool check_pending_exceptions)
   }
 }
 
+void BX_CPU_C::FPU_update_last_instruction(bxInstruction_c *i)
+{
+  BX_CPU_THIS_PTR the_i387.foo = i->foo();
+  BX_CPU_THIS_PTR the_i387.fcs = BX_CPU_THIS_PTR sregs[BX_SEG_REG_CS].selector.value;
+  BX_CPU_THIS_PTR the_i387.fip = BX_CPU_THIS_PTR prev_rip;
+
+  if (! i->modC0()) {
+     BX_CPU_THIS_PTR the_i387.fds = BX_CPU_THIS_PTR sregs[i->seg()].selector.value;
+     BX_CPU_THIS_PTR the_i387.fdp = RMAddr(i);
+  }
+}
+
 // xsave 関連
 bx_bool BX_CPU_C::xsave_x87_state_xinuse(void)
 {

@@ -4360,6 +4360,7 @@ public: // for now...
 #endif
 
   BX_SMF void prepareFPU(bxInstruction_c *i, bx_bool = 1);
+  BX_SMF void FPU_update_last_instruction(bxInstruction_c *i);
 
   BX_SMF void repeat(bxInstruction_c *i, BxRepIterationPtr_tR execute) BX_CPP_AttrRegparmN(2);
 
