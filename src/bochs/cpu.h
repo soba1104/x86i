@@ -4367,6 +4367,7 @@ public: // for now...
 #endif
 
   BX_SMF void prepareFPU(bxInstruction_c *i, bx_bool = 1);
+  BX_SMF void FPU_check_pending_exceptions(void);
   BX_SMF void FPU_update_last_instruction(bxInstruction_c *i);
   BX_SMF void FPU_stack_overflow(void);
   BX_SMF unsigned FPU_exception(unsigned exception, bx_bool = 0);

@@ -899,13 +899,54 @@ void BX_CPP_AttrRegparmN(2) BX_CPU_C::repeat(bxInstruction_c *i, BxRepIterationP
 
 #include "fpu/softfloat-specialize.h"
 
-void BX_CPU_C::prepareFPU(bxInstruction_c *i, bx_bool check_pending_exceptions)
+float_status_t i387cw_to_softfloat_status_word(Bit16u control_word)
 {
-  if (BX_CPU_THIS_PTR cr0.get_EM() || BX_CPU_THIS_PTR cr0.get_TS()) {
-    assert(false);
+  float_status_t status;
+
+  int precision = control_word & FPU_CW_PC;
+
+  switch(precision)
+  {
+     case FPU_PR_32_BITS:
+       status.float_rounding_precision = 32;
+       break;
+     case FPU_PR_64_BITS:
+       status.float_rounding_precision = 64;
+       break;
+     case FPU_PR_80_BITS:
+       status.float_rounding_precision = 80;
+       break;
+     default:
+    /* With the precision control bits set to 01 "(reserved)", a
+       real CPU behaves as if the precision control bits were
+       set to 11 "80 bits" */
+       status.float_rounding_precision = 80;
   }
 
-  if (check_pending_exceptions) {
+  status.float_exception_flags = 0; // clear exceptions before execution
+  status.float_nan_handling_mode = float_first_operand_nan;
+  status.float_rounding_mode = (control_word & FPU_CW_RC) >> 10;
+  status.flush_underflow_to_zero = 0;
+  status.float_suppress_exception = 0;
+  status.float_exception_masks = control_word & FPU_CW_Exceptions_Mask;
+  status.denormals_are_zeros = 0;
+
+  return status;
+}
+
+void BX_CPU_C::prepareFPU(bxInstruction_c *i, bx_bool check_pending_exceptions)
+{
+  if (BX_CPU_THIS_PTR cr0.get_EM() || BX_CPU_THIS_PTR cr0.get_TS())
+    exception(BX_NM_EXCEPTION, 0);
+
+  if (check_pending_exceptions)
+    BX_CPU_THIS_PTR FPU_check_pending_exceptions();
+}
+
+void BX_CPU_C::FPU_check_pending_exceptions(void)
+{
+  if(BX_CPU_THIS_PTR the_i387.get_partial_status() & FPU_SW_Summary)
+  {
     assert(false);
   }
 }

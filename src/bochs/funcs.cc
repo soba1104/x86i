@@ -1032,6 +1032,7 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::HADDPD_VpdWpdR(bxInstruction_c *i)
 }
 
 // fpu/fpu_load_store.cc
+float_status_t i387cw_to_softfloat_status_word(Bit16u control_word);
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::FLD_DOUBLE_REAL(bxInstruction_c *i)
 {
   BX_CPU_THIS_PTR prepareFPU(i);
