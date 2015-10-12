@@ -903,45 +903,6 @@ void BX_CPP_AttrRegparmN(2) BX_CPU_C::repeat(bxInstruction_c *i, BxRepIterationP
   assert(false);
 }
 
-// fpu 関連
-
-#include "fpu/softfloat-specialize.h"
-
-float_status_t i387cw_to_softfloat_status_word(Bit16u control_word)
-{
-  float_status_t status;
-
-  int precision = control_word & FPU_CW_PC;
-
-  switch(precision)
-  {
-     case FPU_PR_32_BITS:
-       status.float_rounding_precision = 32;
-       break;
-     case FPU_PR_64_BITS:
-       status.float_rounding_precision = 64;
-       break;
-     case FPU_PR_80_BITS:
-       status.float_rounding_precision = 80;
-       break;
-     default:
-    /* With the precision control bits set to 01 "(reserved)", a
-       real CPU behaves as if the precision control bits were
-       set to 11 "80 bits" */
-       status.float_rounding_precision = 80;
-  }
-
-  status.float_exception_flags = 0; // clear exceptions before execution
-  status.float_nan_handling_mode = float_first_operand_nan;
-  status.float_rounding_mode = (control_word & FPU_CW_RC) >> 10;
-  status.flush_underflow_to_zero = 0;
-  status.float_suppress_exception = 0;
-  status.float_exception_masks = control_word & FPU_CW_Exceptions_Mask;
-  status.denormals_are_zeros = 0;
-
-  return status;
-}
-
 // xsave 関連
 bx_bool BX_CPU_C::xsave_x87_state_xinuse(void)
 {

@@ -42,6 +42,7 @@ defined_funcs = [
                  'avx/avx_cvt.cc',
                  'avx/avx_pfp.cc',
                  'fpu/fpu.cc',
+                 'fpu/fpu_arith.cc',
                  'fpu/fpu_const.cc',
                  'fpu/fpu_load_store.cc',
                  'fpu/fpu_trans.cc',
@@ -89,6 +90,8 @@ File.read(ia_opcodes).lines.each do |line|
   dummy, fun1, fun2, rest = line.split(', ')
   raise fun1 unless fun1 =~ /&BX_CPU_C/ or fun1 =~ /NULL/
   raise fun2 unless fun2 =~ /&BX_CPU_C/ or fun2 =~ /NULL/
+  fun1 = fun1.strip
+  fun2 = fun2.strip
   [fun1, fun2].each do |fun|
     next if fun =~ /NULL/
     fun = fun.gsub('&', '')
