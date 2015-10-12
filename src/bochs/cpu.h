@@ -1096,6 +1096,15 @@ public: // for now...
 
   /* Control registers */
   bx_cr0_t   cr0;
+  //bx_address cr2;
+  //bx_address cr3;
+#if BX_CPU_LEVEL >= 5
+  bx_cr4_t   cr4;
+  //Bit32u cr4_suppmask;
+
+  //bx_efer_t efer;
+  //Bit32u efer_suppmask;
+#endif
 
 #if BX_CPU_LEVEL >= 6
   xcr0_t xcr0;
@@ -4435,6 +4444,26 @@ public: // for now...
   void set_gs_base(uint64_t base);
   void clear_cf();
 };
+
+#if BX_CPU_LEVEL >= 5
+BX_CPP_INLINE void BX_CPU_C::prepareMMX(void)
+{
+  if(BX_CPU_THIS_PTR cr0.get_EM())
+    exception(BX_UD_EXCEPTION, 0);
+
+  if(BX_CPU_THIS_PTR cr0.get_TS())
+    exception(BX_NM_EXCEPTION, 0);
+
+  /* check floating point status word for a pending FPU exceptions */
+  FPU_check_pending_exceptions();
+}
+
+BX_CPP_INLINE void BX_CPU_C::prepareFPU2MMX(void)
+{
+  BX_CPU_THIS_PTR the_i387.twd = 0;
+  BX_CPU_THIS_PTR the_i387.tos = 0; /* reset FPU Top-Of-Stack */
+}
+#endif
 
 // Can be used as LHS or RHS.
 #define RMAddr(i)  (BX_CPU_THIS_PTR address_xlation.rm_addr)

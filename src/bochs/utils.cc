@@ -150,6 +150,11 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
   BX_CPU_THIS_PTR cr0.set32(0xe0000011);
 
 //init.cc:reset から持ってきたもの
+#if BX_CPU_LEVEL >= 5
+  BX_CPU_THIS_PTR cr4.set32(0);
+  //BX_CPU_THIS_PTR cr4_suppmask = get_cr4_allow_mask();
+#endif
+
 #if BX_CPU_LEVEL >= 6
   BX_CPU_THIS_PTR xcr0.set32(0x1);
   BX_CPU_THIS_PTR xcr0_suppmask = 0x3;
@@ -966,37 +971,6 @@ bx_bool BX_CPU_C::xsave_sse_state_xinuse(void)
   }
 
   return BX_FALSE;
-}
-
-void BX_CPU_C::check_exceptionsSSE(int exceptions_flags)
-{
-  exceptions_flags &= MXCSR_EXCEPTIONS;
-  int unmasked = ~(MXCSR.get_exceptions_masks()) & exceptions_flags;
-  // unmasked pre-computational exception detected (#IA, #DE or #DZ)
-  if (unmasked & 0x7) exceptions_flags &= 0x7;
-  MXCSR.set_exceptions(exceptions_flags);
-
-  if (unmasked)
-  {
-    assert(false);
-  }
-}
-
-float_status_t mxcsr_to_softfloat_status_word(bx_mxcsr_t mxcsr)
-{
-  float_status_t status;
-
-  status.float_exception_flags = 0; // clear exceptions before execution
-  status.float_nan_handling_mode = float_first_operand_nan;
-  status.float_rounding_mode = mxcsr.get_rounding_mode();
-  // if underflow is masked and FUZ is 1, set it to 1, else to 0
-  status.flush_underflow_to_zero =
-       (mxcsr.get_flush_masked_underflow() && mxcsr.get_UM()) ? 1 : 0;
-  status.float_exception_masks = mxcsr.get_exceptions_masks();
-  status.float_suppress_exception = 0;
-  status.denormals_are_zeros = mxcsr.get_DAZ();
-
-  return status;
 }
 
 void BX_CPU_C::write_eflags_fpu_compare(int float_relation)
