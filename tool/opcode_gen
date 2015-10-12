@@ -14,6 +14,7 @@ defined_funcs = [
                  'arith32.cc',
                  'arith64.cc',
                  'bit.cc',
+                 'bit16.cc',
                  'bit32.cc',
                  'bit64.cc',
                  'bmi64.cc',
