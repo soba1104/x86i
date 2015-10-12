@@ -196,6 +196,9 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
       BX_CPU_THIS_PTR mxcsr_mask |= MXCSR_MISALIGNED_EXCEPTION_MASK;
   //}
 #endif
+
+  // その他、必要だとわかった初期化処理
+  BX_CPU_THIS_PTR the_i387.init(); // reset 後に呼び出すこと。
 }
 
 BX_CPU_C::~BX_CPU_C()
