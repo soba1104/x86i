@@ -112,6 +112,7 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
 
   rmw_addr = 0;
   alignment_check_mask = 0;
+  prev_rip = 0;
 
   memset(gen_reg, 0, sizeof(gen_reg));
   memset(&address_xlation, 0, sizeof(address_xlation));
@@ -212,6 +213,7 @@ int BX_CPU_C::decode64(void *insn) {
 void BX_CPU_C::step(void *insn) {
   bxInstruction_c *i = (bxInstruction_c*)insn;
   BX_CPU_CALL_METHOD(i->execute1, (i));
+  BX_CPU_THIS_PTR prev_rip = RIP;
 }
 
 void BX_CPU_C::set_stack(void *stack)

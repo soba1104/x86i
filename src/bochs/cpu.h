@@ -1084,6 +1084,13 @@ public: // for now...
   // lazy arithmetic flags state
   bx_lf_flags_entry oszapc;
 
+  // so that we can back up when handling faults, exceptions, etc.
+  // we need to store the value of the instruction pointer, before
+  // each fetch/execute cycle.
+  bx_address prev_rip;
+  //bx_address prev_rsp;
+  //bx_bool    speculative_rsp;
+
   /* user segment register set */
   bx_segment_reg_t  sregs[6];
 
