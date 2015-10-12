@@ -4370,6 +4370,7 @@ public: // for now...
   BX_SMF void FPU_check_pending_exceptions(void);
   BX_SMF void FPU_update_last_instruction(bxInstruction_c *i);
   BX_SMF void FPU_stack_overflow(void);
+  BX_SMF void FPU_stack_underflow(int stnr, int pop_stack = 0);
   BX_SMF unsigned FPU_exception(unsigned exception, bx_bool = 0);
 
   BX_SMF void repeat(bxInstruction_c *i, BxRepIterationPtr_tR execute) BX_CPP_AttrRegparmN(2);
