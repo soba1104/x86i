@@ -4347,8 +4347,6 @@ public: // for now...
 
   BX_SMF void write_eflags_fpu_compare(int float_relation);
 
-  BX_SMF void check_exceptionsSSE(int);
-
   BX_SMF Bit32u get_xinuse_vector(Bit32u requested_feature_bitmap);
 
   BX_SMF bx_bool xsave_x87_state_xinuse(void);
@@ -4385,6 +4383,20 @@ public: // for now...
   BX_SMF Bit16u unpack_FPU_TW(Bit16u tag_byte);
   BX_SMF Bit16u x87_get_FCS(void);
   BX_SMF Bit16u x87_get_FDS(void);
+#endif
+
+#if BX_CPU_LEVEL >= 5
+  BX_SMF void prepareMMX(void);
+  BX_SMF void prepareFPU2MMX(void); /* cause transition from FPU to MMX technology state */
+  BX_SMF void print_state_MMX(void);
+#endif
+
+#if BX_CPU_LEVEL >= 6
+  BX_SMF void check_exceptionsSSE(int);
+  BX_SMF void print_state_SSE(void);
+
+  BX_SMF void prepareXSAVE(void);
+  BX_SMF void print_state_AVX(void);
 #endif
 
   BX_SMF void repeat(bxInstruction_c *i, BxRepIterationPtr_tR execute) BX_CPP_AttrRegparmN(2);

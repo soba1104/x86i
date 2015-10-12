@@ -33,10 +33,12 @@ SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/shift32.cc
                   bochs/shift64.cc
                   bochs/sse.cc
+                  bochs/sse_rcp.cc
                   bochs/avx/avx.cc
                   bochs/avx/avx2.cc
                   bochs/avx/avx512_move.cc
                   bochs/avx/avx_cvt.cc
+                  bochs/avx/avx_pfp.cc
                   bochs/fpu/f2xm1.cc
                   bochs/fpu/ferr.cc
                   bochs/fpu/fpatan.cc

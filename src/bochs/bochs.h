@@ -35,6 +35,7 @@
 #undef BX_SUPPORT_HANDLERS_CHAINING_SPEEDUPS
 #include <assert.h>
 #define BX_INFO(...)
+#define BX_DEBUG(...)
 #define BX_ERROR(...)
 #define BX_PANIC(...) assert(false)
 #define BX_ASSERT(cond) assert(cond)
