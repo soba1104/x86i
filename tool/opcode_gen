@@ -37,6 +37,7 @@ defined_funcs = [
                  'avx/avx.cc',
                  'avx/avx2.cc',
                  'avx/avx512_move.cc',
+                 'avx/avx_cvt.cc',
                  'fpu/fpu.cc',
                  'fpu/fpu_const.cc',
                  'fpu/fpu_load_store.cc',

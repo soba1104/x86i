@@ -36,6 +36,7 @@ SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/avx/avx.cc
                   bochs/avx/avx2.cc
                   bochs/avx/avx512_move.cc
+                  bochs/avx/avx_cvt.cc
                   bochs/fpu/f2xm1.cc
                   bochs/fpu/ferr.cc
                   bochs/fpu/fpatan.cc
@@ -48,6 +49,7 @@ SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/fpu/fyl2x.cc
                   bochs/fpu/poly.cc
                   bochs/fpu/softfloat.cc
+                  bochs/fpu/softfloat16.cc
                   bochs/fpu/softfloatx80.cc
                   bochs/fpu/softfloat-muladd.cc
                   bochs/fpu/softfloat-round-pack.cc
