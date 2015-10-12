@@ -919,6 +919,22 @@ void BX_CPU_C::FPU_update_last_instruction(bxInstruction_c *i)
   }
 }
 
+void BX_CPU_C::FPU_stack_overflow(void)
+{
+  /* The masked response */
+  if (BX_CPU_THIS_PTR the_i387.is_IA_masked())
+  {
+    BX_CPU_THIS_PTR the_i387.FPU_push();
+    BX_WRITE_FPU_REG(floatx80_default_nan, 0);
+  }
+  FPU_exception(FPU_EX_Stack_Overflow);
+}
+
+unsigned BX_CPU_C::FPU_exception(unsigned exception, bx_bool is_store)
+{
+  assert(false);
+}
+
 // xsave 関連
 bx_bool BX_CPU_C::xsave_x87_state_xinuse(void)
 {

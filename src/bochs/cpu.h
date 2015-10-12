@@ -4368,6 +4368,8 @@ public: // for now...
 
   BX_SMF void prepareFPU(bxInstruction_c *i, bx_bool = 1);
   BX_SMF void FPU_update_last_instruction(bxInstruction_c *i);
+  BX_SMF void FPU_stack_overflow(void);
+  BX_SMF unsigned FPU_exception(unsigned exception, bx_bool = 0);
 
   BX_SMF void repeat(bxInstruction_c *i, BxRepIterationPtr_tR execute) BX_CPP_AttrRegparmN(2);
 
