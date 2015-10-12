@@ -35,8 +35,17 @@ SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/avx/avx.cc
                   bochs/avx/avx2.cc
                   bochs/avx/avx512_move.cc
+                  bochs/fpu/f2xm1.cc
                   bochs/fpu/ferr.cc
+                  bochs/fpu/fpatan.cc
+                  bochs/fpu/fprem.cc
+                  bochs/fpu/fpu_const.cc
+                  bochs/fpu/fpu_trans.cc
+                  bochs/fpu/fsincos.cc
+                  bochs/fpu/fyl2x.cc
+                  bochs/fpu/poly.cc
                   bochs/fpu/softfloat.cc
+                  bochs/fpu/softfloatx80.cc
                   bochs/fpu/softfloat-muladd.cc
                   bochs/fpu/softfloat-round-pack.cc
                   bochs/fpu/softfloat-specialize.cc
@@ -65,7 +74,9 @@ SET(BOCHS_HEADERS bochs/bochs.h
                   bochs/fetchdecode_xop.h
                   bochs/fetchdecode_avx.h
                   bochs/fpu/control_w.h
+                  bochs/fpu/fpu_constant.h
                   bochs/fpu/softfloat.h
+                  bochs/fpu/softfloatx80.h
                   bochs/fpu/softfloat-compare.h
                   bochs/fpu/softfloat-macros.h
                   bochs/fpu/softfloat-round-pack.h
