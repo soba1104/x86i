@@ -896,6 +896,9 @@ void BX_CPP_AttrRegparmN(2) BX_CPU_C::repeat(bxInstruction_c *i, BxRepIterationP
 }
 
 // fpu 関連
+
+#include "fpu/softfloat-specialize.h"
+
 void BX_CPU_C::prepareFPU(bxInstruction_c *i, bx_bool check_pending_exceptions)
 {
   if (BX_CPU_THIS_PTR cr0.get_EM() || BX_CPU_THIS_PTR cr0.get_TS()) {
