@@ -34,6 +34,7 @@ defined_funcs = [
                  'shift32.cc',
                  'shift64.cc',
                  'sse.cc',
+                 'sse_move.cc',
                  'sse_pfp.cc',
                  'sse_rcp.cc',
                  'avx/avx.cc',

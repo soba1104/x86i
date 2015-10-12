@@ -1102,7 +1102,7 @@ public: // for now...
   bx_cr4_t   cr4;
   //Bit32u cr4_suppmask;
 
-  //bx_efer_t efer;
+  bx_efer_t efer;
   //Bit32u efer_suppmask;
 #endif
 
@@ -4243,7 +4243,12 @@ public: // for now...
   BX_SMF Bit64u get_laddr64(unsigned seg, Bit64u offset);
 #endif
 
+#if BX_CPU_LEVEL >= 4
+  BX_SMF void handleAlignmentCheck(void);
+#endif
+
   BX_SMF BX_CPP_INLINE bx_bool protected_mode(void);
+  BX_SMF BX_CPP_INLINE bx_bool long_mode(void);
   BX_SMF BX_CPP_INLINE bx_bool long64_mode(void);
 
   DECLARE_EFLAG_ACCESSOR   (ID,  21)
@@ -4266,6 +4271,10 @@ public: // for now...
   BX_SMF void avx_masked_store16(bxInstruction_c *i, bx_address eaddr, const BxPackedAvxRegister *op, Bit32u mask);
   BX_SMF void avx_masked_store32(bxInstruction_c *i, bx_address eaddr, const BxPackedAvxRegister *op, Bit32u mask);
   BX_SMF void avx_masked_store64(bxInstruction_c *i, bx_address eaddr, const BxPackedAvxRegister *op, Bit32u mask);
+
+  BX_SMF void writeEFlags(Bit32u eflags, Bit32u changeMask) BX_CPP_AttrRegparmN(2); // Newer variant.
+  BX_SMF Bit32u force_flags(void);
+  BX_SMF Bit32u read_eflags(void) { return BX_CPU_THIS_PTR force_flags(); }
 
   BX_SMF bx_address agen_read(unsigned seg, bx_address offset, unsigned len);
   BX_SMF Bit32u agen_read32(unsigned seg, Bit32u offset, unsigned len);
@@ -4520,6 +4529,15 @@ BX_CPP_INLINE Bit32u BX_CPP_AttrRegparmN(1) BX_CPU_C::BxResolve32(bxInstruction_
 BX_CPP_INLINE bx_bool BX_CPU_C::protected_mode(void)
 {
   return (BX_CPU_THIS_PTR cpu_mode >= BX_MODE_IA32_PROTECTED);
+}
+
+BX_CPP_INLINE bx_bool BX_CPU_C::long_mode(void)
+{
+#if BX_SUPPORT_X86_64
+  return BX_CPU_THIS_PTR efer.get_LMA();
+#else
+  return 0;
+#endif
 }
 
 BX_CPP_INLINE bx_bool BX_CPU_C::long64_mode(void)

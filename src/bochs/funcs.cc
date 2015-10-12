@@ -161,6 +161,51 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CLD(bxInstruction_c *i)
   BX_CPU_THIS_PTR clear_DF();
 }
 
+// flag_ctrl.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PUSHF_Fq(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SVM
+  if (BX_CPU_THIS_PTR in_svm_guest) {
+    if (SVM_INTERCEPT(SVM_INTERCEPT0_PUSHF)) Svm_Vmexit(SVM_VMEXIT_PUSHF);
+  }
+#endif
+
+  // VM & RF flags cleared in image stored on the stack
+  push_64(read_eflags() & 0x00fcffff);
+
+  BX_NEXT_INSTR(i);
+}
+
+// flag_ctrl.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::POPF_Fq(bxInstruction_c *i)
+{
+#if BX_SUPPORT_SVM
+  if (BX_CPU_THIS_PTR in_svm_guest) {
+    if (SVM_INTERCEPT(SVM_INTERCEPT0_POPF)) Svm_Vmexit(SVM_VMEXIT_POPF);
+  }
+#endif
+
+  // Build a mask of the following bits:
+  // ID,VIP,VIF,AC,VM,RF,x,NT,IOPL,OF,DF,IF,TF,SF,ZF,x,AF,x,PF,x,CF
+  Bit32u changeMask = EFlagsOSZAPCMask | EFlagsTFMask | EFlagsDFMask
+                        | EFlagsNTMask | EFlagsRFMask | EFlagsACMask
+                        | EFlagsIDMask;
+
+  BX_ASSERT (protected_mode());
+
+  Bit32u eflags32 = (Bit32u) pop_64();
+
+  if (CPL==0)
+    changeMask |= EFlagsIOPLMask;
+  if (CPL <= BX_CPU_THIS_PTR get_IOPL())
+    changeMask |= EFlagsIFMask;
+
+  // VIF, VIP, VM are unaffected
+  writeEFlags(eflags32, changeMask);
+
+  BX_NEXT_INSTR(i);
+}
+
 // ctrl_xfer64.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::CALL_Jq(bxInstruction_c *i)
 {
@@ -554,195 +599,6 @@ void BX_CPP_AttrRegparmN(1) BX_CPU_C::STOSB64_YbAL(bxInstruction_c *i)
   RDI = rdi;
 }
 #endif
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVAPS_VpsWpsM(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-  read_virtual_xmmword_aligned(i->seg(), eaddr, &BX_XMM_REG(i->dst()));
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVAPS_WpsVpsM(bxInstruction_c *i)
-{
-/* MOVAPS:     0F 29 */
-/* MOVNTPS:    0F 2B */
-/* MOVNTPD: 66 0F 2B */
-/* MOVNTDQ: 66 0F E7 */
-#if BX_CPU_LEVEL >= 6
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-  write_virtual_xmmword_aligned(i->seg(), eaddr, &BX_XMM_REG(i->src()));
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVAPS_VpsWpsR(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  BX_WRITE_XMM_REG(i->dst(), BX_READ_XMM_REG(i->src()));
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVUPS_VpsWpsM(bxInstruction_c *i)
-{
-/* MOVUPS:    0F 10 */
-/* MOVUPD: 66 0F 10 */
-/* MOVDQU: F3 0F 6F */
-/* LDDQU:  F2 0F F0 */
-#if BX_CPU_LEVEL >= 6
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-  read_virtual_xmmword(i->seg(), eaddr, &BX_XMM_REG(i->dst()));
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVUPS_WpsVpsM(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-  write_virtual_xmmword(i->seg(), eaddr, &BX_XMM_REG(i->src()));
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSS_VssWssR(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  /* If the source operand is an XMM register, the high-order
-          96 bits of the destination XMM register are not modified. */
-  BX_WRITE_XMM_REG_LO_DWORD(i->dst(), BX_READ_XMM_REG_LO_DWORD(i->src()));
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSS_VssWssM(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  BxPackedXmmRegister op;
-
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-
-  /* If the source operand is a memory location, the high-order
-          96 bits of the destination XMM register are cleared to 0s */
-  op.xmm64u(0) = (Bit64u) read_virtual_dword(i->seg(), eaddr);
-  op.xmm64u(1) = 0;
-
-  BX_WRITE_XMM_REGZ(i->dst(), op, i->getVL());
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSS_WssVssM(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-  write_virtual_dword(i->seg(), eaddr, BX_READ_XMM_REG_LO_DWORD(i->src()));
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVDDUP_VpdWqR(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  xmm_pbroadcastq(&BX_XMM_REG(i->dst()), BX_READ_XMM_REG_LO_QWORD(i->src()));
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PMOVMSKB_GdUdq(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  Bit32u mask = xmm_pmovmskb(&BX_XMM_REG(i->src()));
-  BX_WRITE_32BIT_REGZ(i->dst(), mask);
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PALIGNR_VdqWdqIbR(bxInstruction_c *i)
-{
-  BxPackedXmmRegister op1 = BX_READ_XMM_REG(i->dst()), op2 = BX_READ_XMM_REG(i->src());
-  xmm_palignr(&op2, &op1, i->Ib());
-  BX_WRITE_XMM_REG(i->dst(), op2);
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVD_VdqEdR(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  BxPackedXmmRegister op;
-  op.xmm64u(0) = (Bit64u) BX_READ_32BIT_REG(i->src());
-  op.xmm64u(1) = 0;
-
-  BX_WRITE_XMM_REGZ(i->dst(), op, i->getVL());
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVD_EdVdR(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  BX_WRITE_32BIT_REGZ(i->dst(), BX_READ_XMM_REG_LO_DWORD(i->src()));
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVQ_VdqEqR(bxInstruction_c *i)
-{
-  BxPackedXmmRegister op;
-  op.xmm64u(0) = BX_READ_64BIT_REG(i->src());
-  op.xmm64u(1) = 0;
-
-  BX_WRITE_XMM_REGZ(i->dst(), op, i->getVL());
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVQ_EqVqR(bxInstruction_c *i)
-{
-  BX_WRITE_64BIT_REG(i->dst(), BX_READ_XMM_REG_LO_QWORD(i->src()));
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSD_WsdVsdM(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-  write_virtual_qword(i->seg(), eaddr, BX_XMM_REG_LO_QWORD(i->src()));
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSD_VsdWsdR(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  /* If the source operand is an XMM register, the high-order
-          64 bits of the destination XMM register are not modified. */
-  BX_WRITE_XMM_REG_LO_QWORD(i->dst(), BX_READ_XMM_REG_LO_QWORD(i->src()));
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSD_VsdWsdM(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  BxPackedXmmRegister op;
-  bx_address eaddr = BX_CPU_RESOLVE_ADDR(i);
-  op.xmm64u(0) = read_virtual_qword(i->seg(), eaddr);
-  op.xmm64u(1) = 0; /* zero-extension to 128 bit */
-
-  BX_WRITE_XMM_REGZ(i->dst(), op, i->getVL());
-#endif
-}
-
-// sse_move.cc
-BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVHLPS_VpsWpsR(bxInstruction_c *i)
-{
-#if BX_CPU_LEVEL >= 6
-  BX_WRITE_XMM_REG_LO_QWORD(i->dst(), BX_READ_XMM_REG_HI_QWORD(i->src()));
-#endif
-}
 
 // xsave.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::XSAVE(bxInstruction_c *i)
