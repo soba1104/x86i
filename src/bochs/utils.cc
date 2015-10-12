@@ -114,6 +114,7 @@ BX_CPU_C::BX_CPU_C(unsigned id): bx_cpuid(id)
   alignment_check_mask = 0;
 
   memset(gen_reg, 0, sizeof(gen_reg));
+  memset(&address_xlation, 0, sizeof(address_xlation));
 
   BX_CPU_THIS_PTR cpu_mode = BX_MODE_LONG_64; // FIXME
 

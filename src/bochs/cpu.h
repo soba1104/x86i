@@ -1147,6 +1147,26 @@ public: // for now...
 
   unsigned alignment_check_mask;
 
+  struct {
+    bx_address rm_addr;       // The address offset after resolution
+    //bx_phy_address paddress1; // physical address after translation of 1st len1 bytes of data
+    //bx_phy_address paddress2; // physical address after translation of 2nd len2 bytes of data
+    //Bit32u len1;              // Number of bytes in page 1
+    //Bit32u len2;              // Number of bytes in page 2
+    //bx_ptr_equiv_t pages;     // Number of pages access spans (1 or 2).  Also used
+                              //// for the case when a native host pointer is
+                              //// available for the R-M-W instructions.  The host
+                              //// pointer is stuffed here.  Since this field has
+                              //// to be checked anyways (and thus cached), if it
+                              //// is greated than 2 (the maximum possible for
+                              //// normal cases) it is a native pointer and is used
+                              //// for a direct write access.
+//#if BX_SUPPORT_MEMTYPE
+    //BxMemtype memtype1;       // memory type of the page 1
+    //BxMemtype memtype2;       // memory type of the page 2
+//#endif
+  } address_xlation;
+
   BX_SMF void setEFlags(Bit32u val) BX_CPP_AttrRegparmN(1);
 
   BX_SMF BX_CPP_INLINE void setEFlagsOSZAPC(Bit32u flags32) {
