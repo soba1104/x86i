@@ -934,32 +934,6 @@ bx_bool BX_CPU_C::xsave_sse_state_xinuse(void)
   return BX_FALSE;
 }
 
-void BX_CPU_C::write_eflags_fpu_compare(int float_relation)
-{
-  switch(float_relation) {
-   case float_relation_unordered:
-      setEFlagsOSZAPC(EFlagsZFMask | EFlagsPFMask | EFlagsCFMask);
-      break;
-
-   case float_relation_greater:
-      clearEFlagsOSZAPC();
-      break;
-
-   case float_relation_less:
-      clearEFlagsOSZAPC();
-      assert_CF();
-      break;
-
-   case float_relation_equal:
-      clearEFlagsOSZAPC();
-      assert_ZF();
-      break;
-
-   default:
-      BX_PANIC(("write_eflags: unknown floating point compare relation"));
-  }
-}
-
 Bit32u BX_CPU_C::get_xinuse_vector(Bit32u requested_feature_bitmap)
 {
   Bit32u xinuse = 0;

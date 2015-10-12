@@ -43,8 +43,10 @@ defined_funcs = [
                  'avx/avx_pfp.cc',
                  'fpu/fpu.cc',
                  'fpu/fpu_arith.cc',
+                 'fpu/fpu_compare.cc',
                  'fpu/fpu_const.cc',
                  'fpu/fpu_load_store.cc',
+                 'fpu/fpu_misc.cc',
                  'fpu/fpu_trans.cc',
                 ].map{|n| File.join([bochs, n])}
 defined_funcs.each do |p|
