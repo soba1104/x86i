@@ -41,6 +41,7 @@ defined_funcs = [
                  'avx/avx2.cc',
                  'avx/avx512_move.cc',
                  'avx/avx_cvt.cc',
+                 'avx/avx_fma.cc',
                  'avx/avx_pfp.cc',
                  'fpu/fpu.cc',
                  'fpu/fpu_arith.cc',
@@ -74,12 +75,9 @@ defined_funcs.each do |p|
     when /^BX_INSF_TYPE/
       raise line unless /(BX_CPU_C::\w+)\(/ =~ line
       funcs[$1] = true
-    when /^SSE_/
-      raise line unless /SSE_\w+\((\w+), \w+\)/ =~ line
-      f = "BX_CPU_C::#{$1}"
-      funcs[f] = true
-    when /^AVX_/
-      raise line unless /AVX_\w+\((\w+), \w+\)/ =~ line
+    when /^(SSE_)/, /^(AVX_)/, /^(AVX2_)/, /^(FMA4_)/
+      m = $1
+      raise line unless /#{m}\w+\((\w+), \w+\)/ =~ line
       f = "BX_CPU_C::#{$1}"
       funcs[f] = true
     end

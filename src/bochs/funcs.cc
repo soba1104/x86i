@@ -39,6 +39,16 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::NOP(bxInstruction_c *i)
 }
 
 // proc_ctrl.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PREFETCH(bxInstruction_c *i)
+{
+#if BX_INSTRUMENTATION
+  BX_INSTR_PREFETCH_HINT(BX_CPU_ID, i->src(), i->seg(), BX_CPU_RESOLVE_ADDR(i));
+#endif
+
+  BX_NEXT_INSTR(i);
+}
+
+// proc_ctrl.cc
 BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::PAUSE(bxInstruction_c *i)
 {
 #if BX_SUPPORT_VMX
@@ -273,6 +283,15 @@ BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JMP_Jq(bxInstruction_c *i)
 #endif
 
   RIP = new_RIP;
+}
+
+// ctrl_xfer64.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::JNP_Jq(bxInstruction_c *i)
+{
+  if (! get_PF()) {
+    branch_near64(i);
+  }
+  BX_NEXT_INSTR(i); // trace can continue over non-taken branch
 }
 
 // ctrl_xfer64.cc
