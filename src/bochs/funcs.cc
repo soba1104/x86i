@@ -600,6 +600,130 @@ void BX_CPP_AttrRegparmN(1) BX_CPU_C::STOSB32_YbAL(bxInstruction_c *i)
   RDI = edi;
 }
 
+// string.cc
+BX_INSF_TYPE BX_CPP_AttrRegparmN(1) BX_CPU_C::REP_MOVSD_YdXd(bxInstruction_c *i)
+{
+#if BX_SUPPORT_X86_64
+  if (i->as64L())
+    BX_CPU_THIS_PTR repeat(i, &BX_CPU_C::MOVSD64_YdXd);
+  else
+#endif
+  if (i->as32L()) {
+    BX_CPU_THIS_PTR repeat(i, &BX_CPU_C::MOVSD32_YdXd);
+    BX_CLEAR_64BIT_HIGH(BX_64BIT_REG_RSI); // always clear upper part of RSI/RDI
+    BX_CLEAR_64BIT_HIGH(BX_64BIT_REG_RDI);
+  }
+  else {
+    BX_CPU_THIS_PTR repeat(i, &BX_CPU_C::MOVSD16_YdXd);
+  }
+
+  BX_NEXT_INSTR(i);
+}
+
+// string.cc
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSD64_YdXd(bxInstruction_c *i)
+{
+  Bit32u temp32;
+
+  Bit64u rsi = RSI;
+  Bit64u rdi = RDI;
+
+  temp32 = read_linear_dword(i->seg(), get_laddr64(i->seg(), rsi));
+  write_linear_dword(BX_SEG_REG_ES, rdi, temp32);
+
+  if (BX_CPU_THIS_PTR get_DF()) {
+    rsi -= 4;
+    rdi -= 4;
+  }
+  else {
+    rsi += 4;
+    rdi += 4;
+  }
+
+  RSI = rsi;
+  RDI = rdi;
+}
+
+// string.cc
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSD32_YdXd(bxInstruction_c *i)
+{
+  Bit32u temp32;
+
+  Bit32u incr = 4;
+
+  Bit32u esi = ESI;
+  Bit32u edi = EDI;
+
+#if (BX_SUPPORT_REPEAT_SPEEDUPS) && (BX_DEBUGGER == 0)
+  /* If conditions are right, we can transfer IO to physical memory
+   * in a batch, rather than one instruction at a time.
+   */
+  if (i->repUsedL() && !BX_CPU_THIS_PTR async_event)
+  {
+    Bit32u dwordCount = FastRepMOVSD(i, i->seg(), esi, BX_SEG_REG_ES, edi, ECX);
+    if (dwordCount) {
+      // Decrement the ticks count by the number of iterations, minus
+      // one, since the main cpu loop will decrement one.  Also,
+      // the count is predecremented before examined, so defintely
+      // don't roll it under zero.
+      BX_TICKN(dwordCount-1);
+
+      // Decrement eCX. Note, the main loop will decrement 1 also, so
+      // decrement by one less than expected, like the case above.
+      RCX = ECX - (dwordCount-1);
+
+      incr = dwordCount << 2; // count * 4
+    }
+    else {
+      temp32 = read_virtual_dword(i->seg(), esi);
+      write_virtual_dword(BX_SEG_REG_ES, edi, temp32);
+    }
+  }
+  else
+#endif
+  {
+    temp32 = read_virtual_dword(i->seg(), esi);
+    write_virtual_dword(BX_SEG_REG_ES, edi, temp32);
+  }
+
+  if (BX_CPU_THIS_PTR get_DF()) {
+    esi -= incr;
+    edi -= incr;
+  }
+  else {
+    esi += incr;
+    edi += incr;
+  }
+
+  // zero extension of RSI/RDI
+  RSI = esi;
+  RDI = edi;
+}
+
+// string.cc
+void BX_CPP_AttrRegparmN(1) BX_CPU_C::MOVSD16_YdXd(bxInstruction_c *i)
+{
+  Bit32u temp32;
+
+  Bit16u si = SI;
+  Bit16u di = DI;
+
+  temp32 = read_virtual_dword_32(i->seg(), si);
+  write_virtual_dword_32(BX_SEG_REG_ES, di, temp32);
+
+  if (BX_CPU_THIS_PTR get_DF()) {
+    si -= 4;
+    di -= 4;
+  }
+  else {
+    si += 4;
+    di += 4;
+  }
+
+  SI = si;
+  DI = di;
+}
+
 #if BX_SUPPORT_X86_64
 // 64 bit address size
 void BX_CPP_AttrRegparmN(1) BX_CPU_C::STOSB64_YbAL(bxInstruction_c *i)

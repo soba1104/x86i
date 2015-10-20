@@ -42,6 +42,7 @@ SET(BOCHS_SOURCES bochs/fetchdecode64.cc
                   bochs/avx/avx_cvt.cc
                   bochs/avx/avx_fma.cc
                   bochs/avx/avx_pfp.cc
+                  bochs/fpu_emu.cc
                   bochs/fpu/f2xm1.cc
                   bochs/fpu/ferr.cc
                   bochs/fpu/fpatan.cc

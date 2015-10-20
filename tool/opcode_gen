@@ -43,6 +43,7 @@ defined_funcs = [
                  'avx/avx_cvt.cc',
                  'avx/avx_fma.cc',
                  'avx/avx_pfp.cc',
+                 'fpu_emu.cc',
                  'fpu/fpu.cc',
                  'fpu/fpu_arith.cc',
                  'fpu/fpu_compare.cc',
